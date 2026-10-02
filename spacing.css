@@ -1,0 +1,9 @@
+:root{
+--space-xs:8px;--space-sm:12px;--space-md:16px;--space-lg:22px;--space-xl:28px;--space-2xl:44px;--space-3xl:64px;
+--border-width:0.5px;
+--radius-sm:1px;--radius-md:2px;
+--card-padding:20px 22px;
+--grid-gap:16px;
+--input-height:44px;
+--shadow-none:none;
+}

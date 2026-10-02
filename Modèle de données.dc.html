@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#FAF6EE">
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<rect width="120" height="120" fill="#FAF6EE"/>
+<text x="60" y="50" font-family="Georgia,serif" font-size="15" fill="#3A3830" text-anchor="middle">Modèle</text>
+<text x="60" y="70" font-family="Georgia,serif" font-size="15" fill="#3A3830" text-anchor="middle">de</text>
+<text x="60" y="90" font-family="Georgia,serif" font-size="15" fill="#C4A882" text-anchor="middle">données</text>
+</svg>
+</template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/colors.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/typography.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/styles.css">
+<script src="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/_ds_bundle.js"></script>
+<style>
+doc-page:not(:defined){visibility:hidden}
+a{color:var(--olive);text-decoration:none}
+a:hover{color:var(--slate)}
+.kept{break-inside:avoid;orphans:3;widows:3}
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+
+<doc-page margin="0.85in">
+
+<div style="font-family:var(--font-sans);font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Holisanna · handoff technique</div>
+
+<h1 style="font-family:var(--font-serif);font-weight:300;font-size:38px;line-height:1.15;color:var(--slate);margin:0 0 16px">Modèle de données</h1>
+
+<p style="font-family:var(--font-sans);font-size:14.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 10px">Schéma des tables, champs et relations nécessaires pour faire fonctionner les écrans maquettés : recherche, réservation, espace explorateur et espace praticien. Document destiné au développement backend.</p>
+
+<p style="font-family:var(--font-sans);font-size:12px;line-height:1.7;color:var(--slate-lt);margin:0 0 34px;padding-bottom:22px;border-bottom:0.5px solid var(--border)">Version du 4 septembre 2026 · établi à partir du prototype HTML (données factices)</p>
+
+<h2 style="font-family:var(--font-serif);font-weight:400;font-size:24px;color:var(--slate);margin:0 0 14px">Principes retenus</h2>
+
+<ul style="font-family:var(--font-sans);font-size:14px;font-weight:300;line-height:1.75;color:var(--slate-md);margin:0 0 18px;padding-left:20px">
+<li style="margin-bottom:9px"><strong style="font-weight:500;color:var(--slate)">Aucune donnée de santé.</strong> Rien de ce qui se dit en séance n'entre en base : ni motif de consultation, ni antécédent, ni note de suivi. La page Confidentialité l'engage explicitement.</li>
+<li style="margin-bottom:9px"><strong style="font-weight:500;color:var(--slate)">Aucun paiement de séance.</strong> Les séances se règlent sur place, directement au praticien. La plateforme n'encaisse que l'abonnement praticien : un seul flux monétaire à gérer.</li>
+<li style="margin-bottom:9px"><strong style="font-weight:500;color:var(--slate)">Facturation isolée des profils.</strong> Les comptes s'effacent trois mois après suppression, les pièces comptables se conservent dix ans. Les factures vivent donc dans une table indépendante, sans dépendance de suppression en cascade.</li>
+<li style="margin-bottom:9px"><strong style="font-weight:500;color:var(--slate)">Suppression logique.</strong> Chaque table porte <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:var(--ivory-2);padding:1px 5px">deleted_at</code> : un praticien dépublié doit garder ses réservations passées lisibles côté explorateur.</li>
+</ul>
+
+<h2 style="font-family:var(--font-serif);font-weight:400;font-size:24px;color:var(--slate);margin:32px 0 14px;padding-top:6px;border-top:0.5px solid var(--border)">Tables</h2>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:26px 0 12px">1 · utilisateur</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Un compte par rôle : un e-mail donné n'est associé qu'à un seul utilisateur, explorateur ou praticien. Une personne qui veut être les deux crée deux comptes avec deux adresses distinctes.</p>
+<table style="width:100%;border-collapse:collapse;font-family:var(--font-sans);margin-bottom:8px">
+<thead>
+<tr>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px 8px 0;border-bottom:0.5px solid var(--slate-lt)">Champ</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px;border-bottom:0.5px solid var(--slate-lt);width:150px">Type</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 0 8px 10px;border-bottom:0.5px solid var(--slate-lt)">Note</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">id</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">clé primaire</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">email</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text, unique</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">identifiant de connexion, un seul rôle possible</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">role</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">explorateur · praticien, fixé à la création</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">nom_complet</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">affiché dans l'en-tête et la messagerie</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">telephone</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text, nullable</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">jamais public côté explorateur</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">fournisseur_auth</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">email · google · apple</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">cgu_acceptees_le</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">timestamptz</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">preuve d'acceptation, version incluse</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">cree_le · deleted_at</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">timestamptz</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">purge des données de compte à J+90</td></tr>
+</tbody>
+</table>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:30px 0 12px">2 · profil_explorateur</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Alimente l'onboarding en trois étapes et les recommandations « pour votre cocktail ». Ces préférences orientent le classement, elles ne filtrent jamais les résultats.</p>
+<table style="width:100%;border-collapse:collapse;font-family:var(--font-sans);margin-bottom:8px">
+<thead>
+<tr>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px 8px 0;border-bottom:0.5px solid var(--slate-lt)">Champ</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px;border-bottom:0.5px solid var(--slate-lt);width:150px">Type</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 0 8px 10px;border-bottom:0.5px solid var(--slate-lt)">Note</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">utilisateur_id</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">clé primaire et étrangère</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">ville · date_naissance</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text · date</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">écran Mon profil</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">piliers_prefs</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum[]</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">corps · ame · esprit — onboarding étape 1</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">disciplines_prefs</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid[]</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">étape 2</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">modes_prefs · rythme</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum[] · enum</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">étape 3</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">budget_max</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">int, nullable</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">en euros, filtre par défaut</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">opt_in_marketing</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">boolean</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">faux par défaut, consentement explicite</td></tr>
+</tbody>
+</table>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:30px 0 12px">3 · profil_praticien</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">La fiche publique. Le pourcentage de complétude affiché dans l'espace praticien se calcule sur les champs non nuls de cette table, sans le stocker.</p>
+<table style="width:100%;border-collapse:collapse;font-family:var(--font-sans);margin-bottom:8px">
+<thead>
+<tr>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px 8px 0;border-bottom:0.5px solid var(--slate-lt)">Champ</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px;border-bottom:0.5px solid var(--slate-lt);width:150px">Type</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 0 8px 10px;border-bottom:0.5px solid var(--slate-lt)">Note</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">utilisateur_id</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">clé primaire et étrangère</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">slug</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text, unique</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">URL de la fiche publique</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">discipline_principale_id</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">sert au classement dans la recherche</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">presentation · parcours</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">texte libre, propriété du praticien</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">adresse · ville · code_postal</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">public dès qu'un mode « au cabinet » existe</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">latitude · longitude</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">numeric</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">géocodées à l'enregistrement, tri par distance</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">langues · modes_seance</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum[]</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">cabinet · visio · domicile</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">photo_url · photos_cabinet</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text · text[]</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">stockage objet, pas en base</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">charte_signee_le</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">timestamptz</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">version de la charte incluse — obligatoire</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">rc_pro_assureur · rc_pro_echeance</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">text · date</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">déclaratif ; relance avant échéance</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">statut_publication</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">brouillon · en_ligne · depublie</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">vues_fiche_30j</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">int</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">compteur agrégé, sans identifiant visiteur</td></tr>
+</tbody>
+</table>
+
+<div class="kept" style="background:var(--olive-bg);border:0.5px solid var(--olive);padding:18px 20px;margin:22px 0 8px">
+<div style="font-family:var(--font-serif);font-size:17px;color:var(--slate);margin-bottom:8px">Disciplines complémentaires</div>
+<p style="font-family:var(--font-sans);font-size:13px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0">Table de liaison <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:var(--white);padding:1px 5px">praticien_discipline</code> (praticien_id, discipline_id, principale boolean). Les 21 disciplines et leurs 3 piliers vivent dans une table <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:var(--white);padding:1px 5px">discipline</code> de référence — jamais en texte libre, sinon la recherche par discipline devient impossible à tenir.</p>
+</div>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:30px 0 12px">4 · prestation</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Ce que le praticien propose : nom, durée, tarif, mode. Le champ <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:var(--ivory-2);padding:1px 5px">masquee</code> permet de retirer une prestation de la fiche sans la supprimer, comme dans l'écran Mes prestations. Le tarif ne se modifie jamais en place : versionner, pour que les réservations passées gardent le prix annoncé.</p>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:26px 0 12px">5 · creneau</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Un créneau ouvert par un praticien : début, fin, mode, statut (libre · reserve · bloque). Contrainte d'exclusion sur le chevauchement horaire d'un même praticien, sinon deux explorateurs peuvent réserver la même heure. Prévoir un modèle de récurrence hebdomadaire pour l'écran « ouvrir des créneaux » — le praticien ne saisira pas ses semaines une par une.</p>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:26px 0 12px">6 · reservation</h3>
+<table style="width:100%;border-collapse:collapse;font-family:var(--font-sans);margin-bottom:8px">
+<thead>
+<tr>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px 8px 0;border-bottom:0.5px solid var(--slate-lt)">Champ</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px;border-bottom:0.5px solid var(--slate-lt);width:150px">Type</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 0 8px 10px;border-bottom:0.5px solid var(--slate-lt)">Note</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">explorateur_id · praticien_id</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">index sur les deux</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">creneau_id · prestation_id</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">uuid</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">creneau_id unique : une réservation par créneau</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">prix_annonce</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">int</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">copié à la réservation, jamais recalculé</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">statut</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">enum</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">confirmee · honoree · annulee_explorateur · annulee_praticien · absente</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">annulable_jusqu_au</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">timestamptz</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">début moins 24 h — calculé et stocké</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">annulee_le · motif_annulation</td><td style="font-size:12.5px;color:var(--slate-md);padding:9px 10px;border-bottom:0.5px solid var(--border)">timestamptz · text</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">motif facultatif, jamais public</td></tr>
+</tbody>
+</table>
+<p style="font-family:var(--font-sans);font-size:13px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 4px">Aucun champ de paiement : la séance se règle sur place et la facture est émise par le praticien, hors plateforme.</p>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:30px 0 12px">7 · avis</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Rattaché à une <em>réservation</em>, pas à un praticien : c'est ce qui garantit qu'un avis porte sur une séance réellement suivie. Un avis par réservation. Champs : note (1–5), texte, publie_le, reponse_praticien, reponse_le, signale_le. La note moyenne et le nombre d'avis affichés partout se calculent en vue matérialisée, rafraîchie à la publication.</p>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:26px 0 12px">8 · conversation et message</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Une conversation par couple explorateur-praticien (contrainte d'unicité), et des messages horodatés avec <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:var(--ivory-2);padding:1px 5px">lu_le</code> par destinataire — le point rose des écrans messagerie en dépend. Le contenu des messages est de la donnée personnelle sensible en pratique : chiffrement au repos, et exclusion des exports analytiques.</p>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:26px 0 12px">9 · abonnement et facture</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Abonnement : praticien_id, formule (fil_continu 9,99 € engagement annuel · fil_libre 11,99 € sans engagement), statut (essai · actif · impaye · resilie), fin_essai, prochain_prelevement, moyen (carte · sepa), identifiant chez le prestataire de paiement. Aucune donnée bancaire en base : seul le jeton du prestataire.</p>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">Facture : table indépendante, numérotation séquentielle sans trou, montant TTC, PDF archivé, conservation dix ans. Elle survit à la suppression du compte — dénormaliser le nom et l'adresse de facturation à l'émission plutôt que de les lire dans le profil.</p>
+
+<h3 style="font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin:26px 0 12px">10 · notification</h3>
+<p style="font-family:var(--font-sans);font-size:13.5px;font-weight:300;line-height:1.7;color:var(--slate-md);margin:0 0 12px">destinataire_id, type (reservation · annulation · avis · message · facturation · recommandation), objet lié, lu_le, canaux envoyés. Les notifications de service partent toujours ; les recommandations dépendent de <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:var(--ivory-2);padding:1px 5px">opt_in_marketing</code>.</p>
+
+<h2 style="font-family:var(--font-serif);font-weight:400;font-size:24px;color:var(--slate);margin:34px 0 14px;padding-top:6px;border-top:0.5px solid var(--border)">Relations</h2>
+<ul style="font-family:var(--font-sans);font-size:14px;font-weight:300;line-height:1.75;color:var(--slate-md);margin:0 0 18px;padding-left:20px">
+<li style="margin-bottom:7px">utilisateur (role=explorateur) → profil_explorateur (1..1) ; utilisateur (role=praticien) → profil_praticien (1..1)</li>
+<li style="margin-bottom:7px">profil_praticien → prestation (1..n), creneau (1..n), praticien_discipline (1..n)</li>
+<li style="margin-bottom:7px">reservation → un creneau (1..1), une prestation, un explorateur, un praticien</li>
+<li style="margin-bottom:7px">avis → une reservation (1..1)</li>
+<li style="margin-bottom:7px">conversation → un explorateur + un praticien → message (1..n)</li>
+<li style="margin-bottom:7px">profil_praticien → abonnement (1..1) → facture (1..n, indépendante à la suppression)</li>
+</ul>
+
+<h2 style="font-family:var(--font-serif);font-weight:400;font-size:24px;color:var(--slate);margin:32px 0 14px;padding-top:6px;border-top:0.5px solid var(--border)">Correspondance écran par écran</h2>
+<table style="width:100%;border-collapse:collapse;font-family:var(--font-sans)">
+<thead>
+<tr>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 10px 8px 0;border-bottom:0.5px solid var(--slate-lt);width:38%">Écran</th>
+<th style="text-align:left;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:8px 0 8px 10px;border-bottom:0.5px solid var(--slate-lt)">Tables lues ou écrites</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Recherche et résultats</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">profil_praticien, praticien_discipline, prestation, creneau, avis (agrégat)</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Fiche praticien</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">profil_praticien, prestation, creneau, avis</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Réservation, 3 étapes</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">écrit reservation, met creneau à reserve, écrit notification</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Connexion et onboarding</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">écrit utilisateur puis profil_explorateur</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Mon Cocktail</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">reservation statut honoree, jointe à discipline pour les piliers</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Mes rendez-vous · Mes avis</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">reservation, avis</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Messagerie</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">conversation, message</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Tableau de bord praticien</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">reservation, creneau, avis, vues_fiche_30j</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Agenda · ouvrir des créneaux</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">creneau (écriture en lot, récurrence)</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Modifier ma fiche · prestations</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">profil_praticien, praticien_discipline, prestation</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Abonnement et factures</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">abonnement, facture</td></tr>
+<tr><td style="font-size:13px;color:var(--slate);padding:9px 10px 9px 0;border-bottom:0.5px solid var(--border)">Notifications</td><td style="font-size:12.5px;font-weight:300;color:var(--slate-md);padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border)">notification</td></tr>
+</tbody>
+</table>
+
+<h2 style="font-family:var(--font-serif);font-weight:400;font-size:24px;color:var(--slate);margin:34px 0 14px;padding-top:6px;border-top:0.5px solid var(--border)">Accès et rétention</h2>
+<ul style="font-family:var(--font-sans);font-size:14px;font-weight:300;line-height:1.75;color:var(--slate-md);margin:0 0 18px;padding-left:20px">
+<li style="margin-bottom:9px">Sécurité au niveau des lignes : un explorateur ne lit que ses réservations, ses avis et ses conversations ; un praticien ne lit que les réservations le concernant. La fiche publique et les avis publiés sont les seules données lisibles sans compte.</li>
+<li style="margin-bottom:9px">Compte supprimé : effacement des données de profil à J+90, réservations passées anonymisées côté praticien (prénom seul), factures conservées dix ans.</li>
+<li style="margin-bottom:9px">Export de portabilité : profil, réservations, avis et messages de la personne, en JSON, sur demande à contact@holisanna.fr.</li>
+<li style="margin-bottom:9px">Journal d'audit sur les changements de statut de réservation et de publication de fiche — utile en cas de signalement instruit sous sept jours.</li>
+</ul>
+
+<p style="font-family:var(--font-sans);font-size:12px;font-weight:300;line-height:1.7;color:var(--slate-lt);margin:26px 0 0;padding-top:16px;border-top:0.5px solid var(--border)">Le prototype ne contient aucune de ces tables : ses données sont écrites dans la page à titre d'illustration. Ce document décrit ce qu'il faut construire pour que les écrans fonctionnent réellement.</p>
+
+</doc-page>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/colors.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/typography.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/styles.css">
+<script src="_ds/holisanna-design-system-0df725ad-a09d-4c83-b3fb-6c34aec6cb89/_ds_bundle.js"></script>
+<style>
+html,body{margin:0;padding:0}
+body{background:var(--ivory-2);font-family:var(--font-sans);color:var(--slate-md);-webkit-font-smoothing:antialiased}
+a{color:var(--olive);text-decoration:none}
+a:hover{color:var(--slate)}
+*{box-sizing:border-box}
+button{font-family:var(--font-sans)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes drawerIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--ivory-2);padding:40px 32px 64px">
+<div style="max-width:1080px;margin:0 auto">
+
+<div style="margin-bottom:32px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Holisanna · mobile</div>
+<h1 style="font-family:var(--font-serif);font-weight:300;font-size:38px;line-height:1.15;color:var(--slate);margin:0 0 14px">Les écrans mobiles</h1>
+<p style="font-size:13.5px;font-weight:300;line-height:1.8;color:var(--slate-md);margin:0;max-width:620px;text-wrap:pretty">Menu hamburger sur la partie publique, barre d'onglets en bas dans les espaces connectés, filtres en panneau plein écran sur la recherche. Le téléphone est interactif : naviguez comme dans l'application.</p>
+</div>
+
+<div style="display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start">
+
+<div style="flex:none">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+
+<div style="min-height:100%;background:var(--ivory);position:relative;display:flex;flex-direction:column">
+
+<sc-if value="{{ isPublic }}" hint-placeholder-val="{{ true }}">
+<div style="position:sticky;top:0;z-index:20;background:var(--ivory);border-bottom:0.5px solid var(--border);padding:56px 18px 12px;display:flex;align-items:center;gap:12px">
+<button onClick="{{ openDrawer }}" style="background:none;border:none;padding:8px;margin-left:-8px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--slate)" stroke-width="1.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+</button>
+<div style="flex:1;min-width:0;text-align:center">
+<div style="font-family:var(--font-serif);font-size:16px;letter-spacing:0.06em;color:var(--slate)">HOLISANNA</div>
+<div style="font-family:var(--font-serif);font-style:italic;font-size:10px;color:var(--slate-lt)">Fil Web to Feel Well</div>
+</div>
+<button onClick="{{ goSpace }}" style="background:none;border:none;padding:8px;margin-right:-8px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">
+<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--slate)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
+</button>
+</div>
+</sc-if>
+
+<div style="flex:1;min-width:0">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="padding:26px 18px 34px;text-align:center;border-bottom:0.5px solid var(--border)">
+<img src="assets/logo-holisanna-mark.png" alt="" style="width:88px;height:88px;object-fit:contain;margin-bottom:18px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--olive);margin-bottom:14px">21 disciplines · 3 piliers</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:32px;line-height:1.15;color:var(--slate);margin:0 0 14px">Composer votre<br>Cocktail bien-être</h2>
+<p style="font-family:var(--font-serif);font-style:italic;font-size:15px;line-height:1.6;color:var(--slate-md);margin:0 0 22px;text-wrap:pretty">Prendre soin de soi, des autres et du monde.</p>
+<div style="display:flex;flex-direction:column;gap:9px;text-align:left;margin-bottom:16px">
+<input placeholder="Ville" style="height:48px;border:0.5px solid var(--border);border-radius:2px;padding:0 14px;font-family:var(--font-sans);font-size:14px;color:var(--slate);background:var(--white);outline:none;width:100%">
+<input placeholder="Discipline ou besoin" style="height:48px;border:0.5px solid var(--border);border-radius:2px;padding:0 14px;font-family:var(--font-sans);font-size:14px;color:var(--slate);background:var(--white);outline:none;width:100%">
+<button onClick="{{ goSearch }}" style="height:50px;background:var(--rose);color:#fff;border:none;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.07em;cursor:pointer;width:100%" style-hover="background:var(--rose-lt)">TROUVER UN PRATICIEN</button>
+</div>
+</div>
+<div style="padding:26px 18px 34px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:14px">Les trois piliers</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:30px">
+<sc-for list="{{ pillarCards }}" as="pc" hint-placeholder-count="3">
+<button onClick="{{ goSearch }}" style="background:{{ pc.bg }};border:0.5px solid {{ pc.border }};padding:18px 20px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px">
+<span style="font-family:var(--font-serif);font-size:20px;color:{{ pc.color }}">{{ pc.name }}</span>
+<span style="font-size:12px;font-weight:300;line-height:1.6;color:var(--slate-md)">{{ pc.desc }}</span>
+</button>
+</sc-for>
+</div>
+<div style="background:var(--slate);padding:26px 22px;text-align:center">
+<img src="assets/logo-dreamcatcher-ivory.png" alt="" style="width:56px;height:56px;object-fit:contain;opacity:0.85;margin-bottom:14px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:rgba(250,246,238,0.5);margin-bottom:12px">Espace praticien</div>
+<h3 style="font-family:var(--font-serif);font-weight:300;font-size:24px;line-height:1.25;color:var(--ivory);margin:0 0 12px;text-wrap:pretty">Votre agenda, sans commission.</h3>
+<p style="font-size:12.5px;font-weight:300;line-height:1.75;color:rgba(250,246,238,0.66);margin:0 0 18px">Fil Continu 9,99 € / mois, ou Fil Libre 11,99 € sans engagement.</p>
+<button onClick="{{ goPro }}" style="width:100%;height:46px;background:var(--rose);color:#fff;border:none;font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.07em;cursor:pointer" style-hover="background:var(--rose-lt)">DEVENIR PRATICIEN</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+<div style="padding:16px 18px 12px;border-bottom:0.5px solid var(--border);background:var(--white)">
+<div style="display:flex;gap:10px;align-items:center;height:46px;border:0.5px solid var(--border);padding:0 14px;background:var(--ivory)">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--slate-lt)" stroke-width="1.5" style="flex:none"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+<span style="font-size:13px;color:var(--slate)">Paris · toutes disciplines</span>
+</div>
+</div>
+<div style="padding:14px 18px 100px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+<span style="font-size:12px;color:var(--slate-md)">{{ resultCount }} praticiens</span>
+<span style="font-size:11.5px;color:var(--slate-lt)">Trié par pertinence</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="4">
+<div onClick="{{ goProfile }}" style="background:var(--white);border:0.5px solid var(--border);padding:16px;cursor:pointer" style-hover="border-color:var(--olive)">
+<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px">
+<div style="width:54px;height:54px;flex:none;background:{{ r.bg }};display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:18px;color:{{ r.color }}">{{ r.initials }}</div>
+<div style="flex:1;min-width:0">
+<div style="font-family:var(--font-serif);font-size:18px;color:var(--slate);line-height:1.25">{{ r.name }}</div>
+<div style="font-size:11.5px;font-weight:300;color:var(--slate-md);margin-top:4px">{{ r.disc }} · {{ r.city }}</div>
+<div style="font-size:11px;color:var(--gold);margin-top:5px">★ {{ r.rating }} · {{ r.reviews }} avis</div>
+</div>
+<div style="flex:none;text-align:right">
+<div style="font-family:var(--font-serif);font-size:19px;color:var(--slate)">{{ r.price }}</div>
+<div style="font-size:10px;color:var(--slate-lt);margin-top:2px">sur place</div>
+</div>
+</div>
+<div style="display:flex;gap:10px;align-items:center;border-top:0.5px solid var(--border);padding-top:12px">
+<span style="flex:1;min-width:0;font-size:11.5px;color:{{ r.availColor }}">{{ r.avail }}</span>
+<button onClick="{{ goBooking }}" style="background:var(--rose);color:#fff;border:none;height:40px;padding:0 18px;font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:0.06em;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:var(--rose-lt)">RÉSERVER</button>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:44px;z-index:25;display:flex;justify-content:center;pointer-events:none">
+<button onClick="{{ openFilters }}" style="pointer-events:auto;background:var(--slate);color:var(--ivory);border:none;height:48px;padding:0 26px;font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.07em;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(58,56,48,0.28)" style-hover="background:#2d2b25">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+FILTRES{{ filterBadge }}
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 0 120px">
+<div style="background:var(--olive-bg);padding:26px 18px;text-align:center;border-bottom:0.5px solid var(--border)">
+<div style="width:88px;height:88px;margin:0 auto 14px;background:var(--white);border:0.5px solid var(--olive);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:28px;color:var(--olive)">NB</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:27px;color:var(--slate);margin:0 0 6px">Naïma Belkacem</h2>
+<div style="font-size:12.5px;font-weight:300;color:var(--slate-md);margin-bottom:10px">Naturopathie · Paris 11e</div>
+<div style="font-size:12px;color:var(--gold)">★ 4,9 · 96 avis</div>
+</div>
+<div style="padding:22px 18px">
+<p style="font-size:13.5px;font-weight:300;line-height:1.85;color:var(--slate-md);margin:0 0 20px;text-wrap:pretty">Bilan de terrain, alimentation et sommeil. Je travaille sur des cycles de trois séances, sans complément à vendre.</p>
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border);margin-bottom:22px">
+<sc-for list="{{ profileRows }}" as="pr" hint-placeholder-count="4">
+<div style="background:var(--white);padding:14px 16px;display:flex;gap:14px;align-items:baseline">
+<span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);width:96px;flex:none">{{ pr.k }}</span>
+<span style="font-size:13px;font-weight:300;color:var(--slate);flex:1;min-width:0">{{ pr.v }}</span>
+</div>
+</sc-for>
+</div>
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:12px">Prochaines disponibilités</div>
+<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px">
+<sc-for list="{{ slotChips }}" as="sc" hint-placeholder-count="5">
+<button onClick="{{ goBooking }}" style="background:var(--white);border:0.5px solid var(--border);padding:12px 14px;cursor:pointer;flex:none;text-align:center;min-width:76px" style-hover="border-color:var(--rose)">
+<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:5px">{{ sc.day }}</div>
+<div style="font-size:14px;color:var(--slate)">{{ sc.time }}</div>
+</button>
+</sc-for>
+</div>
+</div>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:25;background:var(--white);border-top:0.5px solid var(--border);padding:14px 18px 44px;display:flex;gap:12px;align-items:center">
+<div style="flex:1;min-width:0">
+<div style="font-family:var(--font-serif);font-size:20px;color:var(--slate)">85 €</div>
+<div style="font-size:10.5px;color:var(--slate-lt)">réglé sur place</div>
+</div>
+<button onClick="{{ goBooking }}" style="flex:none;background:var(--rose);color:#fff;border:none;height:50px;padding:0 26px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.07em;cursor:pointer;white-space:nowrap" style-hover="background:var(--rose-lt)">RÉSERVER</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBooking }}" hint-placeholder-val="{{ false }}">
+<div style="padding:20px 18px 40px">
+<div style="display:flex;gap:6px;margin-bottom:22px">
+<sc-for list="{{ bookSteps }}" as="bs" hint-placeholder-count="3">
+<div style="flex:1;display:flex;flex-direction:column;gap:7px">
+<div style="height:3px;background:{{ bs.bg }}"></div>
+<span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:{{ bs.color }}">{{ bs.label }}</span>
+</div>
+</sc-for>
+</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:26px;color:var(--slate);margin:0 0 8px">Confirmer la séance</h2>
+<p style="font-size:13px;font-weight:300;line-height:1.8;color:var(--slate-md);margin:0 0 22px;text-wrap:pretty">Vous réglez directement Naïma le jour du rendez-vous. Rien à payer maintenant.</p>
+<div style="background:var(--white);border:0.5px solid var(--border);margin-bottom:16px">
+<sc-for list="{{ bookRows }}" as="br" hint-placeholder-count="4">
+<div style="padding:14px 16px;border-bottom:0.5px solid var(--border);display:flex;gap:14px;align-items:baseline">
+<span style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);width:88px;flex:none">{{ br.k }}</span>
+<span style="font-size:13px;font-weight:300;color:var(--slate);flex:1;min-width:0">{{ br.v }}</span>
+</div>
+</sc-for>
+<div style="padding:16px;display:flex;justify-content:space-between;align-items:baseline">
+<span style="font-size:12px;color:var(--slate-lt)">À régler le jour de la séance</span>
+<span style="font-family:var(--font-serif);font-size:22px;color:var(--slate)">85 €</span>
+</div>
+</div>
+<div style="background:var(--olive-bg);padding:16px;font-size:12px;font-weight:300;line-height:1.7;color:var(--slate-md);margin-bottom:20px">Annulation gratuite jusqu'à 24 h avant le rendez-vous, depuis votre espace.</div>
+<button onClick="{{ confirmBooking }}" style="width:100%;height:52px;background:var(--slate);color:var(--ivory);border:none;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.07em;cursor:pointer;margin-bottom:10px" style-hover="background:#2d2b25">CONFIRMER LA RÉSERVATION</button>
+<button onClick="{{ goProfile }}" style="width:100%;height:48px;background:none;border:0.5px solid var(--border);font-family:var(--font-sans);font-size:11.5px;letter-spacing:0.06em;color:var(--slate-md);cursor:pointer" style-hover="border-color:var(--olive);color:var(--olive)">CHOISIR UN AUTRE CRÉNEAU</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSpace }}" hint-placeholder-val="{{ false }}">
+<div style="padding:56px 18px 110px">
+<div style="background:var(--rose);padding:22px;margin-bottom:20px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:10px">Mon espace</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:26px;line-height:1.2;color:#fff;margin:0 0 6px">Bonjour Sarah,<br><em style="color:rgba(255,255,255,0.8)">votre verre se remplit.</em></h2>
+<p style="font-size:12px;font-weight:300;color:rgba(255,255,255,0.78);margin:0">5 couches · 1 rendez-vous à venir</p>
+</div>
+
+<sc-if value="{{ tabIsHome }}" hint-placeholder-val="{{ true }}">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:12px">Prochain rendez-vous</div>
+<div style="background:var(--white);border:0.5px solid var(--border);padding:18px;margin-bottom:22px">
+<div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+<div style="flex:none;text-align:center;background:var(--rose-bg);border:0.5px solid var(--rose-lt);padding:10px 12px;min-width:60px">
+<div style="font-family:var(--font-serif);font-weight:300;font-size:26px;color:var(--rose);line-height:1">9</div>
+<div style="font-size:8.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--rose-lt);margin-top:2px">Sept.</div>
+</div>
+<div style="flex:1;min-width:0">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--olive);margin-bottom:5px">Mercredi · 14h00</div>
+<div style="font-family:var(--font-serif);font-size:17px;line-height:1.3;color:var(--slate)">Naturopathie avec Naïma Belkacem</div>
+</div>
+</div>
+<div style="display:flex;gap:8px">
+<button onClick="{{ toastMove }}" style="flex:1;height:42px;background:none;border:0.5px solid var(--border);font-family:var(--font-sans);font-size:11px;letter-spacing:0.04em;color:var(--slate-md);cursor:pointer" style-hover="border-color:var(--olive);color:var(--olive)">Déplacer</button>
+<button onClick="{{ toastCancel }}" style="flex:1;height:42px;background:none;border:0.5px solid var(--border);font-family:var(--font-sans);font-size:11px;letter-spacing:0.04em;color:var(--slate-md);cursor:pointer" style-hover="border-color:var(--rose);color:var(--rose)">Annuler</button>
+</div>
+</div>
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:12px">Recommandé pour votre cocktail</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ recos }}" as="rc" hint-placeholder-count="2">
+<button onClick="{{ goProfile }}" style="background:var(--white);border:0.5px solid var(--border);padding:15px 16px;cursor:pointer;text-align:left;display:flex;gap:12px;align-items:center" style-hover="border-color:var(--olive)">
+<div style="width:42px;height:42px;flex:none;background:{{ rc.bg }};display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:15px;color:{{ rc.color }}">{{ rc.initials }}</div>
+<div style="flex:1;min-width:0">
+<div style="font-size:13.5px;color:var(--slate)">{{ rc.name }}</div>
+<div style="font-size:11px;font-weight:300;color:var(--slate-md);margin-top:3px">{{ rc.meta }}</div>
+</div>
+<span style="flex:none;font-size:12px;color:var(--slate-lt)">→</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ tabIsCocktail }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--white);border:0.5px solid var(--border);padding:28px 20px;text-align:center;margin-bottom:18px">
+<div style="width:180px;margin:0 auto 18px">
+<div style="height:120px;border:1px solid var(--ivory-3);border-top:none;border-radius:0 0 90px 90px / 0 0 120px 120px;overflow:hidden;display:flex;flex-direction:column-reverse">
+<sc-for list="{{ layers }}" as="l" hint-placeholder-count="5">
+<div style="height:20px;flex:none;background:{{ l.color }}"></div>
+</sc-for>
+</div>
+<div style="width:100%;height:12px;border-top:1px solid var(--ivory-3)"></div>
+<div style="width:6px;height:58px;background:var(--ivory-3);margin:0 auto"></div>
+<div style="width:82px;height:5px;background:var(--ivory-3);border-radius:2px;margin:0 auto"></div>
+</div>
+<div style="font-family:var(--font-serif);font-size:22px;color:var(--slate)">5 couches</div>
+<div style="font-size:12px;font-weight:300;color:var(--slate-lt);margin-top:6px">Corps · Âme · Esprit</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border)">
+<sc-for list="{{ sessions }}" as="se" hint-placeholder-count="5">
+<div style="background:var(--white);padding:14px 16px;display:flex;gap:12px;align-items:center">
+<span style="width:8px;height:30px;flex:none;background:{{ se.color }}"></span>
+<div style="flex:1;min-width:0">
+<div style="font-size:13px;color:var(--slate)">{{ se.discipline }}</div>
+<div style="font-size:11px;font-weight:300;color:var(--slate-lt);margin-top:3px">{{ se.prat }} · {{ se.date }}</div>
+</div>
+<span style="flex:none;font-size:12.5px;color:var(--slate-md)">{{ se.price }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ tabIsMsg }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border)">
+<sc-for list="{{ convs }}" as="cv" hint-placeholder-count="3">
+<button onClick="{{ openThread }}" style="background:var(--white);border:none;padding:16px;cursor:pointer;text-align:left;display:flex;gap:12px;align-items:flex-start">
+<div style="width:42px;height:42px;flex:none;border-radius:50%;background:var(--ivory-2);color:var(--slate-md);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:15px">{{ cv.initials }}</div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;gap:8px;align-items:baseline">
+<span style="font-size:13.5px;color:var(--slate);font-weight:{{ cv.weight }}">{{ cv.name }}</span>
+<span style="width:6px;height:6px;border-radius:50%;background:{{ cv.dot }};flex:none"></span>
+<span style="font-size:10.5px;color:var(--slate-lt);margin-left:auto;flex:none">{{ cv.time }}</span>
+</div>
+<div style="font-size:11.5px;font-weight:300;line-height:1.55;color:var(--slate-md);margin-top:4px">{{ cv.last }}</div>
+</div>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:30;background:var(--white);border-top:0.5px solid var(--border);padding:8px 6px 30px;display:flex">
+<sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+<button onClick="{{ tb.onClick }}" style="flex:1;background:none;border:none;padding:6px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:{{ tb.color }}">
+<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.d1 }}"></path><path d="{{ tb.d2 }}"></path></svg>
+<span style="font-size:9.5px;letter-spacing:0.03em">{{ tb.label }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPro }}" hint-placeholder-val="{{ false }}">
+<div style="padding:56px 18px 110px">
+<div style="background:var(--slate);padding:22px;margin-bottom:20px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:rgba(250,246,238,0.5);margin-bottom:10px">Espace praticien</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:25px;line-height:1.2;color:var(--ivory);margin:0 0 6px">Bonjour Camille,<br><em style="color:rgba(250,246,238,0.7)">votre semaine est ouverte.</em></h2>
+<p style="font-size:12px;font-weight:300;color:rgba(250,246,238,0.6);margin:0">8 séances réservées · 12 créneaux libres</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px">
+<sc-for list="{{ proStats }}" as="ps" hint-placeholder-count="4">
+<div style="background:var(--white);border:0.5px solid var(--border);padding:15px">
+<div style="font-family:var(--font-serif);font-weight:300;font-size:28px;color:{{ ps.color }};line-height:1;margin-bottom:6px">{{ ps.n }}</div>
+<div style="font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--slate-lt);line-height:1.4">{{ ps.label }}</div>
+</div>
+</sc-for>
+</div>
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:12px">Aujourd'hui</div>
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border);margin-bottom:20px">
+<sc-for list="{{ today }}" as="td" hint-placeholder-count="3">
+<div style="background:var(--white);padding:14px 16px;display:flex;gap:14px;align-items:flex-start">
+<span style="font-size:12px;color:var(--slate-lt);width:44px;flex:none">{{ td.time }}</span>
+<div style="flex:1;min-width:0">
+<div style="font-size:13px;color:var(--slate)">{{ td.client }}</div>
+<div style="font-size:11px;font-weight:300;color:{{ td.color }};margin-top:3px">{{ td.offer }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+<button onClick="{{ toastSlots }}" style="width:100%;height:50px;background:var(--rose);color:#fff;border:none;font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.07em;cursor:pointer" style-hover="background:var(--rose-lt)">OUVRIR DES CRÉNEAUX</button>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:30;background:var(--white);border-top:0.5px solid var(--border);padding:8px 6px 30px;display:flex">
+<sc-for list="{{ proTabs }}" as="tb" hint-placeholder-count="4">
+<button onClick="{{ tb.onClick }}" style="flex:1;background:none;border:none;padding:6px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:{{ tb.color }}">
+<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tb.d1 }}"></path><path d="{{ tb.d2 }}"></path></svg>
+<span style="font-size:9.5px;letter-spacing:0.03em">{{ tb.label }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+<div style="padding:56px 18px 40px;min-height:100%;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;margin-bottom:26px">
+<button onClick="{{ goHome }}" style="background:none;border:none;padding:8px;margin-left:-8px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--slate)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+</button>
+</div>
+<img src="assets/logo-holisanna-mark.png" alt="" style="width:64px;height:64px;object-fit:contain;margin-bottom:20px">
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:29px;line-height:1.18;color:var(--slate);margin:0 0 10px;text-wrap:pretty">{{ authTitle }}</h2>
+<p style="font-size:13px;font-weight:300;line-height:1.75;color:var(--slate-md);margin:0 0 22px;text-wrap:pretty">{{ authLead }}</p>
+<div style="display:flex;margin-bottom:22px;border:0.5px solid var(--border)">
+<sc-for list="{{ authTabs }}" as="at" hint-placeholder-count="2">
+<button onClick="{{ at.onClick }}" style="flex:1;height:44px;background:{{ at.bg }};border:none;cursor:pointer;font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:{{ at.color }}">{{ at.label }}</button>
+</sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+<button onClick="{{ socialGoogle }}" style="height:48px;background:var(--white);border:0.5px solid var(--border);cursor:pointer;font-family:var(--font-sans);font-size:13px;color:var(--slate);display:flex;align-items:center;justify-content:center;gap:10px" style-hover="border-color:var(--olive)">Continuer avec Google</button>
+<button onClick="{{ socialApple }}" style="height:48px;background:var(--white);border:0.5px solid var(--border);cursor:pointer;font-family:var(--font-sans);font-size:13px;color:var(--slate);display:flex;align-items:center;justify-content:center;gap:10px" style-hover="border-color:var(--olive)">Continuer avec Apple</button>
+</div>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+<span style="flex:1;height:0.5px;background:var(--border)"></span>
+<span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--slate-lt)">ou par e-mail</span>
+<span style="flex:1;height:0.5px;background:var(--border)"></span>
+</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:8px">
+<sc-for list="{{ authFields }}" as="af" hint-placeholder-count="2">
+<input placeholder="{{ af.ph }}" type="{{ af.type }}" style="height:48px;border:0.5px solid var(--border);border-radius:2px;padding:0 14px;font-family:var(--font-sans);font-size:14px;color:var(--slate);background:var(--white);outline:none;width:100%">
+</sc-for>
+</div>
+<button onClick="{{ authForgot }}" style="align-self:flex-start;background:none;border:none;padding:6px 0;margin-bottom:14px;cursor:pointer;font-family:var(--font-sans);font-size:11.5px;color:var(--olive)">Mot de passe oublié ?</button>
+<button onClick="{{ authSubmit }}" style="width:100%;height:52px;background:var(--slate);color:var(--ivory);border:none;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.07em;cursor:pointer;margin-bottom:16px" style-hover="background:#2d2b25">{{ authCta }}</button>
+<p style="font-size:11px;font-weight:300;line-height:1.7;color:var(--slate-lt);margin:0 0 20px;text-wrap:pretty">En continuant, vous acceptez les conditions générales d'utilisation et la politique de confidentialité.</p>
+<button onClick="{{ goPro }}" style="margin-top:auto;width:100%;height:48px;background:none;border:0.5px solid var(--border);font-family:var(--font-sans);font-size:11.5px;letter-spacing:0.06em;color:var(--slate-md);cursor:pointer" style-hover="border-color:var(--olive);color:var(--olive)">JE SUIS PRATICIEN</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ false }}">
+<div style="padding:56px 18px 110px">
+<div style="display:flex;gap:5px;margin-bottom:22px">
+<sc-for list="{{ obProgress }}" as="op" hint-placeholder-count="3">
+<div style="flex:1;height:3px;background:{{ op.bg }}"></div>
+</sc-for>
+</div>
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--olive);margin-bottom:12px">{{ obStepLabel }}</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:28px;line-height:1.18;color:var(--slate);margin:0 0 10px;text-wrap:pretty">{{ obTitle }}</h2>
+<p style="font-size:13px;font-weight:300;line-height:1.8;color:var(--slate-md);margin:0 0 24px;text-wrap:pretty">{{ obLead }}</p>
+
+<sc-if value="{{ obIs1 }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ obPillarCards }}" as="oc" hint-placeholder-count="3">
+<button onClick="{{ oc.onClick }}" style="background:{{ oc.bg }};border:0.5px solid {{ oc.border }};padding:18px 20px;cursor:pointer;text-align:left;display:flex;gap:14px;align-items:flex-start">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+<span style="font-family:var(--font-serif);font-size:20px;color:{{ oc.color }}">{{ oc.key }}</span>
+<span style="font-size:12px;font-weight:300;line-height:1.6;color:var(--slate-md)">{{ oc.desc }}</span>
+</div>
+<span style="flex:none;font-size:14px;color:{{ oc.color }};opacity:{{ oc.checkOpacity }}">✓</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ obIs2 }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{ obDiscChips }}" as="od" hint-placeholder-count="10">
+<button onClick="{{ od.onClick }}" style="background:{{ od.bg }};border:0.5px solid {{ od.border }};color:{{ od.color }};border-radius:2px;padding:12px 16px;font-family:var(--font-sans);font-size:12.5px;cursor:pointer;flex:none">{{ od.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ obIs3 }}" hint-placeholder-val="{{ false }}">
+<div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-md);margin-bottom:12px">Mode de séance</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px">
+<sc-for list="{{ obModeChips }}" as="om" hint-placeholder-count="3">
+<button onClick="{{ om.onClick }}" style="background:{{ om.bg }};border:0.5px solid {{ om.border }};color:{{ om.color }};border-radius:2px;padding:12px 16px;font-family:var(--font-sans);font-size:12.5px;cursor:pointer;flex:none">{{ om.label }}</button>
+</sc-for>
+</div>
+<div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-md);margin-bottom:12px">Rythme souhaité</div>
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border)">
+<sc-for list="{{ obRhythmRows }}" as="orr" hint-placeholder-count="3">
+<button onClick="{{ orr.onClick }}" style="background:{{ orr.bg }};border:none;padding:16px;cursor:pointer;text-align:left;display:flex;gap:12px;align-items:center;font-family:var(--font-sans)">
+<span style="width:14px;height:14px;flex:none;border:0.5px solid {{ orr.dotBorder }};background:{{ orr.dot }}"></span>
+<span style="flex:1;min-width:0;font-size:13.5px;color:var(--slate)">{{ orr.label }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:25;background:var(--white);border-top:0.5px solid var(--border);padding:14px 18px 44px;display:flex;gap:10px">
+<button onClick="{{ obBack }}" style="flex:none;width:56px;height:50px;background:none;border:0.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="border-color:var(--olive)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-md)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+</button>
+<button onClick="{{ obNext }}" style="flex:1;min-width:0;height:50px;background:var(--olive);color:#fff;border:none;font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.07em;cursor:pointer">{{ obNextLabel }}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isThread }}" hint-placeholder-val="{{ false }}">
+<div style="position:sticky;top:0;z-index:20;background:var(--white);border-bottom:0.5px solid var(--border);padding:56px 14px 12px;display:flex;align-items:center;gap:10px">
+<button onClick="{{ goSpace }}" style="background:none;border:none;padding:8px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--slate)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+</button>
+<div style="width:34px;height:34px;flex:none;border-radius:50%;background:var(--olive-bg);color:var(--olive);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:13px">NB</div>
+<div style="flex:1;min-width:0">
+<div style="font-size:14px;color:var(--slate)">Naïma Belkacem</div>
+<div style="font-size:10.5px;font-weight:300;color:var(--slate-lt);margin-top:2px">Naturopathie · Paris 11e</div>
+</div>
+<button onClick="{{ goProfile }}" style="background:none;border:none;padding:8px;cursor:pointer;flex:none;font-family:var(--font-sans);font-size:11px;letter-spacing:0.05em;color:var(--olive)">FICHE</button>
+</div>
+<div style="padding:18px 18px 100px;display:flex;flex-direction:column;gap:12px">
+<div style="align-self:center;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-lt);padding:4px 0">Mercredi 2 septembre</div>
+<sc-for list="{{ msgs }}" as="mg" hint-placeholder-count="4">
+<div style="align-self:{{ mg.align }};max-width:82%;background:{{ mg.bg }};border:0.5px solid {{ mg.border }};padding:12px 14px">
+<div style="font-size:13px;font-weight:300;line-height:1.65;color:{{ mg.color }};text-wrap:pretty">{{ mg.text }}</div>
+<div style="font-size:9.5px;color:{{ mg.metaColor }};margin-top:6px;text-align:right">{{ mg.time }}</div>
+</div>
+</sc-for>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:25;background:var(--white);border-top:0.5px solid var(--border);padding:12px 14px 40px;display:flex;gap:10px;align-items:flex-end">
+<input value="{{ draft }}" onChange="{{ onDraft }}" placeholder="Écrire un message" style="flex:1;min-width:0;height:46px;border:0.5px solid var(--border);border-radius:2px;padding:0 14px;font-family:var(--font-sans);font-size:13.5px;color:var(--slate);background:var(--ivory);outline:none">
+<button onClick="{{ sendMsg }}" style="flex:none;width:46px;height:46px;background:var(--rose);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:var(--rose-lt)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2l-7 20-4-9-9-4z"></path></svg>
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isFaq }}" hint-placeholder-val="{{ false }}">
+<div style="padding:24px 18px 20px;border-bottom:0.5px solid var(--border)">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Aide</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:28px;line-height:1.18;color:var(--slate);margin:0 0 10px">Questions fréquentes</h2>
+<p style="font-size:13px;font-weight:300;line-height:1.8;color:var(--slate-md);margin:0;text-wrap:pretty">Le règlement, l'annulation, les avis, l'abonnement praticien. Si la réponse n'y est pas, écrivez-nous.</p>
+</div>
+<div style="position:sticky;top:98px;z-index:15;background:var(--ivory);border-bottom:0.5px solid var(--border);padding:12px 18px;display:flex;gap:8px;overflow-x:auto">
+<sc-for list="{{ faqTabs }}" as="ft" hint-placeholder-count="3">
+<button onClick="{{ ft.onClick }}" style="flex:none;background:{{ ft.bg }};border:0.5px solid {{ ft.border }};color:{{ ft.color }};padding:10px 14px;font-family:var(--font-sans);font-size:12px;cursor:pointer;white-space:nowrap">{{ ft.label }}</button>
+</sc-for>
+</div>
+<div style="padding:18px 18px 40px">
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border);margin-bottom:22px">
+<sc-for list="{{ faqItems }}" as="fq" hint-placeholder-count="6">
+<div style="background:var(--white)">
+<button onClick="{{ fq.onClick }}" style="width:100%;background:none;border:none;padding:16px;cursor:pointer;text-align:left;display:flex;gap:12px;align-items:flex-start;font-family:var(--font-sans)">
+<span style="flex:1;min-width:0;font-size:13.5px;line-height:1.5;color:var(--slate);text-wrap:pretty">{{ fq.q }}</span>
+<span style="flex:none;font-size:15px;color:var(--slate-lt);line-height:1.3">{{ fq.sign }}</span>
+</button>
+<sc-if value="{{ fq.open }}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 16px 18px;font-size:12.5px;font-weight:300;line-height:1.8;color:var(--slate-md);text-wrap:pretty">{{ fq.a }}</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="background:var(--olive-bg);border:0.5px solid var(--olive);padding:20px">
+<div style="font-family:var(--font-serif);font-size:19px;color:var(--slate);margin-bottom:8px">Rien de tout cela ?</div>
+<p style="font-size:12.5px;font-weight:300;line-height:1.75;color:var(--slate-md);margin:0 0 16px">Écrivez à contact@holisanna.fr. Nous répondons sous deux jours ouvrés.</p>
+<button onClick="{{ goContact }}" style="width:100%;height:46px;background:none;border:0.5px solid var(--olive);font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.06em;color:var(--olive);cursor:pointer">NOUS ÉCRIRE</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPage }}" hint-placeholder-val="{{ false }}">
+<div style="padding:24px 18px 40px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">{{ pageEyebrow }}</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:31px;line-height:1.15;color:var(--slate);margin:0 0 14px;text-wrap:pretty">{{ pageTitle }}</h2>
+<p style="font-family:var(--font-serif);font-style:italic;font-size:15px;line-height:1.65;color:var(--slate-md);margin:0 0 26px;text-wrap:pretty">{{ pageLead }}</p>
+<div style="display:flex;flex-direction:column;gap:26px;margin-bottom:28px">
+<sc-for list="{{ pageSections }}" as="ps" hint-placeholder-count="3">
+<div>
+<h3 style="font-family:var(--font-serif);font-weight:400;font-size:19px;color:var(--slate);margin:0 0 12px;padding-bottom:10px;border-bottom:0.5px solid var(--border)">{{ ps.h }}</h3>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ ps.p }}" as="para" hint-placeholder-count="2">
+<p style="font-size:13.5px;font-weight:300;line-height:1.85;color:var(--slate-md);margin:0;text-wrap:pretty">{{ para }}</p>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="font-size:11px;color:var(--slate-lt);padding-bottom:24px;border-bottom:0.5px solid var(--border);margin-bottom:22px">{{ pageFootnote }}</div>
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:12px">À lire ensuite</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ pageSibs }}" as="sb" hint-placeholder-count="2">
+<button onClick="{{ sb.onClick }}" style="background:var(--white);border:0.5px solid var(--border);padding:15px 16px;cursor:pointer;text-align:left;display:flex;gap:12px;align-items:center;font-family:var(--font-sans)" style-hover="border-color:var(--olive)">
+<span style="flex:1;min-width:0;font-size:13.5px;color:var(--slate)">{{ sb.title }}</span>
+<span style="flex:none;font-size:12px;color:var(--slate-lt)">→</span>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+<div style="padding:70px 18px 40px;min-height:100%;display:flex;flex-direction:column;align-items:center;text-align:center">
+<img src="assets/logo-dreamcatcher.png" alt="" style="width:96px;height:96px;object-fit:contain;opacity:0.9;margin-bottom:26px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--rose);margin-bottom:14px">Erreur 404</div>
+<h2 style="font-family:var(--font-serif);font-weight:300;font-size:29px;line-height:1.18;color:var(--slate);margin:0 0 12px;text-wrap:pretty">Cette page n'existe plus.</h2>
+<p style="font-size:13px;font-weight:300;line-height:1.8;color:var(--slate-md);margin:0 0 28px;max-width:300px;text-wrap:pretty">Le lien a peut-être changé, ou la fiche a été dépubliée. La recherche reste le chemin le plus court.</p>
+<div style="display:flex;flex-direction:column;gap:9px;width:100%">
+<button onClick="{{ goSearch }}" style="width:100%;height:50px;background:var(--slate);color:var(--ivory);border:none;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.07em;cursor:pointer" style-hover="background:#2d2b25">RECHERCHER UN PRATICIEN</button>
+<button onClick="{{ goHome }}" style="width:100%;height:48px;background:none;border:0.5px solid var(--border);font-family:var(--font-sans);font-size:11.5px;letter-spacing:0.06em;color:var(--slate-md);cursor:pointer" style-hover="border-color:var(--olive);color:var(--olive)">RETOUR À L'ACCUEIL</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+<sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeAll }}" style="position:absolute;inset:0;z-index:40;background:rgba(58,56,48,0.4);animation:fadeIn .2s ease-out both"></div>
+<div style="position:absolute;top:0;bottom:0;left:0;width:300px;z-index:41;background:var(--ivory);border-right:0.5px solid var(--border);padding:56px 20px 30px;display:flex;flex-direction:column;animation:drawerIn .22s ease-out both">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:26px">
+<img src="assets/logo-holisanna-mark.png" alt="" style="width:52px;height:52px;object-fit:contain">
+<button onClick="{{ closeAll }}" style="background:none;border:none;padding:8px;cursor:pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-md)" stroke-width="1.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+</button>
+</div>
+<sc-for list="{{ drawerGroups }}" as="dg" hint-placeholder-count="3">
+<div style="margin-bottom:22px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:10px">{{ dg.group }}</div>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ dg.items }}" as="di" hint-placeholder-count="4">
+<button onClick="{{ di.onClick }}" style="background:none;border:none;border-bottom:0.5px solid var(--border);padding:13px 0;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:14px;color:{{ di.color }}">{{ di.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<button onClick="{{ goSpace }}" style="margin-top:auto;width:100%;height:48px;background:var(--slate);color:var(--ivory);border:none;font-family:var(--font-sans);font-size:11.5px;font-weight:500;letter-spacing:0.07em;cursor:pointer" style-hover="background:#2d2b25">MON ESPACE</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ filtersOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeAll }}" style="position:absolute;inset:0;z-index:40;background:rgba(58,56,48,0.4);animation:fadeIn .2s ease-out both"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;top:120px;z-index:41;background:var(--ivory);border-top:0.5px solid var(--border);display:flex;flex-direction:column;animation:sheetUp .24s ease-out both">
+<div style="padding:16px 18px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--white)">
+<div style="flex:1;min-width:0;font-family:var(--font-serif);font-size:19px;color:var(--slate)">Filtres</div>
+<button onClick="{{ resetFilters }}" style="background:none;border:none;padding:0;cursor:pointer;font-family:var(--font-sans);font-size:11.5px;color:var(--rose);flex:none">Réinitialiser</button>
+<button onClick="{{ closeAll }}" style="background:none;border:none;padding:6px;cursor:pointer;flex:none">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--slate-md)" stroke-width="1.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+</button>
+</div>
+<div style="flex:1;overflow-y:auto;padding:20px 18px 24px">
+<sc-for list="{{ filterGroups }}" as="fg" hint-placeholder-count="3">
+<div style="margin-bottom:24px">
+<div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-md);margin-bottom:12px">{{ fg.group }}</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{ fg.items }}" as="fi" hint-placeholder-count="4">
+<button onClick="{{ fi.onClick }}" style="background:{{ fi.bg }};border:0.5px solid {{ fi.border }};color:{{ fi.color }};border-radius:2px;padding:11px 16px;font-family:var(--font-sans);font-size:12.5px;cursor:pointer;white-space:nowrap;flex:none">{{ fi.label }}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="padding:14px 18px 40px;border-top:0.5px solid var(--border);background:var(--white)">
+<button onClick="{{ closeAll }}" style="width:100%;height:52px;background:var(--slate);color:var(--ivory);border:none;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.07em;cursor:pointer" style-hover="background:#2d2b25">{{ filterCta }}</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeAll }}" style="position:absolute;inset:0;z-index:40;background:rgba(58,56,48,0.4);animation:fadeIn .2s ease-out both"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:41;background:var(--ivory);border-top:0.5px solid var(--border);padding:20px 18px 40px;animation:sheetUp .24s ease-out both">
+<div style="width:38px;height:3px;border-radius:2px;background:var(--border);margin:0 auto 18px"></div>
+<div style="display:flex;flex-direction:column;gap:1px;background:var(--border);margin-bottom:18px">
+<sc-for list="{{ moreItems }}" as="mi" hint-placeholder-count="5">
+<button onClick="{{ mi.onClick }}" style="background:var(--white);border:none;padding:16px;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:14px;color:{{ mi.color }};display:flex;align-items:center;gap:12px">
+<span style="flex:1;min-width:0">{{ mi.label }}</span>
+<span style="flex:none;font-size:12px;color:var(--slate-lt)">→</span>
+</button>
+</sc-for>
+</div>
+<button onClick="{{ closeAll }}" style="width:100%;height:48px;background:none;border:0.5px solid var(--border);font-family:var(--font-sans);font-size:11.5px;letter-spacing:0.06em;color:var(--slate-md);cursor:pointer">FERMER</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:18px;right:18px;bottom:120px;z-index:50;background:var(--slate);color:var(--ivory);padding:13px 18px;font-size:12.5px;line-height:1.5;animation:fadeIn .2s ease-out both">{{ toast }}</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+
+<div style="flex:1 1 260px;min-width:0;max-width:380px">
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:14px">Écrans</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:30px">
+<sc-for list="{{ screenLinks }}" as="sl" hint-placeholder-count="6">
+<button onClick="{{ sl.onClick }}" style="background:{{ sl.bg }};border:0.5px solid {{ sl.border }};color:{{ sl.color }};padding:14px 16px;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:13px;display:flex;gap:12px;align-items:baseline" style-hover="border-color:var(--olive)">
+<span style="flex:1;min-width:0">{{ sl.label }}</span>
+<span style="flex:none;font-size:10.5px;color:var(--slate-lt)">{{ sl.nav }}</span>
+</button>
+</sc-for>
+</div>
+<div style="font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--slate-lt);margin-bottom:14px">Règles de navigation</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<sc-for list="{{ rules }}" as="ru" hint-placeholder-count="3">
+<div style="background:var(--white);border:0.5px solid var(--border);padding:16px 18px">
+<div style="font-size:12.5px;color:var(--slate);margin-bottom:6px">{{ ru.title }}</div>
+<div style="font-size:11.5px;font-weight:300;line-height:1.7;color:var(--slate-md)">{{ ru.body }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1080,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  state = { screen: 'home', tab: 'home', proTab: 'dash', drawer: false, filters: false, more: false, picks: [], toast: '',
+    authTab: 'login', obStep: 1, obPillars: [], obDiscs: [], obModes: [], obRhythm: '',
+    faqGroup: 'expl', faqOpen: 'q1', pageId: 'histoire', draft: '', sent: [] };
+
+  showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2600); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  go(screen) { this.setState({ screen: screen, drawer: false, filters: false, more: false }); }
+  goPage(id) { this.setState({ screen: 'page', pageId: id, drawer: false, filters: false, more: false }); }
+
+  renderVals() {
+    const s = this.state;
+    const PAGES = {
+      histoire: { eyebrow: 'Holisanna', title: "L'histoire", lead: "Holisanna est née d'une recherche personnelle, longue et un peu désordonnée, pour trouver les bonnes personnes.", sections: [
+        { h: 'Le point de départ', p: ["Trouver un praticien de confiance demandait de croiser des recommandations d'amis, des annuaires incomplets et des sites sans réservation. Chaque discipline avait ses codes, son vocabulaire, ses réseaux. Rien ne reliait le tout.", "Holisanna a d'abord été une liste tenue à la main : des noms, des disciplines, des notes après chaque séance. La liste s'est allongée, et la question est devenue évidente — pourquoi ce travail devrait-il être refait par chacun, seul ?"] },
+        { h: 'Ce que nous avons construit', p: ["Une plateforme de recherche et de réservation qui rassemble 21 disciplines du Take Care sous trois piliers : Corps, Âme, Esprit. Chaque praticien présente son parcours, ses modes de séance, ses langues et ses créneaux réels.", "Le règlement se fait le jour de la séance, directement au praticien. Holisanna ne prend pas de commission sur les séances : les praticiens paient un abonnement, et rien d'autre."] },
+        { h: "Aujourd'hui", p: ["Plus de 1 400 praticiens sont référencés. Les explorateurs y construisent leur cocktail bien-être — la combinaison de pratiques qui leur correspond, couche par couche, sans obligation de tout faire d'un coup."] }
+      ], footnote: 'Dernière mise à jour : septembre 2026' },
+      philosophie: { eyebrow: 'Holisanna', title: 'La philosophie', lead: "Prendre soin de soi, des autres et du monde. Le Take Care n'est pas une performance de plus.", sections: [
+        { h: 'Trois piliers, pas une hiérarchie', p: ["Corps, Âme, Esprit. Les trois piliers organisent les disciplines sans les classer. Un massage tissulaire, un travail de respiration et un accompagnement en sophrologie n'ont pas à être mis en concurrence : ils agissent à des endroits différents.", "Le cocktail bien-être traduit cette idée. Il se remplit par couches, à votre rythme, et reste incomplet aussi longtemps qu'il le faut."] },
+        { h: "Le rythme avant l'intensité", p: ["Nous ne poussons pas à la séance suivante. Pas de série à terminer, pas de badge de régularité, pas de rappel culpabilisant. Une notification vous dit ce qui vous attend, jamais ce que vous auriez dû faire."] },
+        { h: 'La relation reste au centre', p: ["Holisanna met en relation, puis s'efface. La séance appartient au praticien et à l'explorateur : pas d'intermédiaire dans la pratique, pas de commission sur le soin, pas de note imposée.", "Les avis sont publiés tels qu'ils sont écrits, avec un droit de réponse pour le praticien."] },
+        { h: 'Ce que nous ne sommes pas', p: ["Holisanna n'est pas un service médical et ne remplace ni diagnostic, ni traitement, ni suivi par un professionnel de santé. Les pratiques référencées sont des pratiques de bien-être."] }
+      ], footnote: 'Dernière mise à jour : septembre 2026' },
+      charte: { eyebrow: 'Holisanna', title: 'La charte éthique', lead: 'Sept engagements signés par chaque praticien référencé sur Holisanna.', sections: [
+        { h: '1 · Compétence et transparence', p: ["Le praticien indique sa formation réelle, ses années de pratique et les limites de son champ d'intervention. Aucun titre ni diplôme n'est présenté de façon ambiguë."] },
+        { h: '2 · Non-substitution aux soins médicaux', p: ["Le praticien ne pose pas de diagnostic, ne prescrit ni n'interrompt un traitement, et n'invite jamais à renoncer à un suivi médical."] },
+        { h: '3 · Consentement à chaque étape', p: ['Le déroulé, la durée et le tarif sont annoncés avant la séance. Tout contact physique est expliqué et peut être refusé à tout moment, sans justification.'] },
+        { h: '4 · Confidentialité', p: ["Ce qui se dit en séance reste en séance. Aucune information personnelle n'est partagée, y compris avec Holisanna."] },
+        { h: '5 · Clarté tarifaire', p: ["Le tarif affiché est le tarif payé. Pas de supplément découvert sur place, pas d'engagement de plusieurs séances imposé à la réservation."] },
+        { h: '6 · Respect et non-discrimination', p: ["Accueil sans distinction d'origine, de genre, d'orientation, de corps, de convictions ou de moyens. Une séance peut être refusée pour raison professionnelle, jamais pour ces raisons."] },
+        { h: '7 · Signalement', p: ['Tout manquement peut être signalé à contact@holisanna.fr. Un signalement est instruit sous sept jours et peut mener au retrait de la fiche.'] }
+      ], footnote: 'Charte v2 · applicable depuis janvier 2026' },
+      contact: { eyebrow: 'Contact', title: 'Nous écrire', lead: 'Une question, un signalement, une candidature. Nous répondons sous deux jours ouvrés.', sections: [
+        { h: "Écrire à l'équipe", p: ['contact@holisanna.fr — pour toute question sur votre compte, une réservation ou la plateforme.', "Précisez si vous écrivez en tant qu'explorateur ou praticien : cela nous fait gagner un aller-retour."] },
+        { h: 'Signaler un manquement à la charte', p: ["contact@holisanna.fr, objet « Signalement ». Indiquez le nom du praticien, la date de la séance et ce qui s'est passé. Le signalement est instruit sous sept jours et reste confidentiel."] },
+        { h: 'Adresse postale', p: ['Holisanna SAS · 14 rue Bellecombe · 69003 Lyon · France'] }
+      ], footnote: 'Réponse sous deux jours ouvrés' },
+      devenir: { eyebrow: 'Praticiens', title: 'Devenir praticien', lead: 'Référencer votre pratique sur Holisanna : trois étapes, aucune commission sur vos séances.', sections: [
+        { h: 'Qui peut être référencé', p: ['Les praticiens des 21 disciplines du Take Care, exerçant en France, à jour de leur formation et couverts par une assurance responsabilité civile professionnelle.', "La signature de la charte éthique est obligatoire. Elle vous est présentée à l'inscription."] },
+        { h: 'Les trois étapes', p: ['Créer votre compte praticien et choisir votre discipline principale. Compléter votre fiche : présentation, parcours, adresse, modes de séance, tarifs et photos. Ouvrir vos premiers créneaux — votre fiche est alors visible dans la recherche.', "Comptez une trentaine de minutes pour l'ensemble."] },
+        { h: 'Ce que vous payez', p: ["Un abonnement, rien d'autre. Fil Continu : 9,99 € par mois, engagement annuel. Fil Libre : 11,99 € par mois, sans engagement.", "Aucune commission n'est prélevée sur vos séances, réglées directement par l'explorateur le jour du rendez-vous."] }
+      ], footnote: 'Des questions ? contact@holisanna.fr' }
+    };
+    const pg = PAGES[s.pageId] || PAGES.histoire;
+    const pageSibIds = { histoire: ['philosophie', 'charte'], philosophie: ['histoire', 'charte'], charte: ['philosophie', 'devenir'], contact: ['charte', 'devenir'], devenir: ['charte', 'contact'] };
+    const FAQ = {
+      expl: { label: 'Explorateurs', items: [
+        { id: 'q1', q: "Comment se passe le règlement d'une séance ?", a: "Vous ne payez rien sur Holisanna. Le montant affiché est réglé directement au praticien le jour du rendez-vous, selon les moyens de paiement qu'il accepte. La facture de la séance est émise par le praticien." },
+        { id: 'q2', q: 'Puis-je annuler un rendez-vous ?', a: "Oui, librement et gratuitement jusqu'à 24 heures avant le créneau, depuis Mes rendez-vous. En deçà de 24 heures, les conditions du praticien s'appliquent : elles sont indiquées sur sa fiche." },
+        { id: 'q3', q: "Qu'est-ce que le cocktail bien-être ?", a: "La représentation des pratiques que vous suivez, organisée selon les trois piliers Corps, Âme et Esprit. Il se remplit par couches, séance après séance. Il n'y a rien à compléter à tout prix : un cocktail à une seule couche est un cocktail valable." },
+        { id: 'q4', q: 'Les praticiens sont-ils vérifiés ?', a: 'Chaque praticien signe la charte éthique et déclare sa formation, ses années de pratique et son assurance responsabilité civile professionnelle. Holisanna ne délivre pas de diplôme et ne garantit pas de résultat : la charte engage le praticien, et tout manquement peut être signalé.' },
+        { id: 'q5', q: 'Comment écrire un avis ?', a: "Après une séance passée, l'avis vous est proposé depuis Mes avis. Il porte sur une séance réellement suivie, est publié tel que vous l'écrivez, et le praticien dispose d'un droit de réponse." },
+        { id: 'q6', q: 'Holisanna remplace-t-il un médecin ?', a: 'Non. Les pratiques référencées sont des pratiques de bien-être. Elles ne remplacent ni diagnostic, ni traitement, ni suivi médical, et aucun praticien ne peut vous inviter à interrompre un traitement.' }
+      ] },
+      prat: { label: 'Praticiens', items: [
+        { id: 'p1', q: 'Combien coûte le référencement ?', a: 'Un abonnement, sans commission sur vos séances. Fil Continu : 9,99 € par mois avec engagement annuel. Fil Libre : 11,99 € par mois sans engagement. Prélèvement le 1er de chaque mois, factures disponibles dans votre espace.' },
+        { id: 'p2', q: 'Holisanna prend-il une commission ?', a: "Non, aucune. Les séances sont réglées directement par l'explorateur le jour du rendez-vous. Holisanna ne touche pas aux paiements de séance." },
+        { id: 'p3', q: 'Combien de temps pour être en ligne ?', a: 'Comptez une trentaine de minutes : créer votre compte, compléter votre fiche, ouvrir vos premiers créneaux. La fiche apparaît dans la recherche dès que des créneaux sont ouverts.' },
+        { id: 'p4', q: 'Puis-je proposer plusieurs disciplines ?', a: 'Oui. Une discipline principale, qui sert au classement dans la recherche, et autant de disciplines complémentaires que vous pratiquez réellement. Elles se règlent depuis Modifier ma fiche.' },
+        { id: 'p5', q: 'Puis-je masquer une prestation ou mettre ma fiche en pause ?', a: "Une prestation se masque en un clic depuis Mes prestations, sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n'est plus réservable." },
+        { id: 'p6', q: 'Comment répondre à un avis ?', a: "Depuis Avis reçus, chaque avis dispose d'un bouton Répondre. Votre réponse est publiée sous l'avis, visible de tous. Un avis contraire aux conditions d'utilisation peut être signalé." }
+      ] },
+      compte: { label: 'Compte & données', items: [
+        { id: 'c1', q: 'Comment supprimer mon compte ?', a: "Depuis Mon profil, à tout moment. Les données de compte sont conservées trois mois puis effacées ; les pièces comptables le sont dix ans, comme la loi l'exige." },
+        { id: 'c2', q: 'Mes données de santé sont-elles collectées ?', a: "Non. Aucune donnée de santé n'entre dans la plateforme, et ce qui se dit en séance reste entre vous et le praticien — y compris vis-à-vis de Holisanna." },
+        { id: 'c3', q: 'Recevrai-je des e-mails promotionnels ?', a: "Uniquement avec votre accord. Les notifications de réservation, d'avis et de facturation, elles, font partie du service." },
+        { id: 'c4', q: 'Que faire en cas de problème avec un praticien ?', a: "Écrivez à contact@holisanna.fr avec l'objet « Signalement », le nom du praticien et la date de la séance. Le signalement est instruit sous sept jours, reste confidentiel, et peut mener au retrait de la fiche." }
+      ] }
+    };
+    const faqG = FAQ[s.faqGroup] || FAQ.expl;
+    const toggle = (key, val) => {
+      const cur = this.state[key].slice(); const i = cur.indexOf(val);
+      if (i > -1) cur.splice(i, 1); else cur.push(val);
+      const patch = {}; patch[key] = cur; this.setState(patch);
+    };
+    const chip = (label, on, onClick) => ({
+      label: label, onClick: onClick,
+      bg: on ? 'var(--olive-bg)' : 'var(--white)',
+      border: on ? 'var(--olive)' : 'var(--border)',
+      color: on ? 'var(--olive)' : 'var(--slate-md)'
+    });
+    const ico = {
+      home: ['M3 10.5 12 3l9 7.5', 'M5.5 9.5V21h13V9.5'],
+      cocktail: ['M4 5h16l-8 8z', 'M12 13v6 M8 19h8'],
+      rdv: ['M3 5h18v16H3z', 'M3 10h18 M8 3v4 M16 3v4'],
+      msg: ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z', ''],
+      more: ['M5 12h.01 M12 12h.01 M19 12h.01', ''],
+      dash: ['M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z', ''],
+      resa: ['M6 3h12v18l-6-4-6 4z', '']
+    };
+    const tab = (key, label, k) => ({
+      label: label, d1: ico[k][0], d2: ico[k][1],
+      color: s.tab === key ? 'var(--rose)' : 'var(--slate-lt)',
+      onClick: () => key === 'more' ? this.setState({ more: true }) : this.setState({ tab: key, more: false })
+    });
+    const proTab = (key, label, k) => ({
+      label: label, d1: ico[k][0], d2: ico[k][1],
+      color: s.proTab === key ? 'var(--gold)' : 'var(--slate-lt)',
+      onClick: () => key === 'more' ? this.setState({ more: true }) : this.setState({ proTab: key, more: false })
+    });
+    const FILTERS = {
+      'Piliers': ['Corps', 'Âme', 'Esprit'],
+      'Mode de séance': ['Au cabinet', 'En visio', 'À domicile'],
+      'Langue': ['Français', 'Anglais', 'Espagnol'],
+      'Budget': ['≤ 50 €', '≤ 70 €', '≤ 90 €', 'Sans limite']
+    };
+    const screens = [
+      { key: 'home', label: 'Accueil', nav: 'Hamburger' },
+      { key: 'search', label: 'Recherche et résultats', nav: 'Filtres en panneau' },
+      { key: 'profile', label: 'Fiche praticien', nav: 'Barre de réservation' },
+      { key: 'booking', label: 'Réservation', nav: 'Étapes' },
+      { key: 'space', label: 'Espace explorateur', nav: 'Onglets bas' },
+      { key: 'pro', label: 'Espace praticien', nav: 'Onglets bas' },
+      { key: 'auth', label: 'Connexion et inscription', nav: 'Plein écran' },
+      { key: 'onboarding', label: 'Onboarding, 3 étapes', nav: 'Barre d’action basse' },
+      { key: 'thread', label: 'Conversation', nav: 'Retour + saisie' },
+      { key: 'faq', label: 'Questions fréquentes', nav: 'Onglets collants' },
+      { key: 'page', label: 'Pages éditoriales', nav: 'Hamburger' },
+      { key: 'error', label: 'Page introuvable', nav: 'Sans navigation' }
+    ];
+
+    return {
+      isHome: s.screen === 'home', isSearch: s.screen === 'search', isProfile: s.screen === 'profile',
+      isBooking: s.screen === 'booking', isSpace: s.screen === 'space', isPro: s.screen === 'pro',
+      isPublic: ['home', 'search', 'profile', 'booking', 'faq', 'page'].indexOf(s.screen) > -1,
+      isAuth: s.screen === 'auth', isOnboarding: s.screen === 'onboarding', isThread: s.screen === 'thread',
+      isFaq: s.screen === 'faq', isPage: s.screen === 'page', isError: s.screen === 'error',
+      drawerOpen: s.drawer, filtersOpen: s.filters, moreOpen: s.more,
+      hasToast: !!s.toast, toast: s.toast,
+      openDrawer: () => this.setState({ drawer: true }),
+      openFilters: () => this.setState({ filters: true }),
+      closeAll: () => this.setState({ drawer: false, filters: false, more: false }),
+      goSearch: () => this.go('search'), goProfile: () => this.go('profile'),
+      goBooking: () => this.go('booking'), goSpace: () => this.go('space'),
+      goPro: () => this.go('pro'), goHome: () => this.go('home'),
+      confirmBooking: () => { this.setState({ screen: 'space', tab: 'home', drawer: false, filters: false, more: false }); this.showToast('Séance confirmée. Vous réglerez 85 € sur place.'); },
+      toastMove: () => this.showToast('Créneaux disponibles de Naïma affichés.'),
+      toastCancel: () => this.showToast('Annulation gratuite : nous sommes à plus de 24 h.'),
+      openThread: () => this.go('thread'),
+      toastSlots: () => this.showToast('Panneau d’ouverture de créneaux.'),
+      screenLinks: screens.map(sc => ({
+        label: sc.label, nav: sc.nav,
+        bg: s.screen === sc.key ? 'var(--white)' : 'transparent',
+        border: s.screen === sc.key ? 'var(--olive)' : 'var(--border)',
+        color: s.screen === sc.key ? 'var(--slate)' : 'var(--slate-md)',
+        onClick: () => this.go(sc.key)
+      })),
+      rules: [
+        { title: 'Hamburger sur la partie publique', body: 'Accueil, recherche, fiche et réservation : la navigation y est rare, elle passe par le tiroir latéral. L’avatar en haut à droite mène à l’espace.' },
+        { title: 'Onglets en bas dans les espaces', body: 'Quatre onglets maximum, le dernier est un « Plus » qui ouvre le reste en panneau. C’est ce que font la plupart des applications, personne n’a à chercher.' },
+        { title: 'Filtres en panneau plein écran', body: 'La colonne de filtres du bureau devient un bouton flottant et un panneau dont le bouton de validation annonce le nombre de résultats.' },
+        { title: 'Parcours sans distraction', body: 'Connexion, onboarding et conversation retirent la navigation : une flèche de retour, un contenu, une action basse. Rien d’autre ne peut être touché par erreur.' },
+        { title: 'Lecture longue en accordéon', body: 'La FAQ replie ses réponses et garde ses onglets collants sous l’en-tête ; les pages éditoriales se lisent d’un trait et proposent la suite en bas.' }
+      ],
+      pillarCards: [
+        { name: 'Corps', desc: 'Massage, kinésiologie, réflexologie, watsu', color: 'var(--olive)', bg: 'var(--olive-bg)', border: 'var(--olive)' },
+        { name: 'Âme', desc: 'Reiki, chamanisme, soins énergétiques', color: 'var(--gold)', bg: 'var(--gold-bg)', border: 'var(--gold)' },
+        { name: 'Esprit', desc: 'Sophrologie, hypnose, méditation, breathwork', color: 'var(--rose)', bg: 'var(--rose-bg)', border: 'var(--rose)' }
+      ],
+      drawerGroups: [
+        { group: 'Naviguer', items: [
+          { label: 'Accueil', color: 'var(--slate)', onClick: () => this.go('home') },
+          { label: 'Rechercher un praticien', color: 'var(--slate)', onClick: () => this.go('search') },
+          { label: 'Mon espace', color: 'var(--slate)', onClick: () => this.go('space') },
+          { label: 'Espace praticien', color: 'var(--slate)', onClick: () => this.go('pro') },
+          { label: 'Connexion', color: 'var(--slate)', onClick: () => this.go('auth') }
+        ] },
+        { group: 'Holisanna', items: [
+          { label: "L'histoire", color: 'var(--slate-md)', onClick: () => this.goPage('histoire') },
+          { label: 'La philosophie', color: 'var(--slate-md)', onClick: () => this.goPage('philosophie') },
+          { label: 'La charte éthique', color: 'var(--slate-md)', onClick: () => this.goPage('charte') },
+          { label: 'Devenir praticien', color: 'var(--slate-md)', onClick: () => this.goPage('devenir') }
+        ] },
+        { group: 'Aide', items: [
+          { label: 'Questions fréquentes', color: 'var(--slate-md)', onClick: () => this.go('faq') },
+          { label: 'Nous écrire', color: 'var(--slate-md)', onClick: () => this.goPage('contact') }
+        ] }
+      ],
+      resultCount: 12,
+      results: [
+        { initials: 'NB', name: 'Naïma Belkacem', disc: 'Naturopathie', city: 'Paris 11e', rating: '4,9', reviews: 96, price: '85 €', avail: '● Disponible demain', availColor: 'var(--olive)', bg: 'var(--olive-bg)', color: 'var(--olive)' },
+        { initials: 'SN', name: 'Sofia Nardi', disc: 'Sophrologie', city: 'Paris 9e', rating: '4,8', reviews: 74, price: '65 €', avail: '◐ Cette semaine', availColor: 'var(--rose)', bg: 'var(--rose-bg)', color: 'var(--rose)' },
+        { initials: 'YL', name: 'Yann Le Guen', disc: 'Reiki', city: 'Paris 3e', rating: '4,9', reviews: 112, price: '70 €', avail: '● Disponible aujourd’hui', availColor: 'var(--olive)', bg: 'var(--gold-bg)', color: 'var(--gold)' },
+        { initials: 'HP', name: 'Hugo Prieur', disc: 'Breathwork', city: 'Paris 18e', rating: '4,7', reviews: 38, price: '45 €', avail: '◐ Cette semaine', availColor: 'var(--rose)', bg: 'var(--olive-bg)', color: 'var(--olive)' }
+      ],
+      filterGroups: Object.keys(FILTERS).map(g => ({
+        group: g,
+        items: FILTERS[g].map(it => {
+          const on = s.picks.indexOf(it) > -1;
+          return {
+            label: it, bg: on ? 'var(--olive-bg)' : 'var(--white)', border: on ? 'var(--olive)' : 'var(--border)', color: on ? 'var(--olive)' : 'var(--slate-md)',
+            onClick: () => {
+              const cur = this.state.picks.slice(); const i = cur.indexOf(it);
+              if (i > -1) cur.splice(i, 1); else cur.push(it);
+              this.setState({ picks: cur });
+            }
+          };
+        })
+      })),
+      filterBadge: s.picks.length ? ' · ' + s.picks.length : '',
+      filterCta: 'VOIR LES ' + Math.max(3, 12 - s.picks.length * 2) + ' PRATICIENS',
+      resetFilters: () => this.setState({ picks: [] }),
+      profileRows: [
+        { k: 'Adresse', v: '24 rue de la Roquette, Paris 11e' },
+        { k: 'Séances', v: 'Au cabinet · en visio' },
+        { k: 'Langues', v: 'Français, anglais' },
+        { k: 'Règlement', v: 'Sur place, le jour de la séance' }
+      ],
+      slotChips: [
+        { day: 'Mer 9', time: '14h00' }, { day: 'Jeu 10', time: '10h30' },
+        { day: 'Ven 11', time: '14h00' }, { day: 'Mar 15', time: '09h00' }, { day: 'Mer 16', time: '17h00' }
+      ],
+      bookSteps: [
+        { label: 'Créneau', bg: 'var(--olive)', color: 'var(--olive)' },
+        { label: 'Confirmation', bg: 'var(--olive)', color: 'var(--olive)' },
+        { label: 'Séance', bg: 'var(--border)', color: 'var(--slate-lt)' }
+      ],
+      bookRows: [
+        { k: 'Praticienne', v: 'Naïma Belkacem · Naturopathie' },
+        { k: 'Créneau', v: 'Mercredi 9 septembre, 14h00' },
+        { k: 'Durée', v: '90 minutes' },
+        { k: 'Lieu', v: '24 rue de la Roquette, Paris 11e' }
+      ],
+      tabs: [tab('home', 'Accueil', 'home'), tab('cocktail', 'Cocktail', 'cocktail'), tab('msg', 'Messages', 'msg'), tab('more', 'Plus', 'more')],
+      proTabs: [proTab('dash', 'Tableau', 'dash'), proTab('agenda', 'Agenda', 'rdv'), proTab('resa', 'Réservations', 'resa'), proTab('more', 'Plus', 'more')],
+      tabIsHome: s.tab === 'home', tabIsCocktail: s.tab === 'cocktail', tabIsMsg: s.tab === 'msg',
+      moreItems: (s.screen === 'pro' ? [
+        { label: 'Avis reçus', color: 'var(--slate)' }, { label: 'Mes prestations', color: 'var(--slate)' },
+        { label: 'Modifier ma fiche', color: 'var(--slate)' }, { label: 'Abonnement & factures', color: 'var(--slate)' },
+        { label: 'Notifications', color: 'var(--slate)' }, { label: 'Déconnexion', color: 'var(--rose)' }
+      ] : [
+        { label: 'Mes rendez-vous', color: 'var(--slate)' }, { label: 'Mes avis', color: 'var(--slate)' },
+        { label: 'Mes favoris', color: 'var(--slate)' }, { label: 'Notifications', color: 'var(--slate)' },
+        { label: 'Mon profil', color: 'var(--slate)' }, { label: 'Déconnexion', color: 'var(--rose)' }
+      ]).map(mi => Object.assign({}, mi, { onClick: () => { this.setState({ more: false }); this.showToast(mi.label + ' — écran ouvert.'); } })),
+      recos: [
+        { initials: 'SN', name: 'Sofia Nardi', meta: 'Sophrologie · Paris 9e · complète le pilier Esprit', bg: 'var(--rose-bg)', color: 'var(--rose)' },
+        { initials: 'CF', name: 'Camille Ferrand', meta: 'Massage bien-être · Lyon 3e · pilier Corps', bg: 'var(--olive-bg)', color: 'var(--olive)' }
+      ],
+      layers: [
+        { color: 'var(--olive)' }, { color: 'var(--rose)' }, { color: 'var(--gold)' }, { color: 'var(--olive)' }, { color: 'var(--olive)' }
+      ],
+      sessions: [
+        { discipline: 'Breathwork', prat: 'Hugo Prieur', date: '3 juin', price: '45 €', color: 'var(--olive)' },
+        { discipline: 'Naturopathie', prat: 'Naïma Belkacem', date: '12 mai', price: '85 €', color: 'var(--olive)' },
+        { discipline: 'Reiki', prat: 'Yann Le Guen', date: '18 avril', price: '70 €', color: 'var(--gold)' },
+        { discipline: 'Sophrologie', prat: 'Sofia Nardi', date: '27 mars', price: '65 €', color: 'var(--rose)' },
+        { discipline: 'Massage bien-être', prat: 'Camille Ferrand', date: '4 mars', price: '70 €', color: 'var(--olive)' }
+      ],
+      convs: [
+        { initials: 'CF', name: 'Camille Ferrand', last: 'Prévoyez une tenue souple, on commencera assises.', time: 'Hier', weight: '400', dot: 'transparent' },
+        { initials: 'NB', name: 'Naïma Belkacem', last: 'Je vous envoie un court questionnaire avant le bilan.', time: '4 h', weight: '500', dot: 'var(--rose)' },
+        { initials: 'YL', name: 'Yann Le Guen', last: 'Reposez-vous, le corps rattrape ce qu’il peut.', time: '28 août', weight: '400', dot: 'transparent' }
+      ],
+      proStats: [
+        { n: '8', label: 'séances cette semaine', color: 'var(--slate)' },
+        { n: '12', label: 'créneaux libres', color: 'var(--olive)' },
+        { n: '4,9', label: 'note moyenne', color: 'var(--gold)' },
+        { n: '412', label: 'vues de la fiche', color: 'var(--rose)' }
+      ],
+      today: [
+        { time: '10h30', client: 'Sarah Nguyen', offer: 'Massage bien-être · 60 min', color: 'var(--olive)' },
+        { time: '14h00', client: 'Marc Bellanger', offer: 'Massage dos & nuque · 45 min', color: 'var(--olive)' },
+        { time: '17h00', client: 'Créneau libre', offer: 'Ouvert à la réservation', color: 'var(--slate-lt)' }
+      ],
+      authTitle: s.authTab === 'login' ? 'Retrouver votre espace' : 'Créer votre compte',
+      authLead: s.authTab === 'login'
+        ? 'Vos rendez-vous, votre cocktail et vos conversations vous attendent.'
+        : 'Trois questions après l’inscription, puis votre première recherche.',
+      authCta: s.authTab === 'login' ? 'SE CONNECTER' : 'CRÉER MON COMPTE',
+      authTabs: [{ key: 'login', label: 'Connexion' }, { key: 'signup', label: 'Créer un compte' }].map(t => ({
+        label: t.label,
+        bg: s.authTab === t.key ? 'var(--slate)' : 'transparent',
+        color: s.authTab === t.key ? 'var(--ivory)' : 'var(--slate-md)',
+        onClick: () => this.setState({ authTab: t.key })
+      })),
+      authFields: s.authTab === 'login'
+        ? [{ ph: 'Adresse e-mail', type: 'email' }, { ph: 'Mot de passe', type: 'password' }]
+        : [{ ph: 'Prénom et nom', type: 'text' }, { ph: 'Adresse e-mail', type: 'email' }, { ph: 'Mot de passe', type: 'password' }],
+      authForgot: () => this.showToast('Lien de réinitialisation envoyé par e-mail.'),
+      authSubmit: () => {
+        if (s.authTab === 'signup') { this.setState({ screen: 'onboarding', obStep: 1 }); this.showToast('Compte créé. Trois questions pour amorcer votre cocktail.'); }
+        else { this.go('space'); this.showToast('Bon retour, Sarah.'); }
+      },
+      socialGoogle: () => this.showToast('Connexion Google en cours…'),
+      socialApple: () => this.showToast('Connexion Apple en cours…'),
+      obStepLabel: 'Étape ' + s.obStep + ' sur 3',
+      obProgress: [1, 2, 3].map(n => ({ bg: n <= s.obStep ? 'var(--olive)' : 'var(--border)' })),
+      obIs1: s.obStep === 1, obIs2: s.obStep === 2, obIs3: s.obStep === 3,
+      obTitle: ['Qu’avez-vous envie de travailler ?', 'Quelles pratiques vous attirent ?', 'Comment aimez-vous être accompagnée ?'][s.obStep - 1],
+      obLead: [
+        'Choisissez un ou plusieurs piliers. Rien n’est définitif : votre cocktail se réajuste à chaque séance.',
+        'Une sélection large vaut mieux qu’un choix trop sûr — vous verrez ce qui prend.',
+        'Ces réponses orientent les praticiens qui vous seront proposés, sans jamais filtrer le reste.'
+      ][s.obStep - 1],
+      obPillarCards: [
+        { key: 'Corps', desc: 'Massage, kinésiologie, réflexologie, watsu', color: 'var(--olive)', bg: 'var(--olive-bg)' },
+        { key: 'Âme', desc: 'Reiki, chamanisme, soins énergétiques', color: 'var(--gold)', bg: 'var(--gold-bg)' },
+        { key: 'Esprit', desc: 'Sophrologie, hypnose, méditation, breathwork', color: 'var(--rose)', bg: 'var(--rose-bg)' }
+      ].map(pc => {
+        const on = s.obPillars.indexOf(pc.key) > -1;
+        return {
+          key: pc.key, desc: pc.desc, color: pc.color,
+          bg: on ? pc.bg : 'var(--white)',
+          border: on ? pc.color : 'var(--border)',
+          checkOpacity: on ? '1' : '0',
+          onClick: () => toggle('obPillars', pc.key)
+        };
+      }),
+      obDiscChips: ['Naturopathie', 'Sophrologie', 'Reiki', 'Massage bien-être', 'Breathwork', 'Hypnose', 'Kinésiologie', 'Réflexologie', 'Méditation', 'Chamanisme', 'Watsu', 'Shiatsu']
+        .map(d => chip(d, s.obDiscs.indexOf(d) > -1, () => toggle('obDiscs', d))),
+      obModeChips: ['Au cabinet', 'En visio', 'À domicile']
+        .map(m => chip(m, s.obModes.indexOf(m) > -1, () => toggle('obModes', m))),
+      obRhythmRows: ['Une séance, pour voir', 'Quelques séances sur un cycle', 'Un suivi régulier'].map(r => ({
+        label: r,
+        bg: s.obRhythm === r ? 'var(--olive-bg)' : 'var(--white)',
+        dot: s.obRhythm === r ? 'var(--olive)' : 'transparent',
+        dotBorder: s.obRhythm === r ? 'var(--olive)' : 'var(--border)',
+        onClick: () => this.setState({ obRhythm: r })
+      })),
+      obNextLabel: s.obStep === 3 ? 'ENTRER DANS MON ESPACE →' : 'CONTINUER →',
+      obNext: () => {
+        const st = this.state;
+        if (st.obStep === 1 && !st.obPillars.length) { this.showToast('Choisissez au moins un pilier.'); return; }
+        if (st.obStep === 2 && !st.obDiscs.length) { this.showToast('Choisissez au moins une pratique.'); return; }
+        if (st.obStep < 3) { this.setState({ obStep: st.obStep + 1 }); return; }
+        this.setState({ screen: 'space', tab: 'home' });
+        this.showToast('Votre espace est prêt. Première couche à composer.');
+      },
+      obBack: () => {
+        const st = this.state;
+        if (st.obStep === 1) { this.setState({ screen: 'auth', authTab: 'signup' }); } else { this.setState({ obStep: st.obStep - 1 }); }
+      },
+      draft: s.draft,
+      onDraft: e => this.setState({ draft: e.target.value }),
+      sendMsg: () => {
+        const d = this.state.draft.trim();
+        if (!d) { this.showToast('Le message est vide.'); return; }
+        this.setState({ sent: this.state.sent.concat([d]), draft: '' });
+      },
+      msgs: [
+        { text: 'Bonjour Sarah, merci pour votre réservation de mercredi. Avez-vous déjà consulté en naturopathie ?', me: false, time: '09h12' },
+        { text: 'Bonjour, non, c’est la première fois. Je viens surtout pour le sommeil.', me: true, time: '09h40' },
+        { text: 'Très bien. Je vous envoie un court questionnaire avant le bilan : trois minutes, il me sert à préparer la séance.', me: false, time: '09h44' },
+        { text: 'Prévoyez une tenue confortable, et notez vos horaires de coucher des sept derniers jours si vous y pensez.', me: false, time: '09h45' }
+      ].concat(this.state.sent.map(t => ({ text: t, me: true, time: 'À l’instant' }))).map(m => ({
+        text: m.text, time: m.time,
+        align: m.me ? 'flex-end' : 'flex-start',
+        bg: m.me ? 'var(--olive-bg)' : 'var(--white)',
+        border: m.me ? 'var(--olive)' : 'var(--border)',
+        color: 'var(--slate)',
+        metaColor: 'var(--slate-lt)'
+      })),
+      faqTabs: Object.keys(FAQ).map(k => ({
+        label: FAQ[k].label,
+        bg: s.faqGroup === k ? 'var(--slate)' : 'var(--white)',
+        border: s.faqGroup === k ? 'var(--slate)' : 'var(--border)',
+        color: s.faqGroup === k ? 'var(--ivory)' : 'var(--slate-md)',
+        onClick: () => this.setState({ faqGroup: k, faqOpen: FAQ[k].items[0].id })
+      })),
+      faqItems: faqG.items.map(it => ({
+        q: it.q, a: it.a,
+        open: s.faqOpen === it.id,
+        sign: s.faqOpen === it.id ? '−' : '+',
+        onClick: () => this.setState({ faqOpen: s.faqOpen === it.id ? '' : it.id })
+      })),
+      goContact: () => this.goPage('contact'),
+      pageEyebrow: pg.eyebrow, pageTitle: pg.title, pageLead: pg.lead,
+      pageSections: pg.sections, pageFootnote: pg.footnote,
+      pageSibs: (pageSibIds[s.pageId] || []).map(id => ({
+        title: PAGES[id].title, onClick: () => this.goPage(id)
+      })),
+      goError: () => this.go('error')
+    };
+  }
+}
+</script>
+</body>
+</html>
