@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holisanna — Fil Web to Feel Well</title>
+  <meta name="description" content="Holisanna relie les explorateurs du bien-être aux praticiens Take Care. Cherchez, réservez, composez votre cocktail bien-être.">
+  <link rel="icon" href="assets/logo-holisanna-mark.png">
+  <link rel="stylesheet" href="css/holisanna.css">
+</head>
+<body data-nav="accueil">
+<div id="site-header"></div>
+
+<main>
+  <!-- Héros -->
+  <section class="hero">
+    <div>
+      <div class="eyebrow hero__eyebrow">21 disciplines · 3 piliers</div>
+      <h1 class="hero__title">Composer votre<br>Cocktail bien-être</h1>
+      <p class="hero__lead">Holisanna relie les explorateurs du bien-être aux praticiens Take Care. Vous choisissez la discipline, le lieu et l'heure. Le praticien confirme, son agenda se met à jour.</p>
+
+      <form class="searchbox" id="home-search" action="recherche.html" method="get">
+        <div class="field">
+          <label for="q">Discipline</label>
+          <input class="input" id="q" name="q" placeholder="Réflexologie, reiki…" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="ville">Où</label>
+          <input class="input" id="ville" name="ville" placeholder="Ville ou visio" autocomplete="off">
+        </div>
+        <button class="btn btn-cta" type="submit">Rechercher</button>
+      </form>
+
+      <div class="chips">
+        <a class="pillar-chip" href="recherche.html?pilier=corps"  style="background:var(--olive-bg);color:var(--olive);border-color:var(--olive)">Corps</a>
+        <a class="pillar-chip" href="recherche.html?pilier=esprit" style="background:var(--rose-bg);color:var(--rose);border-color:var(--rose)">Esprit</a>
+        <a class="pillar-chip" href="recherche.html?pilier=ame"    style="background:var(--gold-bg);color:var(--gold);border-color:var(--gold)">Âme</a>
+      </div>
+    </div>
+
+    <div class="hero__visual">
+      <img src="assets/illustration-cocktail-bien-etre.png" alt="Cocktail bien-être">
+      <div class="hero__teaser">
+        <h3>Le cocktail bien-être</h3>
+        <p>Chaque séance réalisée ajoute une couche à votre verre. Corps, Âme, Esprit : votre parcours devient une couleur.</p>
+        <a class="link-btn" id="cocktail-cta" href="connexion.html">Se connecter pour le débloquer →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Les trois piliers -->
+  <section class="band">
+    <div class="band__inner">
+      <div class="band__head">
+        <h2 class="band__quote">Trouver cet équilibre délicat entre le corps, l'âme et l'esprit — non pas comme une destination, mais comme un chemin que l'on choisit de parcourir.</h2>
+        <a class="link-btn" href="recherche.html">Voir tous les praticiens →</a>
+      </div>
+      <div class="grid-3">
+        <a class="pillar-card" data-pillar="corps" href="recherche.html?pilier=corps">
+          <div class="pillar-card__name">Corps</div>
+          <div class="pillar-card__count"><span data-count="corps">5</span> praticiens en ligne</div>
+          <p class="pillar-card__blurb">Le toucher, le souffle, le mouvement. Ce qui passe par le corps pour dénouer le reste.</p>
+          <div class="pillar-card__list">Massage bien-être · Naturopathie · Réflexologie · Janzu / Watsu · Sujok · Iridologie · Relaxologie · Yoga · Breathwork · Coaching sportif · Trichothérapie</div>
+        </a>
+        <a class="pillar-card" data-pillar="esprit" href="recherche.html?pilier=esprit">
+          <div class="pillar-card__name">Esprit</div>
+          <div class="pillar-card__count"><span data-count="esprit">3</span> praticiens en ligne</div>
+          <p class="pillar-card__blurb">Le mental et les schémas. Comprendre, reformuler, alléger la charge.</p>
+          <div class="pillar-card__list">Sophrologie · Hypnothérapie · EFT · PNL · Kinésiologie · Coaching mental · Coaching de vie · Sexothérapie</div>
+        </a>
+        <a class="pillar-card" data-pillar="ame" href="recherche.html?pilier=ame">
+          <div class="pillar-card__name">Âme</div>
+          <div class="pillar-card__count"><span data-count="ame">4</span> praticiens en ligne</div>
+          <p class="pillar-card__blurb">Le sensible et l’invisible. Les séances qui remettent en mouvement ce qu’on ne nomme pas.</p>
+          <div class="pillar-card__list">Reiki / Soins énergétiques · Chamanisme · Astrologie · Séance photo révélatrice</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chiffres + étapes -->
+  <section class="section">
+    <div class="stats">
+      <div class="stat"><div class="stat__n">1 400+</div><div class="stat__label">praticiens vérifiés</div></div>
+      <div class="stat"><div class="stat__n">21</div><div class="stat__label">disciplines</div></div>
+      <div class="stat"><div class="stat__n">3</div><div class="stat__label">piliers · corps, âme, esprit</div></div>
+      <div class="stat"><div class="stat__n">0 %</div><div class="stat__label">commission praticien</div></div>
+    </div>
+
+    <h2 class="h2-serif">Comment ça se passe</h2>
+    <div class="steps">
+      <div class="step"><div class="step__n">01</div><div class="step__title">Chercher</div><p class="step__body">Par discipline, ville, budget ou pilier. Les agendas affichés sont ceux des praticiens, en direct.</p></div>
+      <div class="step"><div class="step__n">02</div><div class="step__title">Réserver</div><p class="step__body">Un créneau, une confirmation. Le praticien reçoit la réservation et son agenda se met à jour. Le règlement se fait le jour de la séance.</p></div>
+      <div class="step"><div class="step__n">03</div><div class="step__title">Vivre la séance</div><p class="step__body">Au cabinet ou en visio. Rien d’autre à gérer, le rappel arrive la veille.</p></div>
+      <div class="step"><div class="step__n">04</div><div class="step__title">Remplir son verre</div><p class="step__body">Chaque séance confirmée ajoute une couche à votre cocktail bien-être. À garder, à faire grandir, à partager.</p></div>
+    </div>
+  </section>
+
+  <!-- Espace praticien -->
+  <section class="pro">
+    <div class="pro__inner">
+      <div>
+        <div class="eyebrow pro__eyebrow">Espace praticien</div>
+        <h2>Votre agenda, vos réservations, un abonnement clair.</h2>
+        <p class="pro__lead">Pas de commission sur vos séances. Vous ouvrez vos créneaux, Holisanna les remplit, l'agenda se synchronise à chaque réservation confirmée.</p>
+        <div class="pro__actions">
+          <a class="btn btn-cta" href="espace-praticien.html">Voir le tableau de bord</a>
+          <a class="btn btn-outline-dark" href="inscription-praticien.html">Devenir praticien</a>
+        </div>
+      </div>
+      <div class="plans">
+        <article class="plan">
+          <div><div class="plan__name">Fil Continu</div><div class="plan__hook">Pour celles et ceux qui s’installent dans la durée.</div></div>
+          <div class="plan__price"><strong>9,99 €</strong><span>/ mois, facturé à l’année</span></div>
+          <ul class="plan__perks">
+            <li>Fiche praticien complète et agenda en ligne</li>
+            <li>Réservations illimitées, sans commission</li>
+            <li>Badge Membre fondateur sur votre profil</li>
+            <li>Accompagnement à la mise en ligne de votre fiche</li>
+          </ul>
+          <div class="plan__note">Engagement 12 mois · 119,88 € par an</div>
+        </article>
+        <article class="plan">
+          <div><div class="plan__name">Fil Libre</div><div class="plan__hook">Pour avancer à votre rythme, mois par mois.</div></div>
+          <div class="plan__price"><strong>11,99 €</strong><span>/ mois, sans engagement</span></div>
+          <ul class="plan__perks">
+            <li>Les mêmes outils, la même visibilité</li>
+            <li>Réservations illimitées, sans commission</li>
+            <li>Mise en pause de votre agenda quand vous le souhaitez</li>
+            <li>Passage au Fil Continu possible à tout moment</li>
+          </ul>
+          <div class="plan__note">Résiliable en un clic, à tout moment</div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/layout.js"></script>
+<script>
+  /* Accueil : compteurs de praticiens par pilier + lien du teaser selon la session */
+  document.addEventListener('DOMContentLoaded', function () {
+    ['corps', 'esprit', 'ame'].forEach(function (k) {
+      var el = document.querySelector('[data-count="' + k + '"]');
+      if (el) el.textContent = HOL_DATA.PRATS.filter(function (p) { return p.pillar === k; }).length;
+    });
+    var cta = document.getElementById('cocktail-cta');
+    if (HOL.Session.get().loggedIn) { cta.textContent = 'Ouvrir mon cocktail →'; cta.href = 'cocktail.html'; }
+  });
+</script>
+</body>
+</html>

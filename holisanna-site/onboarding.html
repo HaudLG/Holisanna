@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Votre cocktail commence — Holisanna</title>
+  <link rel="icon" href="assets/logo-holisanna-mark.png">
+  <link rel="stylesheet" href="css/holisanna.css">
+</head>
+<body data-nav="espace" data-page="onboarding">
+<div id="site-header"></div>
+<main class="ob">
+  <div class="ob__side">
+    <img src="assets/illustration-cocktail-ivory.png" alt="">
+    <div class="ob__step" id="ob-step"></div>
+    <h2>Trois questions,<br><em>et votre verre commence.</em></h2>
+    <p>Vos réponses orientent les praticiens qui vous seront proposés. Elles restent modifiables depuis Mon profil, à tout moment.</p>
+    <div class="ob__progress" id="ob-progress"><div></div><div></div><div></div></div>
+  </div>
+  <div class="ob__main">
+    <h1 id="ob-title"></h1>
+    <p class="ob__lead" id="ob-lead"></p>
+    <div id="ob-body"></div>
+    <div class="ob__actions">
+      <button class="btn-dark" type="button" id="ob-next"></button>
+      <button class="btn-line" type="button" id="ob-back">Retour</button>
+      <button class="skip" type="button" id="ob-skip">Passer cette étape</button>
+    </div>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

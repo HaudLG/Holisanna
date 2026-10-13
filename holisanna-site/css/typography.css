@@ -1,0 +1,9 @@
+:root{
+--font-serif:'Cormorant Garamond',serif;
+--font-sans:'Inter',sans-serif;
+--fs-hero:44px;--fs-h1:42px;--fs-h2:34px;--fs-h3:22px;--fs-card-title:18px;
+--fs-body:13px;--fs-label:10px;--fs-button:12px;
+--fw-light:300;/* @kind other */--fw-regular:400;/* @kind other */--fw-medium:500;/* @kind other */
+--ls-label:0.14em;--ls-button:0.07em;--ls-tight:0.06em;
+--lh-body:1.6;/* @kind other */
+}

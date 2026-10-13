@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mot de passe oublié — Holisanna</title>
+  <link rel="icon" href="assets/logo-holisanna-mark.png">
+  <link rel="stylesheet" href="css/holisanna.css">
+</head>
+<body data-nav="espace" data-page="mot-de-passe-oublie">
+<div id="site-header"></div>
+<main class="center-page">
+  <div class="narrow narrow--center" id="forgot-step">
+    <img class="mark" src="assets/logo-holisanna-mark.png" alt="Holisanna">
+    <h1>Mot de passe oublié</h1>
+    <p class="narrow__lead">Saisissez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+    <form class="form" id="forgot-form">
+      <div class="fld"><label for="email">Votre adresse email</label><input id="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
+      <button class="btn btn-primary btn-lg" type="submit" style="margin-top:0">Envoyer le lien →</button>
+      <p class="back-link"><a href="connexion.html">← Retour à la connexion</a></p>
+    </form>
+  </div>
+
+  <div class="narrow narrow--center narrow--sent" id="sent-step" hidden>
+    <img class="mark" src="assets/logo-holisanna-mark.png" alt="Holisanna">
+    <h1>Le lien est parti</h1>
+    <p class="narrow__lead">Nous avons envoyé un lien de réinitialisation à votre adresse. Il reste valable une heure. Pensez à regarder dans les indésirables si rien n'arrive.</p>
+    <div class="mail-preview">
+      <div class="lbl">Aperçu de l'e-mail</div>
+      <h2>Réinitialiser votre mot de passe</h2>
+      <p>Bonjour, vous avez demandé un nouveau mot de passe. Ce lien expire dans une heure. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>
+    </div>
+    <div class="stack-10">
+      <a class="btn-dark" href="nouveau-mot-de-passe.html">Ouvrir le lien reçu →</a>
+      <button class="btn-line" type="button" id="resend">Renvoyer l'e-mail</button>
+      <p class="back-link"><a href="connexion.html">← Retour à la connexion</a></p>
+    </div>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

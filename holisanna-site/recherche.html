@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rechercher un praticien — Holisanna</title>
+  <meta name="description" content="Trouvez un praticien Take Care par discipline, ville, disponibilité ou budget, et réservez en ligne.">
+  <link rel="icon" href="assets/logo-holisanna-mark.png">
+  <link rel="stylesheet" href="css/holisanna.css">
+</head>
+<body data-nav="recherche">
+<div id="site-header"></div>
+
+<main class="search-layout">
+  <!-- Filtres -->
+  <aside class="filters" aria-label="Filtres de recherche">
+    <div class="filters__title">Affiner les résultats</div>
+
+    <div class="fgroup"><div class="fgroup__title">Pilier</div><div class="fgroup__col" id="f-pillars"></div></div>
+    <div class="fgroup"><div class="fgroup__title">Disponibilité</div><div class="fgroup__row" id="f-dispo"></div></div>
+    <div class="fgroup"><div class="fgroup__title">Mode de séance</div><div class="fgroup__col" id="f-modes"></div></div>
+    <div class="fgroup">
+      <div class="fgroup__title">Tarif maximum</div>
+      <div class="range-labels"><span>40 €</span><span id="price-label">200 €</span></div>
+      <input type="range" id="f-price" min="40" max="200" step="5" value="200" aria-label="Tarif maximum">
+    </div>
+    <div class="fgroup"><div class="fgroup__title">Langue</div><div class="fgroup__col" id="f-langs"></div></div>
+    <div class="fgroup fgroup--last"><div class="fgroup__title">Note minimum</div><div class="fgroup__col" id="f-rating"></div></div>
+
+    <button class="btn-reset" type="button" id="reset">Réinitialiser les filtres</button>
+  </aside>
+
+  <!-- Résultats -->
+  <div class="results">
+    <form class="searchbar" id="searchbar" role="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B5B0A8" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+      <input id="s-q" placeholder="Discipline, praticien…" aria-label="Discipline ou praticien">
+      <input id="s-city" class="searchbar__city" placeholder="Ville" aria-label="Ville">
+      <button type="submit">Rechercher</button>
+    </form>
+
+    <div class="results__head">
+      <div>
+        <div class="results__count" id="count"></div>
+        <div class="results__query" id="query"></div>
+      </div>
+      <div class="sort">
+        <span>Trier par</span>
+        <select id="sort" aria-label="Trier par">
+          <option value="dispo">Disponibilité</option>
+          <option value="note">Note</option>
+          <option value="asc">Tarif croissant</option>
+          <option value="desc">Tarif décroissant</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="active-chips" id="chips" hidden></div>
+    <div class="cards" id="cards"></div>
+    <div class="empty" id="empty" hidden>
+      <h3>Aucun praticien sur ces critères</h3>
+      <p>Élargissez le budget ou retirez un filtre.</p>
+      <button class="btn btn-outline" type="button" id="empty-reset">Tout afficher</button>
+    </div>
+    <nav class="pager" id="pager" aria-label="Pagination" hidden></nav>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/recherche.js"></script>
+</body>
+</html>

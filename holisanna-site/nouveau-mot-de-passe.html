@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nouveau mot de passe — Holisanna</title>
+  <link rel="icon" href="assets/logo-holisanna-mark.png">
+  <link rel="stylesheet" href="css/holisanna.css">
+</head>
+<body data-nav="espace" data-page="nouveau-mot-de-passe">
+<div id="site-header"></div>
+<main class="center-page">
+  <div class="narrow">
+    <img class="mark" src="assets/logo-holisanna-mark.png" alt="Holisanna">
+    <h1>Nouveau mot de passe</h1>
+    <p class="narrow__lead" style="margin-bottom:26px">Choisissez un mot de passe que vous n'utilisez pas ailleurs.</p>
+    <form class="form" id="reset-form" novalidate>
+      <div class="fld"><label for="new1">Nouveau mot de passe</label><input id="new1" type="password" placeholder="Au moins 8 caractères" autocomplete="new-password"></div>
+      <div class="fld"><label for="new2">Confirmer le mot de passe</label><input id="new2" type="password" placeholder="Répéter le mot de passe" autocomplete="new-password"></div>
+      <div class="rules" id="rules"></div>
+      <button class="btn-dark" type="submit">Enregistrer le mot de passe →</button>
+      <p class="back-link"><a href="connexion.html">← Retour à la connexion</a></p>
+    </form>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
