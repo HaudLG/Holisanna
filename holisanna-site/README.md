@@ -42,7 +42,7 @@ Choix retenu (design system) : **Corps = olive, Âme = or, Esprit = rose**. Pour
 
 ## À compléter avant la mise en ligne
 - **Mentions légales, CGU, CGV, confidentialité** : textes du prototype. Les données d'entreprise y sont des exemples
-  (siège, SIREN/SIRET, RCS, TVA, hébergeur OVH) : renseignées. À mettre à jour au passage en SASU (forme juridique, capital, RCS, dirigeant).
+  (siège, SIREN/SIRET, RCS, TVA, hébergeur Vercel Inc., domaines chez OVH) : renseignées. À mettre à jour au passage en SASU (forme juridique, capital, RCS, dirigeant).
   À rapprocher des documents Word du projet (CGU, CGV, charte).
 - **Adresse e-mail** `contact@holisanna.fr` et expéditeur `bonjour@holisanna.fr` : à vérifier.
 - Photos des praticiens : l'envoi n'est pas encore branché (« Photo à venir »).
