@@ -5,17 +5,59 @@
   'use strict';
   var KEY = 'holisanna.session';
 
-  /* ----- Session (démo : stockée dans le navigateur, à remplacer par la vraie authentification) ----- */
+  /* ----- Session -----
+     La vraie session est gérée par Supabase Auth (js/supabase.js). Ce cache, lu de façon synchrone,
+     sert uniquement à l'affichage (en-tête, redirections de confort) : il est resynchronisé à chaque page
+     et ne protège aucune donnée. L'accès aux données est vérifié côté base par les règles RLS. */
+  var OUT = { loggedIn: false, role: 'explorateur' };
+  function sb() { return window.HOL_SB && window.HOL_SB.client; }
   var Session = {
     get: function () {
-      try { return JSON.parse(localStorage.getItem(KEY)) || { loggedIn: false, role: 'explorateur' }; }
-      catch (e) { return { loggedIn: false, role: 'explorateur' }; }
+      try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.loggedIn) return s; } catch (e) {}
+      return { loggedIn: false, role: 'explorateur' };
     },
     set: function (s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} },
-    login: function (role) { Session.set({ loggedIn: true, role: role || 'explorateur' }); },
-    logout: function () { Session.set({ loggedIn: false, role: 'explorateur' }); }
+    /* Appelé après une connexion réussie : { role, name, email } */
+    login: function (info) {
+      info = info || {};
+      Session.set({ loggedIn: true, role: info.role === 'praticien' ? 'praticien' : 'explorateur', name: info.name || '', email: info.email || '' });
+    },
+    /* Déconnexion : renvoie une promesse, à attendre avant de changer de page */
+    logout: function () {
+      Session.set(OUT);
+      var c = sb();
+      return c ? c.auth.signOut().catch(function () {}) : Promise.resolve();
+    },
+    /* Relit la vraie session et le compte associé */
+    refresh: function () {
+      var c = sb();
+      if (!c) return Promise.resolve(Session.get());
+      return c.auth.getSession().then(function (r) {
+        var ses = r.data && r.data.session;
+        if (!ses) return { loggedIn: false, role: 'explorateur' };
+        return c.from('utilisateurs').select('role, nom_complet').eq('id', ses.user.id).maybeSingle().then(function (q) {
+          var md = ses.user.user_metadata || {}, row = q.data;
+          return {
+            loggedIn: true,
+            role: (row ? row.role : md.role) === 'praticien' ? 'praticien' : 'explorateur',
+            name: row ? row.nom_complet : (md.nom_complet || ''),
+            email: ses.user.email || ''
+          };
+        });
+      }).catch(function () { return Session.get(); });
+    }
   };
 
+  /* Identité affichable : « Léna Ferreira » → { full, first, short: « Léna F. », initials: « LF » } */
+  function who() {
+    var s = Session.get(), full = (s.name || '').trim() || (s.email || '').split('@')[0] || 'Mon compte';
+    var parts = full.split(/\s+/), first = parts[0], last = parts.length > 1 ? parts[parts.length - 1] : '';
+    return {
+      full: full, first: first,
+      short: last ? first + ' ' + last.charAt(0).toUpperCase() + '.' : first,
+      initials: (first.charAt(0) + (last ? last.charAt(0) : '')).toUpperCase()
+    };
+  }
 
   /* ----- Magasin de démonstration : créneaux réservés, séances, réservations -----
      Stocké dans le navigateur ; à remplacer par la base de données (Supabase…). */
@@ -37,7 +79,13 @@
         explProfile: { nom: 'Sarah Nguyen', email: 'sarah.nguyen@email.com', tel: '+33 6 24 81 09 55', naissance: '14 mars 1991', ville: 'Paris 11e' },
         rdv: { day: '9', month: 'Septembre', when: 'Mercredi · 14h00 — 15h30', cancelled: false }
       };
-      try { var s = JSON.parse(localStorage.getItem(SKEY)); if (s) return Object.assign(base, s); } catch (e) {}
+      try { var s = JSON.parse(localStorage.getItem(SKEY)); if (s) base = Object.assign(base, s); } catch (e) {}
+      var ses = Session.get();
+      if (ses.loggedIn) {   /* compte réel : l'identité de démonstration laisse la place à celle de la personne */
+        var w = who();
+        if (ses.role === 'praticien' && base.fiche && base.fiche.nom === 'Camille Ferrand') base.fiche = Object.assign({}, base.fiche, { nom: w.full });
+        if (ses.role !== 'praticien' && base.explProfile && base.explProfile.nom === 'Sarah Nguyen') base.explProfile = { nom: w.full, email: ses.email || '', tel: '', naissance: '', ville: '' };
+      }
       return base;
     },
     set: function (s) { try { localStorage.setItem(SKEY, JSON.stringify(s)); } catch (e) {} },
@@ -61,6 +109,8 @@
       Store.set(s);
     }
   };
+
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* ----- Message « flash » : affiché au chargement de la page suivante ----- */
   function flash(msg) { try { sessionStorage.setItem('holisanna.flash', msg); } catch (e) {} }
@@ -86,7 +136,7 @@
     }
     var pro = s.loggedIn && s.role === 'praticien';
     var user = s.loggedIn
-      ? '<div class="site-user"><div class="site-user__avatar">' + (pro ? 'CF' : 'SN') + '</div><div class="site-user__name">' + (pro ? 'Camille F.' : 'Sarah N.') + '</div>' +
+      ? '<div class="site-user"><div class="site-user__avatar">' + esc(who().initials) + '</div><div class="site-user__name">' + esc(who().short) + '</div>' +
         '<button class="site-user__out" type="button" id="logout">Sortir</button></div>'
       : '<a class="btn btn-outline" href="connexion.html">Se connecter</a>';
     host.innerHTML =
@@ -100,7 +150,7 @@
       item('pro', 'Espace praticien', 'espace-praticien.html') +
       '</nav>' + user + '</div></header>';
     var out = document.getElementById('logout');
-    if (out) out.addEventListener('click', function () { Session.logout(); location.href = 'index.html'; });
+    if (out) out.addEventListener('click', function () { Session.logout().then(function () { location.href = 'index.html'; }); });
   }
 
   /* ----- Pied de page ----- */
@@ -124,9 +174,30 @@
       '</div><div class="site-footer__bottom"><div>© 2026 Holisanna</div></div></footer>';
   }
 
+  /* Resynchronise le cache avec la vraie session. Sur les pages protégées, un changement recharge la page
+     pour que la redirection de confort s'applique ; sur les pages de connexion, on met seulement l'en-tête à jour. */
+  var syncing = false;
+  function syncSession() {
+    if (syncing || !sb()) return;
+    syncing = true;
+    var before = JSON.stringify(Session.get());
+    Session.refresh().then(function (next) {
+      syncing = false;
+      if (JSON.stringify(next) === before) return;
+      var prev = JSON.parse(before);
+      Session.set(next.loggedIn ? next : OUT);
+      if (document.body.getAttribute('data-page')) renderHeader();
+      else if (prev.loggedIn !== next.loggedIn || prev.role !== next.role) location.reload();
+      else renderHeader();
+    });
+  }
+  if (sb()) sb().auth.onAuthStateChange(function (evt) {
+    if (evt === 'SIGNED_OUT' || evt === 'SIGNED_IN' || evt === 'USER_UPDATED') setTimeout(syncSession, 0);
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
-    renderHeader(); renderFooter();
+    renderHeader(); renderFooter(); syncSession();
     try { var f = sessionStorage.getItem('holisanna.flash'); if (f) { sessionStorage.removeItem('holisanna.flash'); toast(f); } } catch (e) {}
   });
-  window.HOL = { Session: Session, Store: Store, toast: toast, flash: flash };
+  window.HOL = { Session: Session, Store: Store, toast: toast, flash: flash, who: who, esc: esc, sb: sb };
 })();

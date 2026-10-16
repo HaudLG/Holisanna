@@ -58,14 +58,14 @@
       '<div class="sidenav__group"><div class="sidenav__title">Compte</div>' +
       item('Abonnement &amp; factures', 'abo', 'pro-abonnement.html') +
       '<button class="sidenav__item sidenav__item--out" type="button" data-act="logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICO.out[0] + '"></path><path d="' + ICO.out[1] + '"></path></svg><span>Déconnexion</span></button></div>' +
-      '<div class="sidenav__user"><div class="sidenav__avatar">CF</div><div><div class="sidenav__name">Camille Ferrand</div><div class="sidenav__role">Praticienne · Lyon 3e</div></div></div></aside>';
+      '<div class="sidenav__user"><div class="sidenav__avatar">' + HOL.esc(HOL.who().initials) + '</div><div><div class="sidenav__name">' + HOL.esc(HOL.who().full) + '</div><div class="sidenav__role">Praticienne · Lyon 3e</div></div></div></aside>';
   }
 
   /* ----- Bandeau ----- */
   function banner(d) {
     return '<div class="banner banner--rose"><img src="assets/logo-dreamcatcher-ivory.png" alt="">' +
       '<div class="banner__text"><div class="banner__date">Semaine du 31 août 2026</div>' +
-      '<h1>Bonjour Camille,<br><em>votre semaine est ouverte.</em></h1>' +
+      '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>votre semaine est ouverte.</em></h1>' +
       '<p>' + d.confirmed + ' séances réservées cette semaine · ' + d.free + ' créneaux encore libres.</p></div>' +
       '<div class="banner__btns"><button class="btn-line-light" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' +
       '<a class="btn-dark2" href="praticien.html?id=1&from=pro">VOIR MA FICHE PUBLIQUE</a></div></div>';
@@ -282,7 +282,7 @@
   /* ----- Actions ----- */
   function toggle(arr, v) { var i = arr.indexOf(v); if (i > -1) arr.splice(i, 1); else arr.push(v); }
   var ACTIONS = {
-    logout: function () { HOL.Session.logout(); HOL.flash('Vous êtes déconnectée. À bientôt.'); location.href = 'index.html'; },
+    logout: function () { HOL.Session.logout().then(function () { HOL.flash('Vous êtes déconnectée. À bientôt.'); location.href = 'index.html'; }); },
     'open-slots': function () { modal = true; slotDays = []; slotTimes = []; render(); },
     close: function () { modal = false; render(); },
     day: function (el) { toggle(slotDays, el.dataset.v); render(); },

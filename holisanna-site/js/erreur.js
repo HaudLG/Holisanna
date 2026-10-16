@@ -83,7 +83,7 @@
     retry: function () { HOL.flash('Nouvelle tentative de prélèvement lancée.'); location.href = 'pro-abonnement.html'; },
     card: function () { setPay('card', 'Renseignez votre nouvelle carte dans Abonnement & factures.'); location.href = 'pro-abonnement.html'; },
     sepa: function () { setPay('sepa', 'Moyen de prélèvement : prélèvement SEPA.'); location.href = 'pro-abonnement.html'; },
-    relogin: function () { HOL.Session.logout(); location.href = 'connexion.html'; }
+    relogin: function () { HOL.Session.logout().then(function () { location.href = 'connexion.html'; }); }
   };
 
   document.addEventListener('DOMContentLoaded', function () {

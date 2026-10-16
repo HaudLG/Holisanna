@@ -1,6 +1,6 @@
 /* Holisanna — connexion, inscriptions, mot de passe oublié, questionnaire de départ.
    Une seule feuille de script : chaque page déclare son nom dans <body data-page="…">.
-   ⚠ Démonstration : aucun mot de passe n'est envoyé ni enregistré. À brancher sur l'authentification réelle (Supabase Auth…). */
+   Authentification réelle : Supabase Auth (e-mail + mot de passe). Google et Apple : à venir (boutons encore simulés). */
 (function () {
   'use strict';
   var D = window.HOL_DATA, P = D.PILLARS;
@@ -9,6 +9,54 @@
   var params = new URLSearchParams(location.search);
 
   function go(url, flashMsg) { if (flashMsg) HOL.flash(flashMsg); location.href = url; }
+  function sb() { return window.HOL_SB && window.HOL_SB.client; }
+  function busy(form, on) { var b = form.querySelector('button[type=submit]'); if (b) { b.disabled = on; b.style.opacity = on ? '.6' : ''; } }
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /* Messages d'erreur en français, sans jamais révéler si une adresse existe déjà côté connexion */
+  function errMsg(e) {
+    var m = ((e && (e.code || e.message)) || '').toLowerCase();
+    if (/invalid_credentials|invalid login/.test(m)) return 'Adresse e-mail ou mot de passe incorrect.';
+    if (/email_not_confirmed|not confirmed/.test(m)) return 'Votre adresse n’est pas encore confirmée : ouvrez l’e-mail que nous vous avons envoyé.';
+    if (/over_email_send_rate_limit|rate limit|too many/.test(m)) return 'Trop de tentatives. Patientez quelques minutes avant de réessayer.';
+    if (/weak_password|password/.test(m)) return 'Ce mot de passe est trop faible. Essayez-en un plus long.';
+    if (/failed to fetch|network/.test(m)) return 'Connexion impossible. Vérifiez votre réseau et réessayez.';
+    return 'Une erreur est survenue. Réessayez dans un instant.';
+  }
+  /* Adresse de retour après login : relative, même site uniquement */
+  function nextUrl() { var n = params.get('next'); return n && /^[a-z0-9._-]+\.html(\?[^#]*)?$/i.test(n) ? n : ''; }
+  /* Écran « consultez votre boîte mail » après une inscription qui demande confirmation */
+  function showCheckMail(form, email) {
+    form.hidden = true;
+    var box = document.createElement('div');
+    box.className = 'form';
+    box.setAttribute('role', 'status');
+    box.innerHTML = '<h2 style="margin:0 0 10px">Vérifiez votre boîte mail</h2>' +
+      '<p>Nous venons d’envoyer un lien de confirmation à <strong>' + esc(email) + '</strong>. Cliquez dessus pour activer votre compte, puis connectez-vous.</p>' +
+      '<p class="fine">Rien reçu ? Regardez dans vos courriers indésirables.</p>' +
+      '<a class="btn btn-primary btn-lg" href="connexion.html">Aller à la connexion →</a>';
+    form.parentNode.insertBefore(box, form.nextSibling);
+    window.scrollTo(0, 0);
+  }
+  /* Inscription commune aux deux rôles */
+  function signUp(form, role, fields, then) {
+    var c = sb();
+    if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
+    var email = $('email').value.trim(), pwd = $('pwd').value;
+    if (pwd.length < 8 || pwdScore(pwd) < 4) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
+    var data = Object.assign({ role: role, cgu_acceptees: 'true' }, fields);
+    busy(form, true);
+    c.auth.signUp({
+      email: email, password: pwd,
+      options: { data: data, emailRedirectTo: location.origin + '/connexion.html?confirme=1' }
+    }).then(function (r) {
+      busy(form, false);
+      if (r.error) { HOL.toast(errMsg(r.error)); return; }
+      var u = r.data && r.data.user;
+      if (u && u.identities && u.identities.length === 0) { HOL.toast('Un compte existe déjà avec cette adresse. Connectez-vous ou réinitialisez votre mot de passe.'); return; }
+      if (r.data.session) { HOL.Session.login({ role: role, name: data.nom_complet, email: email }); then(); }
+      else showCheckMail(form, email);
+    }).catch(function (e) { busy(form, false); HOL.toast(errMsg(e)); });
+  }
 
   /* ----- Boutons Google / Apple (simulation) ----- */
   function initSocial() {
@@ -37,11 +85,26 @@
 
   /* ===== Connexion ===== */
   function pageConnexion() {
+    if (params.get('confirme')) HOL.toast('Adresse confirmée. Vous pouvez vous connecter.');
     $('login-form').addEventListener('submit', function (e) {
       e.preventDefault();
-      var role = params.get('role') === 'praticien' ? 'praticien' : 'explorateur';
-      HOL.Session.login(role);
-      go(role === 'praticien' ? 'espace-praticien.html' : 'espace.html', 'Bon retour. Votre cocktail bien-être vous attend.');
+      var c = sb(), form = e.target;
+      if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
+      busy(form, true);
+      c.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pwd').value }).then(function (r) {
+        if (r.error) { busy(form, false); HOL.toast(errMsg(r.error)); return; }
+        return HOL.Session.refresh().then(function (info) {
+          if (!info.loggedIn) { busy(form, false); HOL.toast('Connexion impossible. Réessayez.'); return; }
+          HOL.Session.login(info);
+          var next = nextUrl();
+          if (info.role === 'praticien') return go(next || 'espace-praticien.html', 'Bon retour. Votre semaine vous attend.');
+          /* Premier passage d'un explorateur : on lui propose le questionnaire de départ */
+          return c.from('profils_explorateur').select('piliers_prefs').eq('utilisateur_id', r.data.user.id).maybeSingle().then(function (q) {
+            var first = q.data && q.data.piliers_prefs === null;
+            go(first ? 'onboarding.html' : (next || 'espace.html'), first ? 'Bienvenue. Trois questions pour amorcer votre cocktail.' : 'Bon retour. Votre cocktail bien-être vous attend.');
+          });
+        });
+      }).catch(function (err) { busy(form, false); HOL.toast(errMsg(err)); });
     });
   }
 
@@ -49,7 +112,12 @@
   function pageExplorateur() {
     $('expl-form').addEventListener('submit', function (e) {
       e.preventDefault();
-      go('onboarding.html', 'Compte créé. Trois questions pour amorcer votre cocktail.');
+      var f = e.target;
+      signUp(f, 'explorateur', {
+        nom_complet: ($('prenom').value.trim() + ' ' + $('nom').value.trim()).trim(),
+        telephone: $('tel').value.trim(),
+        date_naissance: $('naissance').value
+      }, function () { go('onboarding.html', 'Compte créé. Trois questions pour amorcer votre cocktail.'); });
     });
   }
 
@@ -105,17 +173,36 @@
     $('prat-form').addEventListener('submit', function (e) {
       e.preventDefault();
       if (!st.main.length) { HOL.toast('Sélectionnez au moins une spécialité principale.'); return; }
-      var s = HOL.Store.get(); s.plan = st.plan; s.payMethod = st.pay; HOL.Store.set(s);
-      HOL.Session.login('praticien');
-      go('espace-praticien.html', 'Bienvenue sur Holisanna. Votre profil est en ligne, 1 mois offert.');
+      var f = e.target;
+      /* Les champs de paiement (carte, IBAN) ne sont ni lus ni envoyés : l'abonnement sera branché plus tard chez un prestataire de paiement. */
+      signUp(f, 'praticien', {
+        nom_complet: ($('prenom').value.trim() + ' ' + $('nom').value.trim()).trim(),
+        telephone: $('tel').value.trim(),
+        adresse: $('adresse').value.trim(), code_postal: $('cp').value.trim(), ville: $('ville').value.trim(),
+        charte_version: (window.HOL_SB && window.HOL_SB.CHARTE_VERSION) || '1.0'
+      }, function () {
+        var s = HOL.Store.get(); s.plan = st.plan; s.payMethod = st.pay; HOL.Store.set(s);
+        go('espace-praticien.html', 'Bienvenue sur Holisanna. Votre compte est créé.');
+      });
+      try { var s2 = HOL.Store.get(); s2.plan = st.plan; s2.payMethod = st.pay; HOL.Store.set(s2); } catch (x) {}
     });
   }
 
   /* ===== Mot de passe oublié ===== */
   function pageForgot() {
-    function sent() { $('forgot-step').hidden = true; $('sent-step').hidden = false; window.scrollTo(0, 0); HOL.toast('Email envoyé. Vérifiez votre boîte de réception.'); }
-    $('forgot-form').addEventListener('submit', function (e) { e.preventDefault(); sent(); });
-    $('resend').addEventListener('click', function () { HOL.toast('Email envoyé. Vérifiez votre boîte de réception.'); });
+    function sent() { $('forgot-step').hidden = true; $('sent-step').hidden = false; window.scrollTo(0, 0); HOL.toast('Si un compte existe, un e-mail vient d’être envoyé.'); }
+    var lastEmail = '';
+    function send(after) {
+      var c = sb();
+      if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
+      c.auth.resetPasswordForEmail(lastEmail, { redirectTo: location.origin + '/nouveau-mot-de-passe.html' }).then(function (r) {
+        /* Même réponse que le compte existe ou non : on ne révèle rien sur les adresses inscrites */
+        if (r.error && /rate|too many/i.test(r.error.message || r.error.code || '')) { HOL.toast(errMsg(r.error)); return; }
+        after();
+      }).catch(function (e) { HOL.toast(errMsg(e)); });
+    }
+    $('forgot-form').addEventListener('submit', function (e) { e.preventDefault(); lastEmail = $('email').value.trim(); send(sent); });
+    $('resend').addEventListener('click', function () { if (lastEmail) send(function () { HOL.toast('E-mail renvoyé. Vérifiez votre boîte de réception.'); }); });
   }
 
   /* ===== Nouveau mot de passe ===== */
@@ -139,10 +226,19 @@
     a.addEventListener('input', paint); b.addEventListener('input', paint); paint();
     $('reset-form').addEventListener('submit', function (e) {
       e.preventDefault();
-      var p = a.value;
+      var p = a.value, c = sb();
       if (p.length < 8 || !/[a-z]/.test(p) || !/[A-Z]/.test(p) || !/[0-9\W]/.test(p)) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
       if (p !== b.value) { HOL.toast('Les deux saisies ne correspondent pas.'); return; }
-      go('connexion.html', 'Mot de passe modifié. Vous pouvez vous reconnecter.');
+      if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
+      busy(e.target, true);
+      /* Le lien reçu par e-mail ouvre une session de récupération : sans elle, le lien est expiré ou déjà utilisé */
+      c.auth.getSession().then(function (r) {
+        if (!r.data.session) { busy(e.target, false); HOL.toast('Ce lien n’est plus valide. Demandez-en un nouveau.'); return; }
+        return c.auth.updateUser({ password: p }).then(function (u) {
+          if (u.error) { busy(e.target, false); HOL.toast(errMsg(u.error)); return; }
+          return HOL.Session.logout().then(function () { go('connexion.html', 'Mot de passe modifié. Vous pouvez vous reconnecter.'); });
+        });
+      }).catch(function (err) { busy(e.target, false); HOL.toast(errMsg(err)); });
     });
   }
 
@@ -203,16 +299,35 @@
       else return;
       render();
     });
-    function enter(msg, prefs) {
-      var s = HOL.Store.get(); s.sessions = []; if (prefs) s.explPrefs = prefs; HOL.Store.set(s);
-      HOL.Session.login('explorateur');
-      go('cocktail.html', msg);
+    /* Correspondance entre les libellés du questionnaire et les valeurs de la base */
+    var PILLAR_DB = { 'Corps': 'corps', 'Âme': 'ame', 'Esprit': 'esprit' };
+    var MODE_DB = { 'Au cabinet': 'presentiel', 'En visio': 'distanciel', 'À domicile': 'domicile' };
+    var RHYTHM_DB = { 'Une séance pour essayer': 'ponctuel', 'Une fois par mois': 'mensuel', 'Toutes les deux semaines': 'bimensuel' };
+    function enter(msg, prefs, save) {
+      var s = HOL.Store.get(); s.sessions = []; if (prefs) s.explPrefs = prefs; HOL.Store.set(s);   /* séances et pratiques : encore en démonstration */
+      function done() { go('cocktail.html', msg); }
+      var c = sb();
+      if (!c) return done();
+      c.auth.getSession().then(function (r) {
+        var ses = r.data.session;
+        if (!ses) { go('connexion.html', 'Connectez-vous pour continuer.'); return; }
+        /* « Passer » enregistre des listes vides : le questionnaire ne sera plus imposé à chaque connexion */
+        var row = save ? {
+          piliers_prefs: st.pillars.map(function (x) { return PILLAR_DB[x]; }).filter(Boolean),
+          modes_prefs: st.modes.map(function (x) { return MODE_DB[x]; }).filter(function (x, i, a) { return x && a.indexOf(x) === i; }),
+          rythme: RHYTHM_DB[st.rhythm] || null
+        } : { piliers_prefs: [], modes_prefs: [] };
+        return c.from('profils_explorateur').update(row).eq('utilisateur_id', ses.user.id).then(function (u) {
+          if (u.error) HOL.toast('Vos préférences n’ont pas pu être enregistrées. Vous pourrez les refaire depuis Mon profil.');
+          done();
+        });
+      }).catch(done);
     }
     $('ob-next').addEventListener('click', function () {
       if (st.step === 1 && !st.pillars.length) { HOL.toast('Choisissez au moins un pilier.'); return; }
       if (st.step === 2 && !st.discs.length) { HOL.toast('Choisissez au moins une pratique.'); return; }
       if (st.step < 3) { st.step++; render(); window.scrollTo(0, 0); return; }
-      enter('Bienvenue. Votre cocktail est prêt à se remplir.', st.pillars.concat(st.modes).concat(st.discs.slice(0, 2)));
+      enter('Bienvenue. Votre cocktail est prêt à se remplir.', st.pillars.concat(st.modes).concat(st.discs.slice(0, 2)), true);
     });
     $('ob-back').addEventListener('click', function () {
       if (st.step === 1) { location.href = 'inscription-explorateur.html'; return; }

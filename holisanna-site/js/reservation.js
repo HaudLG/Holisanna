@@ -41,8 +41,13 @@
       '<a class="btn btn-outline" href="' + profileUrl() + '">Modifier</a></div></div></div></section>';
     document.getElementById('confirm').addEventListener('click', function () {
       if (!stillFree) return;
-      HOL.Store.book(prat, date, time);
-      HOL.Session.login(HOL.Session.get().role);   /* comme le prototype : réserver connecte l'explorateur */
+      var ses = HOL.Session.get();
+      if (!ses.loggedIn || ses.role === 'praticien') {   /* réserver demande un compte explorateur */
+        HOL.flash(ses.loggedIn ? 'Un compte praticien ne peut pas réserver. Connectez-vous avec un compte explorateur.' : 'Connectez-vous pour confirmer votre réservation.');
+        location.href = 'connexion.html?next=' + encodeURIComponent('reservation.html' + location.search);
+        return;
+      }
+      HOL.Store.book(prat, date, time);   /* réservation encore en démonstration (stockée dans le navigateur) */
       history.replaceState(null, '', location.pathname + '?id=' + prat.id + '&date=' + encodeURIComponent(date) + '&heure=' + encodeURIComponent(time) + '&etape=3');
       step = 3; render(); window.scrollTo(0, 0);
     });

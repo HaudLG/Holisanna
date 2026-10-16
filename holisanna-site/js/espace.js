@@ -80,7 +80,7 @@
       '<div class="sidenav__group"><div class="sidenav__title">Compte</div>' +
       navItem('Mon profil', 'profil', 'espace-profil.html') +
       '<button class="sidenav__item sidenav__item--out" type="button" data-act="logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICO.out[0] + '"></path><path d="' + ICO.out[1] + '"></path></svg><span>Déconnexion</span></button></div>' +
-      '<div class="sidenav__user"><div class="sidenav__avatar">SN</div><div><div class="sidenav__name">Sarah Nguyen</div><div class="sidenav__role">Exploratrice</div></div></div>' +
+      '<div class="sidenav__user"><div class="sidenav__avatar">' + HOL.esc(HOL.who().initials) + '</div><div><div class="sidenav__name">' + HOL.esc(HOL.who().full) + '</div><div class="sidenav__role">Exploratrice</div></div></div>' +
       '</aside>';
   }
 
@@ -90,7 +90,7 @@
     date = date.charAt(0).toUpperCase() + date.slice(1);
     var rdvTxt = d.s.rdv.cancelled ? 'Vous n’avez aucun rendez-vous' : 'Vous avez 1 rendez-vous';
     return '<div class="banner"><div class="banner__text"><div class="banner__date">' + date + '</div>' +
-      '<h1>Bonjour Sarah,<br><em>prenez soin de vous.</em></h1>' +
+      '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>prenez soin de vous.</em></h1>' +
       '<p>' + rdvTxt + ' cette semaine et ' + d.touched + ' piliers dans votre cocktail.</p></div>' +
       '<a class="banner__search" href="recherche.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(250,246,238,0.45)" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg><span>Rechercher un praticien…</span></a></div>';
   }
@@ -325,7 +325,7 @@
 
   /* ----- Actions ----- */
   var ACTIONS = {
-    logout: function () { HOL.Session.logout(); HOL.flash('Vous êtes déconnectée. À bientôt.'); location.href = 'index.html'; },
+    logout: function () { HOL.Session.logout().then(function () { HOL.flash('Vous êtes déconnectée. À bientôt.'); location.href = 'index.html'; }); },
     agenda: function () { HOL.toast('Séance ajoutée à votre agenda.'); },
     'open-move': function () { modal = 'move'; render(); },
     'open-cancel': function () { modal = 'cancel'; render(); },
