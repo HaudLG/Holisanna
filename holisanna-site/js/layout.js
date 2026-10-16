@@ -51,7 +51,7 @@
   /* Identité affichable : « Léna Ferreira » → { full, first, short: « Léna F. », initials: « LF » } */
   function who() {
     var s = Session.get(), full = (s.name || '').trim() || (s.email || '').split('@')[0] || 'Mon compte';
-    var parts = full.split(/\s+/), first = parts[0], last = parts.length > 1 ? parts[parts.length - 1] : '';
+    var parts = full.split(/\s+/), first = parts[0], last = parts.slice(1).join(' ');   /* « Le Gouadec » → L. */
     return {
       full: full, first: first,
       short: last ? first + ' ' + last.charAt(0).toUpperCase() + '.' : first,
