@@ -26,14 +26,15 @@
   function nextUrl() { var n = params.get('next'); return n && /^[a-z0-9._-]+\.html(\?[^#]*)?$/i.test(n) ? n : ''; }
   /* Écran « consultez votre boîte mail » après une inscription qui demande confirmation */
   function showCheckMail(form, email) {
-    form.hidden = true;
+    form.style.display = 'none';   /* l'attribut hidden est écrasé par le display:flex des formulaires */
+    /* le message remplace tout le haut de la page : titre, boutons Google/Apple, séparateur, mentions */
+    document.querySelectorAll('.auth-box > h1, .auth-box > .auth-sub, .auth-box > .social-list, .auth-box > .divider, .auth-box .fine, .auth-box > .auth-back').forEach(function (el) { el.style.display = 'none'; });
     var box = document.createElement('div');
-    box.className = 'form';
     box.setAttribute('role', 'status');
-    box.innerHTML = '<h2 style="margin:0 0 10px">Vérifiez votre boîte mail</h2>' +
-      '<p>Nous venons d’envoyer un lien de confirmation à <strong>' + esc(email) + '</strong>. Cliquez dessus pour activer votre compte, puis connectez-vous.</p>' +
-      '<p class="fine">Rien reçu ? Regardez dans vos courriers indésirables.</p>' +
-      '<a class="btn btn-primary btn-lg" href="connexion.html">Aller à la connexion →</a>';
+    box.innerHTML = '<h2 class="auth-title">Vérifiez votre boîte mail</h2>' +
+      '<p class="auth-sub" style="font-size:14px;line-height:1.7;margin-bottom:14px">Nous venons d’envoyer un lien de confirmation à <strong>' + esc(email) + '</strong>. Cliquez dessus pour activer votre compte, puis connectez-vous.</p>' +
+      '<p class="auth-sub" style="margin-bottom:24px">Rien reçu ? Regardez dans vos courriers indésirables.</p>' +
+      '<a class="btn btn-primary btn-lg" style="display:flex;align-items:center;justify-content:center;min-height:52px" href="connexion.html">Aller à la connexion →</a>';
     form.parentNode.insertBefore(box, form.nextSibling);
     window.scrollTo(0, 0);
   }
