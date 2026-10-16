@@ -384,6 +384,11 @@ input[type="range"] { width: 100%; accent-color: var(--olive); }
 .fld input { height: 44px; border: .5px solid var(--border); padding: 0 14px; font-size: 13px; color: var(--slate); background: var(--white); border-radius: 2px; width: 100%; font-family: var(--font-sans); outline: none; }
 .fld input:focus { border-color: var(--olive); }
 .fld input:user-invalid { border-color: var(--error); }
+.pwd-wrap { position: relative; }
+.pwd-wrap input { padding-right: 46px; }
+.pwd-eye { position: absolute; top: 0; right: 2px; width: 42px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--slate-lt); cursor: pointer; }
+.pwd-eye:hover { color: var(--slate); }
+.pwd-eye:focus-visible { outline: 2px solid var(--olive); outline-offset: -2px; }
 .fld__hint { font-size: 10px; color: var(--slate-lt); margin-top: 2px; }
 .pwd-bars { display: flex; gap: 4px; margin-top: 6px; }
 .pwd-bars div { flex: 1; height: 3px; background: var(--border); }
