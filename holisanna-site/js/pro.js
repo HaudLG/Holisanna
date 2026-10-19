@@ -58,7 +58,7 @@
       '<div class="sidenav__group"><div class="sidenav__title">Compte</div>' +
       item('Abonnement &amp; factures', 'abo', 'pro-abonnement.html') +
       '<button class="sidenav__item sidenav__item--out" type="button" data-act="logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICO.out[0] + '"></path><path d="' + ICO.out[1] + '"></path></svg><span>Déconnexion</span></button></div>' +
-      '<div class="sidenav__user"><div class="sidenav__avatar">' + HOL.esc(HOL.who().initials) + '</div><div><div class="sidenav__name">' + HOL.esc(HOL.who().full) + '</div><div class="sidenav__role">Praticienne · Lyon 3e</div></div></div></aside>';
+      '<div class="sidenav__user"><div class="sidenav__avatar">' + HOL.esc(HOL.who().initials) + '</div><div><div class="sidenav__name">' + HOL.esc(HOL.who().full) + '</div><div class="sidenav__role">Praticienne' + (sess.ville ? ' · ' + HOL.esc(sess.ville) : '') + '</div></div></div></aside>';
   }
 
   /* ----- Bandeau ----- */
@@ -191,6 +191,14 @@
     }).join('') + '</div>';
   }
   function field(k, label) { return '<div class="ffield"><label for="f-' + k + '">' + label + '</label><input id="f-' + k + '" data-f="' + k + '" value="' + esc(fiche[k]) + '"></div>'; }
+  /* Met à jour la ville affichée sous le nom (menu latéral) */
+  function syncVille() {
+    return HOL.Session.refresh().then(function (n) {
+      if (!n.loggedIn || (n.ville || '') === (sess.ville || '')) return;
+      sess = n; HOL.Session.set(n); render();
+    });
+  }
+
   /* Correspondances interface ↔ base */
   var MODES_UI = { cabinet: 'Cabinet', visio: 'Visio', domicile: 'À domicile' };
   var LANGS_UI = { fr: 'Français', en: 'Anglais', es: 'Espagnol', it: 'Italien', lsf: 'LSF' };
@@ -245,7 +253,7 @@
       ]);
     }).then(function (r) {
       if (r[0].error || r[1].error) throw new Error('db');
-      HOL.Session.refresh();
+      syncVille();
       HOL.toast('Fiche enregistrée. Elle sera visible dans la recherche dès sa publication.');
     }).catch(function () { HOL.toast('Enregistrement impossible pour le moment. Réessayez dans un instant.'); });
   }
@@ -425,5 +433,6 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
     if (section === 'fedit') loadFiche().then(render);
+    syncVille();
   });
 })();

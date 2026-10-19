@@ -37,12 +37,17 @@
         if (!ses) return { loggedIn: false, role: 'explorateur' };
         return c.from('utilisateurs').select('role, nom_complet').eq('id', ses.user.id).maybeSingle().then(function (q) {
           var md = ses.user.user_metadata || {}, row = q.data;
-          return {
+          var out = {
             loggedIn: true,
             role: (row ? row.role : md.role) === 'praticien' ? 'praticien' : 'explorateur',
             name: row ? row.nom_complet : (md.nom_complet || ''),
             email: ses.user.email || ''
           };
+          if (out.role !== 'praticien') return out;
+          return c.from('profils_praticien').select('ville').eq('utilisateur_id', ses.user.id).maybeSingle().then(function (p) {
+            out.ville = (p.data && p.data.ville) || '';
+            return out;
+          });
         });
       }).catch(function () { return Session.get(); });
     }
