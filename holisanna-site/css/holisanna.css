@@ -781,6 +781,8 @@ input[type="range"] { width: 100%; accent-color: var(--olive); }
 .agenda-row__h { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--slate-lt); text-align: center; }
 .agenda-row__t { font-size: 11px; color: var(--slate-lt); display: flex; align-items: center; }
 .acell { border: .5px solid; padding: 8px 9px; min-height: 48px; }
+button.acell { font: inherit; text-align: left; width: 100%; cursor: pointer; }
+button.acell:hover { border-color: var(--rose) !important; }
 .acell__a { font-size: 11px; line-height: 1.35; }
 .acell__b { font-size: 10px; font-weight: 300; margin-top: 2px; }
 .rrow { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: .5px solid var(--border); flex-wrap: wrap; }

@@ -16,12 +16,59 @@
   function save(s) { HOL.Store.set(s); }
   function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  function derive() {
-    var s = st(), slots = HOL.Store.slots()[1];
-    var confirmed = s.bookings.filter(function (b) { return b.status === 'confirmed'; }).length;
-    var free = D.DATES.reduce(function (a, d) { return a + (slots[d] || []).length; }, 0);
-    return { s: s, slots: slots, confirmed: confirmed, free: free, empty: free === 0 };
+  /* ----- Données réelles (Supabase) ----- */
+  var TZ = 'Europe/Paris', SLOT_MIN = 90, WEEKS_AHEAD = 8, DAYS_N = 6;
+  var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  var MODE_LBL = { cabinet: 'Au cabinet', visio: 'Visio', domicile: 'À domicile' }, MODE_COL = { cabinet: 'var(--olive)', visio: 'var(--gold)', domicile: 'var(--rose)' };
+  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null };
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function ymd(dt) { return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate()); }
+  function addDays(s, n) { var d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
+  function mondayOf(s) { var d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return ymd(d); }
+  function parisParts(ms) {
+    var o = {}; new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      .formatToParts(new Date(ms)).forEach(function (p) { o[p.type] = p.value; });
+    return o;
   }
+  function parisOffsetMs(ms) { var p = parisParts(ms); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000; }
+  function toIso(day, hm) {
+    var a = day.split('-'), t = hm.split(':'), guess = Date.UTC(+a[0], +a[1] - 1, +a[2], +t[0], +t[1]);
+    var ms = guess - parisOffsetMs(guess); ms = guess - parisOffsetMs(ms); return new Date(ms).toISOString();
+  }
+  function fromIso(iso) { var p = parisParts(new Date(iso).getTime()); return { day: p.year + '-' + p.month + '-' + p.day, hm: p.hour + ':' + p.minute }; }
+  function todayYmd() { var p = parisParts(Date.now()); return p.year + '-' + p.month + '-' + p.day; }
+  function dayLabel(s) { var d = new Date(s + 'T12:00:00Z'); return DAY_LBL[(d.getUTCDay() + 6) % 7] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
+  function weekDays() { return [0, 1, 2, 3, 4, 5].map(function (i) { return addDays(db.week, i); }); }
+  function weekLabel() { var d = new Date(db.week + 'T12:00:00Z'); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
+
+  function loadWeek() {
+    var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
+    return c.from('creneaux').select('id,debut,fin,statut').eq('praticien_id', db.uid)
+      .gte('debut', toIso(db.week, '00:00')).lt('debut', toIso(addDays(db.week, DAYS_N), '00:00')).order('debut')
+      .then(function (r) { if (r.error) throw r.error; db.slots = r.data || []; });
+  }
+  function loadOffers() {
+    var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
+    return c.from('prestations').select('*').eq('praticien_id', db.uid).is('deleted_at', null).order('ordre').order('cree_le')
+      .then(function (r) { if (r.error) throw r.error; db.prestations = r.data || []; });
+  }
+  function loadAll() {
+    var c = HOL.sb(); if (!c) { db.err = true; return Promise.resolve(); }
+    db.week = mondayOf(todayYmd());
+    return c.auth.getUser().then(function (r) {
+      if (!r.data || !r.data.user) throw new Error('no user');
+      db.uid = r.data.user.id;
+      return Promise.all([loadWeek(), loadOffers(), loadFiche()]);
+    }).then(function () { db.ready = true; }).catch(function () { db.err = true; });
+  }
+
+  function derive() {
+    var free = db.slots.filter(function (x) { return x.statut === 'libre'; }).length;
+    var booked = db.slots.filter(function (x) { return x.statut === 'reserve'; }).length;
+    var s = st();
+    return { s: s, confirmed: booked, free: free, empty: free + booked === 0 };
+  }
+  function pending(what) { return '<div class="empty-note">' + (db.err ? 'Impossible de charger ' + what + ' pour le moment. Rechargez la page dans un instant.' : 'Chargement…') + '</div>'; }
 
   /* ----- Menu latéral ----- */
   var ICO = {
@@ -44,12 +91,11 @@
       '<span>' + label + '</span>' + (badge ? '<span class="badge-n">' + badge + '</span>' : '') + '</a>';
   }
   function sidebar(d) {
-    var unreadMsg = D.PRO_CONVOS.filter(function (c) { return c.unread && d.s.proReadConvs.indexOf('p' + c.id) === -1; }).length;
-    var unreadNot = D.proNotifs(d.s.plan).filter(function (n) { return d.s.proNotifRead.indexOf(n.id) === -1; }).length;
+    var unreadMsg = 0, unreadNot = 0;
     return '<aside class="sidenav sidenav--pro">' +
       '<div class="sidenav__group"><div class="sidenav__title">Navigation</div>' +
       item('Tableau de bord', 'dash', 'espace-praticien.html') + item('Mon agenda', 'agenda', 'pro-agenda.html') +
-      item('Réservations', 'resa', 'pro-reservations.html', String(d.confirmed)) + item('Avis reçus', 'avis', 'pro-avis.html', '2') +
+      item('Réservations', 'resa', 'pro-reservations.html', d.confirmed ? String(d.confirmed) : '') + item('Avis reçus', 'avis', 'pro-avis.html') +
       item('Messages', 'messages', 'pro-messages.html', unreadMsg ? String(unreadMsg) : '') +
       item('Notifications', 'notifs', 'pro-notifications.html', unreadNot ? String(unreadNot) : '') + '</div>' +
       '<div class="sidenav__group"><div class="sidenav__title">Ma pratique</div>' +
@@ -64,9 +110,9 @@
   /* ----- Bandeau ----- */
   function banner(d) {
     return '<div class="banner banner--rose"><img src="assets/logo-dreamcatcher-ivory.png" alt="">' +
-      '<div class="banner__text"><div class="banner__date">Semaine du 31 août 2026</div>' +
-      '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>votre semaine est ouverte.</em></h1>' +
-      '<p>' + d.confirmed + ' séances réservées cette semaine · ' + d.free + ' créneaux encore libres.</p></div>' +
+      '<div class="banner__text"><div class="banner__date">' + (db.week ? 'Semaine du ' + weekLabel() : '') + '</div>' +
+      '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>' + (d.empty && db.ready ? 'ouvrez vos premiers créneaux.' : 'votre semaine est ouverte.') + '</em></h1>' +
+      '<p>' + (db.ready ? d.confirmed + ' séance' + (d.confirmed > 1 ? 's' : '') + ' réservée' + (d.confirmed > 1 ? 's' : '') + ' cette semaine · ' + d.free + ' créneau' + (d.free > 1 ? 'x' : '') + ' encore libre' + (d.free > 1 ? 's' : '') + '.' : '&nbsp;') + '</p></div>' +
       '<div class="banner__btns"><button class="btn-line-light" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' +
       '<a class="btn-dark2" href="praticien.html?id=1&from=pro">VOIR MA FICHE PUBLIQUE</a></div></div>';
   }
@@ -75,66 +121,63 @@
   function stats(d) {
     var items = [
       [d.confirmed, 'réservations cette semaine', 'var(--olive)'], [d.free, 'créneaux encore libres', 'var(--slate)'],
-      ['4.9', 'note moyenne · 128 avis', 'var(--gold)'], ['412', 'vues de votre fiche ce mois-ci', 'var(--rose)']
+      ['—', 'note moyenne · pas encore d’avis', 'var(--gold)'], [db.vues || 0, 'vues de votre fiche ce mois-ci', 'var(--rose)']
     ];
     return '<div class="pstats">' + items.map(function (i) {
       return '<div class="pstat"><div class="pstat__n" style="color:' + i[2] + '">' + i[0] + '</div><div class="pstat__label">' + i[1] + '</div></div>';
     }).join('') + '</div>';
   }
   function agenda(d) {
+    if (!db.ready) return '<div class="card-pro"><div class="card-pro__head"><div class="card-pro__title">Agenda</div></div>' + pending('votre agenda') + '</div>';
+    var days = weekDays(), today = todayYmd(), nowIso = new Date().toISOString();
+    var map = {};
+    db.slots.forEach(function (x) { var p = fromIso(x.debut); map[p.day + ' ' + p.hm] = x; });
+    var cols = 'grid-template-columns:64px repeat(' + DAYS_N + ',1fr)';
     var rows = D.POOL.map(function (t) {
-      return '<div class="agenda-row"><div class="agenda-row__t">' + t + '</div>' + D.DATES.map(function (day) {
-        var b = d.s.bookings.filter(function (x) { return x.date === day && x.time === t && x.status !== 'cancelled'; })[0];
-        var c;
-        if (b) c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: esc(b.client), b: esc(b.offer) };
-        else if ((d.slots[day] || []).indexOf(t) !== -1) c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Libre', b: '·' };
+      return '<div class="agenda-row" style="' + cols + '"><div class="agenda-row__t">' + t + '</div>' + days.map(function (day) {
+        var x = map[day + ' ' + t], c, attr = '';
+        if (x && x.statut === 'reserve') c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: 'Réservé', b: '' };
+        else if (x && x.statut === 'bloque') c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Bloqué', b: '·' };
+        else if (x) { c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'var(--slate-lt)', a: 'Libre', b: 'Cliquer pour fermer' }; attr = ' data-act="close-slot" data-id="' + x.id + '" style="cursor:pointer;'; }
         else c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: '—', b: '·' };
-        return '<div class="acell" style="background:' + c.bg + ';border-color:' + c.bd + '"><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></div>';
+        var st2 = attr ? attr.slice(0, -1) + 'background:' + c.bg + ';border-color:' + c.bd + '"' : ' style="background:' + c.bg + ';border-color:' + c.bd + '"';
+        var tag = attr ? 'button type="button"' : 'div';
+        return '<' + tag + ' class="acell"' + st2 + (attr ? ' aria-label="Fermer le créneau du ' + dayLabel(day) + ' à ' + t + '"' : '') + '><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></' + (attr ? 'button' : 'div') + '>';
       }).join('') + '</div>';
     }).join('');
     var legend = [['Réservé', 'var(--olive-bg)', 'var(--olive)'], ['Libre', 'var(--white)', 'var(--border)'], ['Fermé', 'var(--ivory-2)', 'var(--ivory-2)']];
     return '<div class="card-pro card-pro--scroll"><div class="card-pro__head"><div class="card-pro__title">Agenda</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;margin-right:auto;margin-left:14px"><button class="chipbtn chipbtn--s" type="button" data-act="week-prev" aria-label="Semaine précédente">‹</button><button class="chipbtn chipbtn--s" type="button" data-act="week-today">Cette semaine</button><button class="chipbtn chipbtn--s" type="button" data-act="week-next" aria-label="Semaine suivante">›</button></div>' +
       (d.empty ? '<button class="btn-rose btn-rose--s" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' : '') +
       '<div class="legend">' + legend.map(function (g) { return '<span><i style="background:' + g[1] + ';border-color:' + g[2] + '"></i>' + g[0] + '</span>'; }).join('') + '</div></div>' +
-      '<div class="agenda-grid"><div class="agenda-row"><div></div>' + D.DATES.map(function (x) { return '<div class="agenda-row__h">' + x + '</div>'; }).join('') + '</div>' + rows + '</div></div>';
+      '<div class="agenda-grid"><div class="agenda-row" style="' + cols + '"><div></div>' + days.map(function (x) { return '<div class="agenda-row__h"' + (x === today ? ' style="color:var(--rose)"' : '') + '>' + dayLabel(x) + '</div>'; }).join('') + '</div>' + rows + '</div></div>';
   }
-  function resa(d) {
-    var rows = d.s.bookings.slice().reverse().map(function (b) {
-      var ok = b.status === 'confirmed';
-      return '<div class="rrow"><div class="rrow__avatar">' + esc(b.initials) + '</div><div class="rrow__body"><div class="rrow__client">' + esc(b.client) + '</div>' +
-        '<div class="rrow__meta">' + esc(b.date) + ' · ' + esc(b.time) + ' · ' + esc(b.offer) + '</div></div>' +
-        '<div class="rrow__pay">' + esc(b.payment) + '</div><span class="badge-s badge-s--' + b.status + '">' + (ok ? '✓ Confirmé' : '✕ Annulé') + '</span></div>';
-    }).join('');
-    return '<div class="card-pro"><div class="card-pro__head"><div class="card-pro__title">Réservations</div><div class="card-pro__count">' + d.confirmed + ' confirmées</div></div>' + rows + '</div>';
+  function resa() {
+    return '<div class="card-pro"><div class="card-pro__head"><div class="card-pro__title">Réservations</div><div class="card-pro__count">0 confirmée</div></div>' +
+      '<div class="empty-note" style="margin:0">Aucune réservation pour le moment. Elles apparaîtront ici dès que votre fiche sera publiée et que des explorateurs réserveront vos créneaux.</div></div>';
   }
 
 
   /* ----- Colonne de droite (toutes les pages de l'espace praticien) ----- */
   function aside(d) {
-    var today = [
-      { time: '10h30', client: 'Sarah Nguyen', offer: 'Massage bien-être · 60 min', color: 'var(--olive)' },
-      { time: '14h00', client: 'Marc Bellanger', offer: 'Massage dos & nuque · 45 min', color: 'var(--olive)' },
-      { time: '17h00', client: 'Créneau libre', offer: 'Ouvert à la réservation', color: 'var(--slate-lt)' }
-    ];
-    var compl = [['Photo de profil', 1], ['Présentation et parcours', 1], ['Adresse du cabinet', 1], ['Photos du lieu', 0], ['Diplômes et certifications', 0]];
-    var notifs = [
-      { title: 'Nouvelle réservation', text: '— Sarah Nguyen, mercredi 9 septembre à 14h', time: 'Il y a 1 h', dot: 'var(--rose)' },
-      { title: 'Avis reçu', text: '— Marc B. vous a laissé 5 étoiles', time: 'Hier', dot: 'var(--rose)' },
-      { title: 'Prélèvement', text: '— formule ' + d.s.plan + ' le 1er septembre', time: 'Il y a 4 jours', dot: 'var(--border)' }
-    ];
+    var f = fiche || {}, on = db.prestations.filter(function (o) { return !o.masquee; }).length;
+    var compl = [['Photo de profil', 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', 0]];
+    var done = compl.filter(function (c) { return c[1]; }).length, pct = Math.round(done / compl.length * 100);
     return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd\'hui</div>' +
-      today.map(function (x) { return '<div class="today"><span class="today__t">' + x.time + '</span><div style="min-width:0"><div class="today__c">' + x.client + '</div><div class="today__o" style="color:' + x.color + '">' + x.offer + '</div></div></div>'; }).join('') +
-      '<div class="today-sub">Mardi 2 septembre · 1 h 45 de pratique</div></div>' +
-      '<div class="rside__block"><div class="rside__row" style="margin-bottom:10px"><span class="rside__label">Complétude de ma fiche</span><span style="font-size:11px;color:var(--gold)">80%</span></div>' +
-      '<div class="compl__bar"><div style="width:80%"></div></div>' +
+      '<div class="today-sub" style="margin-top:0">Aucune séance prévue aujourd’hui.</div></div>' +
+      '<div class="rside__block"><div class="rside__row" style="margin-bottom:10px"><span class="rside__label">Complétude de ma fiche</span><span style="font-size:11px;color:var(--gold)">' + pct + '%</span></div>' +
+      '<div class="compl__bar"><div style="width:' + pct + '%"></div></div>' +
       compl.map(function (c) { return '<div class="compl__item"><span style="color:' + (c[1] ? 'var(--olive)' : 'var(--slate-lt)') + '">' + (c[1] ? '✓' : '○') + '</span><span style="color:' + (c[1] ? 'var(--slate-md)' : 'var(--slate-lt)') + '">' + c[0] + '</span></div>'; }).join('') +
       '<a class="btn-dark2" href="pro-fiche.html" style="margin-top:12px">Compléter ma fiche →</a></div>' +
       '<div><div class="rside__row"><span class="rside__label">Notifications</span><a class="rside__more" href="pro-notifications.html">Tout voir</a></div>' +
-      notifs.map(function (n) { return '<div class="anotif"><div class="anotif__dot" style="background:' + n.dot + '"></div><div><div class="anotif__text"><strong>' + n.title + '</strong> ' + n.text + '</div><div class="anotif__time">' + n.time + '</div></div></div>'; }).join('') + '</div></aside>';
+      '<div class="today-sub" style="margin-top:6px">Rien de nouveau pour le moment.</div></div></aside>';
   }
 
   /* ----- Avis reçus ----- */
   function secAvis() {
+    return '<div class="sec-head"><h2>Avis reçus</h2></div><div class="empty-note">Pas encore d’avis. Ils apparaissent ici après vos premières séances : seuls les explorateurs ayant réellement suivi une séance peuvent en laisser un.</div>';
+  }
+  function secAvisDemo() {
     var bars = [['5 ★', 112, '88%'], ['4 ★', 13, '10%'], ['3 ★', 2, '2%'], ['2 ★', 1, '1%'], ['1 ★', 0, '0%']];
     var reviews = [
       { i: 'SN', c: 'Sarah N.', o: 'Massage bien-être · 60 min', d: '24 août 2026', s: '★★★★★', q: 'Une heure entière sans penser à rien. Camille adapte la pression au fil de la séance, on sent qu’elle écoute vraiment le corps.', done: false },
@@ -150,19 +193,29 @@
   }
 
   /* ----- Mes prestations ----- */
-  var OFFERS = [
-    { name: 'Massage bien-être', duration: '60 min', mode: 'Au cabinet', price: '70 €', color: 'var(--olive)' },
-    { name: 'Massage dos & nuque', duration: '45 min', mode: 'Au cabinet', price: '55 €', color: 'var(--olive)' },
-    { name: 'Séance longue · relâchement profond', duration: '90 min', mode: 'Au cabinet', price: '100 €', color: 'var(--olive)' },
-    { name: 'Bilan de posture', duration: '30 min', mode: 'Visio', price: '35 €', color: 'var(--gold)' }
-  ];
-  function secOffres(d) {
-    return '<div class="sec-head" style="align-items:baseline"><h2>Mes prestations</h2><button class="sec-link" type="button" data-act="add-offer">Ajouter une prestation →</button></div>' +
-      '<div class="hlist">' + OFFERS.map(function (o, i) {
-        var off = d.s.offersOff.indexOf(o.name) !== -1;
-        return '<div class="offer-row"><span class="offer-row__bar" style="background:' + o.color + '"></span><div class="offer-row__body"><div class="offer-row__name">' + o.name + '</div><div class="offer-row__meta">' + o.duration + ' · ' + o.mode + '</div></div>' +
-          '<div class="offer-row__price">' + o.price + '</div><button class="state-btn' + (off ? ' is-off' : '') + '" type="button" data-act="toggle-offer" data-i="' + i + '" aria-pressed="' + (!off) + '">' + (off ? 'Masquée' : 'En ligne') + '</button></div>';
-      }).join('') + '</div>';
+  var offerForm = null;
+  function secOffres() {
+    var head = '<div class="sec-head" style="align-items:baseline"><h2>Mes prestations</h2><button class="sec-link" type="button" data-act="add-offer">Ajouter une prestation →</button></div>';
+    if (!db.ready) return head + pending('vos prestations');
+    if (!db.prestations.length) return head + '<div class="empty-note">Vous n’avez pas encore de prestation. Ajoutez par exemple « Massage bien-être · 60 min » avec son tarif : c’est ce que les explorateurs réserveront.</div>';
+    return head + '<div class="hlist">' + db.prestations.map(function (o) {
+      return '<div class="offer-row"><span class="offer-row__bar" style="background:' + (MODE_COL[o.mode] || 'var(--olive)') + '"></span><div class="offer-row__body"><div class="offer-row__name">' + esc(o.nom) + '</div><div class="offer-row__meta">' + o.duree_minutes + ' min · ' + MODE_LBL[o.mode] + '</div></div>' +
+        '<div class="offer-row__price">' + o.prix_euros + ' €</div>' +
+        '<button class="sec-link" type="button" data-act="edit-offer" data-id="' + o.id + '">Modifier</button>' +
+        '<button class="sec-link" type="button" data-act="del-offer" data-id="' + o.id + '" style="color:var(--slate-lt)">Supprimer</button>' +
+        '<button class="state-btn' + (o.masquee ? ' is-off' : '') + '" type="button" data-act="toggle-offer" data-id="' + o.id + '" aria-pressed="' + (!o.masquee) + '">' + (o.masquee ? 'Masquée' : 'En ligne') + '</button></div>';
+    }).join('') + '</div>';
+  }
+  function offerModal() {
+    var f = offerForm;
+    return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
+      '<div class="modal__k" style="color:var(--gold)">Mes prestations</div><h3>' + (f.id ? 'Modifier la prestation' : 'Nouvelle prestation') + '</h3>' +
+      '<p class="modal__lead">Le tarif affiché est celui que l’explorateur retrouve sur votre fiche. La séance se règle sur place : Holisanna n’encaisse rien.</p>' +
+      '<div class="ffield" style="margin-bottom:16px"><label for="o-nom">Nom de la prestation</label><input id="o-nom" data-of="nom" maxlength="120" value="' + esc(f.nom) + '" placeholder="Massage bien-être"></div>' +
+      '<div class="fgrid fgrid--200" style="margin-bottom:16px"><div class="ffield"><label for="o-duree">Durée (minutes)</label><input id="o-duree" data-of="duree" inputmode="numeric" value="' + esc(f.duree) + '" placeholder="60"></div>' +
+      '<div class="ffield"><label for="o-prix">Tarif (€)</label><input id="o-prix" data-of="prix" inputmode="numeric" value="' + esc(f.prix) + '" placeholder="70"></div></div>' +
+      '<div class="ffield" style="margin-bottom:22px"><label for="o-mode">Où a lieu la séance</label><select id="o-mode" data-of="mode">' + Object.keys(MODE_LBL).map(function (k) { return '<option value="' + k + '"' + (f.mode === k ? ' selected' : '') + '>' + MODE_LBL[k] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="modal__btns--pro"><button class="btn-dark2" type="button" data-act="save-offer">ENREGISTRER</button><button class="modal__close" type="button" data-act="close">Annuler</button></div></div></div>';
   }
 
   /* ----- Abonnement & factures ----- */
@@ -230,7 +283,7 @@
         langs: (p.langues || []).map(function (l) { return LANGS_UI[l]; }).filter(Boolean),
         site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || ''
       };
-      ficheDb = true;
+      db.vues = p.vues_fiche_30j; ficheDb = true;
     }).catch(function () { ficheErr = true; });
   }
   function saveFiche() {
@@ -286,7 +339,10 @@
   var convId = Number(new URLSearchParams(location.search).get('c')) || 1;
   var draft = '';
   function convMessages(c, s) { return (c.messages || []).concat(s.proSentMsgs['p' + c.id] || []); }
-  function secMessages(d) {
+  function secMessages() {
+    return '<div class="sec-head"><h2>Messages</h2></div><div class="empty-note">Aucun message pour le moment. La messagerie avec les explorateurs sera activée avec les réservations.</div>';
+  }
+  function secMessagesDemo(d) {
     var s = d.s, convs = D.PRO_CONVOS;
     var active = convs.filter(function (c) { return c.id === convId; })[0] || convs[0];
     var list = convs.map(function (c) {
@@ -303,7 +359,10 @@
   /* ----- Notifications ----- */
   var notifFilter = 'all';
   var FILTERS = [['all', 'Tout'], ['resa', 'Réservations'], ['msg', 'Messages'], ['avis', 'Avis'], ['fact', 'Facturation'], ['fiche', 'Ma fiche']];
-  function secNotifs(d) {
+  function secNotifs() {
+    return '<div class="sec-head"><h2>Notifications</h2></div><div class="empty-note">Rien de nouveau pour le moment.</div>';
+  }
+  function secNotifsDemo(d) {
     var s = d.s, all = D.proNotifs(s.plan), shown = all.filter(function (n) { return notifFilter === 'all' || n.type === notifFilter; }), groups = [];
     shown.forEach(function (n) { var g = groups.filter(function (x) { return x.day === n.day; })[0]; if (g) g.items.push(n); else groups.push({ day: n.day, items: [n] }); });
     return '<div class="sec-head" style="flex-wrap:wrap"><h2>Notifications</h2><button class="sec-link" type="button" data-act="read-all">Tout marquer comme lu</button></div>' +
@@ -319,17 +378,19 @@
   /* ----- Modale « Ouvrir des créneaux » ----- */
   function modalHtml() {
     if (!modal) return '';
+    if (modal === 'offer') return offerModal();
     var n = slotDays.length * slotTimes.length;
     return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
-      '<div class="modal__k" style="color:var(--gold)">Agenda · semaine du 31 août</div><h3>Ouvrir des créneaux</h3>' +
+      '<div class="modal__k" style="color:var(--gold)">Agenda · semaine du ' + weekLabel() + '</div><h3>Ouvrir des créneaux</h3>' +
       '<p class="modal__lead">Choisissez les jours, puis les heures à rendre réservables. Les créneaux déjà réservés ne sont pas touchés.</p>' +
-      '<div class="modal__group"><div class="modal__label">Jours</div><div class="chipset chipset--tight">' + D.DATES.map(function (x) {
-        return '<button class="slotchip slotchip--day' + (slotDays.indexOf(x) !== -1 ? ' is-on' : '') + '" type="button" data-act="day" data-v="' + x + '" aria-pressed="' + (slotDays.indexOf(x) !== -1) + '">' + x + '</button>';
+      '<div class="modal__group"><div class="modal__label">Jours</div><div class="chipset chipset--tight">' + weekDays().map(function (x) {
+        var past = x < todayYmd();
+        return '<button class="slotchip slotchip--day' + (slotDays.indexOf(x) !== -1 ? ' is-on' : '') + '" type="button" data-act="day" data-v="' + x + '"' + (past ? ' disabled style="opacity:.4;cursor:default"' : '') + ' aria-pressed="' + (slotDays.indexOf(x) !== -1) + '">' + dayLabel(x) + '</button>';
       }).join('') + '</div></div>' +
       '<div class="modal__group"><div class="modal__label">Heures</div><div class="chipset chipset--tight">' + D.POOL.map(function (x) {
         return '<button class="slotchip slotchip--time' + (slotTimes.indexOf(x) !== -1 ? ' is-on' : '') + '" type="button" data-act="time" data-v="' + x + '" aria-pressed="' + (slotTimes.indexOf(x) !== -1) + '">' + x + '</button>';
       }).join('') + '</div></div>' +
-      '<button class="toggle-row' + (slotRepeat ? ' is-on' : '') + '" type="button" data-act="repeat" role="switch" aria-checked="' + slotRepeat + '"><span class="toggle"></span><span><div class="toggle-row__t">Répéter chaque semaine</div><div class="toggle-row__s">Ces horaires deviennent votre trame hebdomadaire.</div></span></button>' +
+      '<button class="toggle-row' + (slotRepeat ? ' is-on' : '') + '" type="button" data-act="repeat" role="switch" aria-checked="' + slotRepeat + '"><span class="toggle"></span><span><div class="toggle-row__t">Répéter chaque semaine</div><div class="toggle-row__s">Ces horaires sont aussi ouverts les ' + WEEKS_AHEAD + ' semaines suivantes.</div></span></button>' +
       '<div class="modal__sum">' + n + ' créneaux à ouvrir' + (slotRepeat ? ' · répétés chaque semaine' : '') + '</div>' +
       '<div class="modal__btns--pro"><button class="btn-dark2" type="button" data-act="confirm-slots">OUVRIR CES CRÉNEAUX</button>' +
       '<button class="btn-ghost2" type="button" data-act="unavailable">POSER UNE INDISPONIBILITÉ</button>' +
@@ -338,9 +399,9 @@
 
   /* ----- Rendu ----- */
   var SECTIONS = {
-    dash: function (d) { return stats(d) + agenda(d) + resa(d); },
+    dash: function (d) { return stats(d) + agenda(d) + resa(); },
     agenda: function (d) { return agenda(d); },
-    resa: function (d) { return resa(d); },
+    resa: function () { return resa(); },
     avis: secAvis, offres: secOffres, abo: secAbo, fedit: secFiche, messages: secMessages, notifs: secNotifs
   };
   function render() {
@@ -361,28 +422,76 @@
     repeat: function () { slotRepeat = !slotRepeat; render(); },
     'confirm-slots': function () {
       if (!slotDays.length || !slotTimes.length) { HOL.toast('Choisissez au moins un jour et une heure.'); return; }
-      var s = st(), cur = HOL.Store.slots()[1], n = slotDays.length * slotTimes.length;
-      slotDays.forEach(function (day) {
-        var merged = (cur[day] || []).concat(slotTimes.filter(function (t) { return (cur[day] || []).indexOf(t) < 0; }));
-        s.agenda1[day] = D.POOL.filter(function (t) { return merged.indexOf(t) > -1; });
-        s.booked = s.booked.filter(function (b) { return !(b.pratId === 1 && b.date === day && slotTimes.indexOf(b.time) !== -1); });
-      });
-      save(s); modal = false; slotDays = []; slotTimes = []; render();
-      HOL.toast(n + ' créneaux ouverts à la réservation.');
+      var now = Date.now(), rows = [];
+      for (var w = 0; w <= (slotRepeat ? WEEKS_AHEAD : 0); w++) {
+        slotDays.forEach(function (day) {
+          slotTimes.forEach(function (t) {
+            var start = toIso(addDays(day, w * 7), t), end = new Date(new Date(start).getTime() + SLOT_MIN * 60000).toISOString();
+            if (new Date(start).getTime() > now) rows.push({ praticien_id: db.uid, debut: start, fin: end });
+          });
+        });
+      }
+      if (!rows.length) { HOL.toast('Ces horaires sont déjà passés.'); return; }
+      HOL.sb().from('creneaux').upsert(rows, { onConflict: 'praticien_id,debut', ignoreDuplicates: true }).then(function (r) {
+        if (r.error) throw r.error;
+        return loadWeek();
+      }).then(function () {
+        modal = false; slotDays = []; slotTimes = []; render();
+        HOL.toast(rows.length + ' créneau' + (rows.length > 1 ? 'x' : '') + ' ouvert' + (rows.length > 1 ? 's' : '') + ' à la réservation.');
+      }).catch(function () { HOL.toast('Impossible d’ouvrir ces créneaux (chevauchement ou connexion). Réessayez.'); });
     },
     unavailable: function () {
       if (!slotDays.length) { HOL.toast('Choisissez les jours à fermer.'); return; }
-      var s = st(), n = slotDays.length;
-      slotDays.forEach(function (day) { s.agenda1[day] = []; });
-      save(s); modal = false; slotDays = []; slotTimes = []; render();
-      HOL.toast('Indisponibilité posée sur ' + n + ' jour(s).');
+      var c = HOL.sb(), n = slotDays.length;
+      Promise.all(slotDays.map(function (day) {
+        return c.from('creneaux').delete().eq('praticien_id', db.uid).eq('statut', 'libre').gte('debut', toIso(day, '00:00')).lt('debut', toIso(addDays(day, 1), '00:00'));
+      })).then(function (rs) {
+        if (rs.some(function (r) { return r.error; })) throw new Error('db');
+        return loadWeek();
+      }).then(function () {
+        modal = false; slotDays = []; slotTimes = []; render();
+        HOL.toast(n + ' jour' + (n > 1 ? 's' : '') + ' fermé' + (n > 1 ? 's' : '') + ' : les créneaux libres ont été retirés.');
+      }).catch(function () { HOL.toast('Impossible de fermer ces jours pour le moment.'); });
     },
+    'close-slot': function (el) {
+      HOL.sb().from('creneaux').delete().eq('id', el.dataset.id).eq('statut', 'libre').then(function (r) {
+        if (r.error) throw r.error; return loadWeek();
+      }).then(function () { render(); HOL.toast('Créneau fermé.'); }).catch(function () { HOL.toast('Impossible de fermer ce créneau.'); });
+    },
+    'week-prev': function () { db.week = addDays(db.week, -7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
+    'week-next': function () { db.week = addDays(db.week, 7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
+    'week-today': function () { db.week = mondayOf(todayYmd()); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
     reply: function (el) { HOL.toast(el.dataset.done === 'true' ? 'Vous avez déjà répondu à cet avis.' : 'Réponse publiée sous l’avis de ' + el.dataset.who); },
-    'add-offer': function () { HOL.toast('Nouvelle prestation : à compléter depuis votre fiche.'); },
+    'add-offer': function () { offerForm = { id: null, nom: '', duree: '60', prix: '', mode: 'cabinet' }; modal = 'offer'; render(); var i = document.getElementById('o-nom'); if (i) i.focus(); },
+    'edit-offer': function (el) {
+      var o = db.prestations.filter(function (x) { return x.id === el.dataset.id; })[0]; if (!o) return;
+      offerForm = { id: o.id, nom: o.nom, duree: String(o.duree_minutes), prix: String(o.prix_euros), mode: o.mode }; modal = 'offer'; render();
+    },
+    'save-offer': function () {
+      var f = offerForm, nom = f.nom.trim(), duree = parseInt(f.duree, 10), prix = parseInt(f.prix, 10);
+      if (nom.length < 2) { HOL.toast('Donnez un nom à la prestation.'); return; }
+      if (!(duree >= 10 && duree <= 480)) { HOL.toast('La durée doit être comprise entre 10 et 480 minutes.'); return; }
+      if (!(prix >= 0 && prix <= 2000)) { HOL.toast('Le tarif doit être compris entre 0 et 2000 €.'); return; }
+      var t = HOL.sb().from('prestations'), body = { nom: nom, duree_minutes: duree, prix_euros: prix, mode: f.mode };
+      var q = f.id ? t.update(body).eq('id', f.id)
+        : t.insert(Object.assign({ praticien_id: db.uid, ordre: db.prestations.reduce(function (m, o) { return Math.max(m, o.ordre + 1); }, 0) }, body));
+      q.then(function (r) { if (r.error) throw r.error; return loadOffers(); }).then(function () {
+        modal = false; render(); HOL.toast(f.id ? 'Prestation mise à jour.' : 'Prestation ajoutée. Elle sera visible sur votre fiche une fois celle-ci publiée.');
+      }).catch(function () { HOL.toast('Enregistrement impossible pour le moment. Réessayez.'); });
+    },
+    'del-offer': function (el) {
+      var o = db.prestations.filter(function (x) { return x.id === el.dataset.id; })[0]; if (!o) return;
+      if (!window.confirm('Supprimer « ' + o.nom + ' » ? Les séances déjà réservées ne sont pas modifiées.')) return;
+      HOL.sb().from('prestations').update({ deleted_at: new Date().toISOString() }).eq('id', o.id).then(function (r) {
+        if (r.error) throw r.error; return loadOffers();
+      }).then(function () { render(); HOL.toast('Prestation supprimée.'); }).catch(function () { HOL.toast('Suppression impossible pour le moment.'); });
+    },
     'toggle-offer': function (el) {
-      var o = OFFERS[Number(el.dataset.i)], s = st(), i = s.offersOff.indexOf(o.name);
-      if (i > -1) s.offersOff.splice(i, 1); else s.offersOff.push(o.name);
-      save(s); render(); HOL.toast(i > -1 ? o.name + ' est de nouveau visible sur votre fiche.' : o.name + ' est masquée de votre fiche.');
+      var o = db.prestations.filter(function (x) { return x.id === el.dataset.id; })[0]; if (!o) return;
+      HOL.sb().from('prestations').update({ masquee: !o.masquee }).eq('id', o.id).then(function (r) {
+        if (r.error) throw r.error; return loadOffers();
+      }).then(function () { render(); HOL.toast(o.masquee ? o.nom + ' est de nouveau visible sur votre fiche.' : o.nom + ' est masquée de votre fiche.'); })
+        .catch(function () { HOL.toast('Modification impossible pour le moment.'); });
     },
     plan: function (el) { var s = st(); s.plan = el.dataset.name; save(s); render(); HOL.toast('Formule ' + el.dataset.name + ' active dès le prochain prélèvement.'); },
     invoices: function () { HOL.toast('Factures exportées en PDF.'); },
@@ -422,17 +531,18 @@
     root.addEventListener('input', function (e) {
       var t = e.target;
       if (t.id === 'draft') { draft = t.value; return; }
+      if (t.dataset.of) { offerForm[t.dataset.of] = t.value; return; }
       if (!t.dataset.f) return;
       fiche[t.dataset.f] = t.value;
       var done = [fiche.nom, fiche.disc, fiche.pres, fiche.parcours, fiche.adresse, fiche.ville, fiche.tel, fiche.site].filter(function (v) { return v && v.trim(); }).length;
       var c = document.getElementById('fcount'); if (c) c.textContent = done + ' / 8 champs renseignés';
       var p = document.getElementById('pcount'); if (p) p.textContent = fiche.pres.length + ' / 600 caractères';
     });
-    root.addEventListener('change', function (e) { if (e.target.dataset.f === 'disc') fiche.disc = e.target.value; });
+    root.addEventListener('change', function (e) { if (e.target.dataset.of) offerForm[e.target.dataset.of] = e.target.value; if (e.target.dataset.f === 'disc') fiche.disc = e.target.value; });
     root.addEventListener('keydown', function (e) { if (e.target.id === 'draft' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ACTIONS.send(); } });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
-    if (section === 'fedit') loadFiche().then(render);
+    loadAll().then(render);
     syncVille();
   });
 })();
