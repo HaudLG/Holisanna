@@ -100,7 +100,7 @@
       item('Notifications', 'notifs', 'pro-notifications.html', unreadNot ? String(unreadNot) : '') + '</div>' +
       '<div class="sidenav__group"><div class="sidenav__title">Ma pratique</div>' +
       item('Modifier ma fiche', 'fedit', 'pro-fiche.html') + item('Mes prestations', 'offres', 'pro-prestations.html') +
-      item('Ma fiche publique', 'public', 'praticien.html?id=1&from=pro') + '</div>' +
+      item('Ma fiche publique', 'public', pubUrl()) + '</div>' +
       '<div class="sidenav__group"><div class="sidenav__title">Compte</div>' +
       item('Abonnement &amp; factures', 'abo', 'pro-abonnement.html') +
       '<button class="sidenav__item sidenav__item--out" type="button" data-act="logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICO.out[0] + '"></path><path d="' + ICO.out[1] + '"></path></svg><span>Déconnexion</span></button></div>' +
@@ -114,7 +114,7 @@
       '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>' + (d.empty && db.ready ? 'ouvrez vos premiers créneaux.' : 'votre semaine est ouverte.') + '</em></h1>' +
       '<p>' + (db.ready ? d.confirmed + ' séance' + (d.confirmed > 1 ? 's' : '') + ' réservée' + (d.confirmed > 1 ? 's' : '') + ' cette semaine · ' + d.free + ' créneau' + (d.free > 1 ? 'x' : '') + ' encore libre' + (d.free > 1 ? 's' : '') + '.' : '&nbsp;') + '</p></div>' +
       '<div class="banner__btns"><button class="btn-line-light" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' +
-      '<a class="btn-dark2" href="praticien.html?id=1&from=pro">VOIR MA FICHE PUBLIQUE</a></div></div>';
+      '<a class="btn-dark2" href="' + pubUrl() + '">VOIR MA FICHE PUBLIQUE</a></div></div>';
   }
 
   /* ----- Blocs ----- */
@@ -274,7 +274,7 @@
       (r[0].data || []).forEach(function (x) { discById[x.id] = x.nom; discByName[x.nom] = x.id; });
       var p = r[1].data, u = r[2].data;
       fiche = {
-        nom: u.nom_complet || '', tel: u.telephone || '',
+        nom: p.nom_affiche || u.nom_complet || '', tel: u.telephone || '',
         disc: discById[p.discipline_principale_id] || MAIN_SPECS[0],
         comp: (p.disciplines_complementaires || []).map(function (i) { return discById[i]; }).filter(Boolean),
         pres: p.presentation || '', parcours: p.parcours || '',
@@ -283,18 +283,19 @@
         langs: (p.langues || []).map(function (l) { return LANGS_UI[l]; }).filter(Boolean),
         site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || ''
       };
-      db.vues = p.vues_fiche_30j; ficheDb = true;
+      db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
     }).catch(function () { ficheErr = true; });
   }
-  function saveFiche() {
+  /* Enregistre la fiche en base ; renvoie une promesse (rejetée si l'enregistrement échoue) */
+  function persistFiche() {
     var c = HOL.sb(), f = fiche;
-    if (!ficheDb || !c) { var s = st(); s.fiche = JSON.parse(JSON.stringify(f)); save(s); HOL.toast('Base injoignable : fiche enregistrée sur cet appareil seulement.'); return; }
     var mi = invert(MODES_UI), li = invert(LANGS_UI);
-    c.auth.getUser().then(function (r) {
+    return c.auth.getUser().then(function (r) {
       var id = r.data.user.id;
       return Promise.all([
-        c.from('utilisateurs').update({ nom_complet: f.nom.trim() || undefined, telephone: f.tel.trim() || null }).eq('id', id),
+        c.from('utilisateurs').update({ telephone: f.tel.trim() || null }).eq('id', id),
         c.from('profils_praticien').update({
+          nom_affiche: f.nom.trim() || null,
           discipline_principale_id: discByName[f.disc] || null,
           disciplines_complementaires: f.comp.map(function (n) { return discByName[n]; }).filter(Boolean),
           presentation: f.pres.slice(0, 600).trim() || null, parcours: f.parcours.trim() || null,
@@ -304,11 +305,32 @@
           site_web: f.site.trim() || null, instagram: f.insta.trim() || null
         }).eq('utilisateur_id', id)
       ]);
-    }).then(function (r) {
-      if (r[0].error || r[1].error) throw new Error('db');
-      syncVille();
-      HOL.toast('Fiche enregistrée. Elle sera visible dans la recherche dès sa publication.');
+    }).then(function (r) { if (r[0].error || r[1].error) throw new Error('db'); });
+  }
+  function saveFiche() {
+    if (!ficheDb || !HOL.sb()) { var s = st(); s.fiche = JSON.parse(JSON.stringify(fiche)); save(s); HOL.toast('Base injoignable : fiche enregistrée sur cet appareil seulement.'); return; }
+    persistFiche().then(function () {
+      syncVille(); render();
+      HOL.toast(db.statut === 'en_ligne' ? 'Fiche enregistrée. Les modifications sont en ligne.' : 'Fiche enregistrée. Elle sera visible dans la recherche dès sa publication.');
     }).catch(function () { HOL.toast('Enregistrement impossible pour le moment. Réessayez dans un instant.'); });
+  }
+  function setStatut(statut, okMsg) {
+    var c = HOL.sb();
+    return c.from('profils_praticien').update({ statut_publication: statut }).eq('utilisateur_id', db.uid).then(function (r) {
+      if (r.error) { var e = new Error(r.error.message || 'db'); e.pub = /^Fiche incomplète/.test(r.error.message || ''); throw e; }
+      db.statut = statut; render(); HOL.toast(okMsg);
+    });
+  }
+  function pubUrl() { return db.slug ? 'praticien.html?p=' + encodeURIComponent(db.slug) + '&from=pro' : 'pro-fiche.html'; }
+  function pubCard() {
+    var on = db.statut === 'en_ligne';
+    return '<div class="fcard"><div class="fcard__title">Publication</div>' +
+      '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
+        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance et au moins une prestation visible.') + '</p>' +
+      '<div class="fbtns" style="margin-top:14px">' + (on
+        ? '<button class="btn-ghost2" type="button" data-act="unpublish">RETIRER MA FICHE DE LA RECHERCHE</button>'
+        : '<button class="btn-dark2 btn-dark2--l" type="button" data-act="publish">PUBLIER MA FICHE</button>') +
+      '<a class="btn-ghost2" href="' + pubUrl() + '">VOIR MA FICHE PUBLIQUE</a></div></div>';
   }
 
   function secFiche(d) {
@@ -319,7 +341,7 @@
     ['comp', 'modes', 'langs'].forEach(function (k) { if (!fiche[k]) fiche[k] = []; });
     var f = fiche, done = [f.nom, f.disc, f.pres, f.parcours, f.adresse, f.ville, f.tel, f.site].filter(function (v) { return v && v.trim(); }).length;
     return '<div class="sec-head" style="flex-wrap:wrap"><h2>Modifier ma fiche</h2><div class="card-pro__count" id="fcount">' + done + ' / 8 champs renseignés</div></div>' +
-      '<div class="fcard"><div class="fcard__title">Identité</div><div class="fgrid">' + field('nom', 'Nom affiché') +
+      pubCard() + '<div class="fcard"><div class="fcard__title">Identité</div><div class="fgrid">' + field('nom', 'Nom affiché') +
       '<div class="ffield"><label for="f-disc">Discipline principale</label><select id="f-disc" data-f="disc">' + MAIN_SPECS.map(function (o) { return '<option' + (o === f.disc ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div></div>' +
       '<div class="fblock"><span class="flabel">Disciplines complémentaires</span>' + chips('comp', COMP_SPECS) + '</div></div>' +
       '<div class="fcard"><div class="fcard__title">Présentation</div><div class="ffield" style="margin-bottom:18px"><label for="f-pres">Ce que vous proposez</label><textarea id="f-pres" data-f="pres" rows="4">' + esc(f.pres) + '</textarea><div class="ffield__count" id="pcount">' + f.pres.length + ' / 600 caractères</div></div>' +
@@ -332,7 +354,7 @@
         return '<button class="photo-slot" type="button" data-act="photo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-lt)" stroke-width="1.4" stroke-linecap="round"><path d="M12 5v14 M5 12h14"></path></svg><span>' + n + '</span></button>';
       }).join('') + '</div></div>' +
       '<div class="fcard fcard--last"><div class="fcard__title">Contact et liens</div><div class="fgrid fgrid--200">' + field('tel', 'Téléphone') + field('site', 'Site web') + field('insta', 'Instagram') + '</div></div>' +
-      '<div class="fbtns"><button class="btn-dark2 btn-dark2--l" type="button" data-act="save-fiche">ENREGISTRER LES MODIFICATIONS</button><a class="btn-ghost2" href="praticien.html?id=1&from=pro">PRÉVISUALISER MA FICHE</a></div>';
+      '<div class="fbtns"><button class="btn-dark2 btn-dark2--l" type="button" data-act="save-fiche">ENREGISTRER LES MODIFICATIONS</button><a class="btn-ghost2" href="' + pubUrl() + '">PRÉVISUALISER MA FICHE</a></div>';
   }
 
   /* ----- Messages ----- */
@@ -502,6 +524,14 @@
     fchip: function (el) { var a = fiche[el.dataset.key], v = el.dataset.v, i = a.indexOf(v); if (i > -1) a.splice(i, 1); else a.push(v); render(); },
     photo: function () { HOL.toast('Ajout de photos bientôt disponible.'); },
     'save-fiche': saveFiche,
+    publish: function () {
+      persistFiche().then(function () { return setStatut('en_ligne', 'Votre fiche est en ligne. Les explorateurs peuvent maintenant la trouver.'); })
+        .catch(function (e) { HOL.toast(e && e.pub ? e.message : 'Publication impossible pour le moment. Réessayez dans un instant.'); });
+    },
+    unpublish: function () {
+      if (!window.confirm('Retirer votre fiche de la recherche ? Elle repasse en brouillon, vos données sont conservées.')) return;
+      setStatut('brouillon', 'Votre fiche est retirée de la recherche.').catch(function () { HOL.toast('Modification impossible pour le moment.'); });
+    },
     conv: function (el) {
       var s = st(), id = Number(el.dataset.id), key = 'p' + id;
       if (s.proReadConvs.indexOf(key) === -1) { s.proReadConvs.push(key); save(s); }

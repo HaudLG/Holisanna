@@ -4,6 +4,10 @@
   'use strict';
   var D = window.HOL_DATA, P = D.PILLARS, PER = 4;
   var SLOTS = HOL.Store.slots();
+  /* Praticiens réels (Supabase). Les fiches de démonstration ne s'ajoutent qu'avec ?demo=1 (revue de maquette). */
+  var DEMO = new URLSearchParams(location.search).has('demo'), LIST = [], loaded = false;
+  function M(p) { return p.real ? p.meta : D.meta(p, SLOTS); }
+  function dIdx(p) { var i = M(p).dayIdx; return i < 0 ? 999 : i; }
   var $ = function (id) { return document.getElementById(id); };
 
   var DEFAULTS = { q: '', city: '', pillar: 'all', fPillars: [], fDispo: null, fModes: [], fLangs: ['Français'], fRating: null, maxPrice: 200, sort: 'dispo', page: 1 };
@@ -37,6 +41,7 @@
     if (s.maxPrice < 200) u.set('prix', s.maxPrice);
     if (s.sort !== 'dispo') u.set('tri', s.sort);
     if (s.page > 1) u.set('page', s.page);
+    if (DEMO) u.set('demo', '1');
     var qs = u.toString();
     history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
   }
@@ -50,24 +55,23 @@
   /* ----- Filtrage et tri ----- */
   function inter(a, b) { return a.some(function (x) { return b.indexOf(x) !== -1; }); }
   function matches(p) {
-    var q = s.q.trim().toLowerCase(), c = s.city.trim().toLowerCase(), m = D.meta(p, SLOTS);
+    var q = s.q.trim().toLowerCase(), c = s.city.trim().toLowerCase(), m = M(p);
     return (!q || p.discipline.toLowerCase().indexOf(q) !== -1 || p.name.toLowerCase().indexOf(q) !== -1)
-      && (!c || p.place.toLowerCase().indexOf(c) !== -1)
+      && (!c || (p.place + ' ' + (p.cp || '')).toLowerCase().indexOf(c) !== -1)
       && (s.pillar === 'all' || p.pillar === s.pillar)
       && (!s.fPillars.length || s.fPillars.indexOf(p.pillar) !== -1)
       && (!s.fModes.length || inter(s.fModes, m.modes))
       && (!s.fLangs.length || inter(s.fLangs, m.langs))
-      && (!s.fRating || Number(p.rating) >= s.fRating)
-      && (!s.fDispo || (s.fDispo === 'today' ? m.dayIdx === 0 : s.fDispo === 'week' ? m.dayIdx >= 0 && m.dayIdx <= 4 : m.dayIdx >= 0))
-      && p.price <= s.maxPrice;
+      && (!s.fRating || (p.rating != null && Number(p.rating) >= s.fRating))
+      && (!s.fDispo || (s.fDispo === 'today' ? m.dayIdx === 0 : s.fDispo === 'week' ? m.dayIdx >= 0 && m.dayIdx <= 6 : m.dayIdx >= 0 && m.dayIdx <= 31))
+      && (p.price == null || p.price <= s.maxPrice);
   }
   function sorted() {
-    var meta = function (p) { return D.meta(p, SLOTS); };
-    return D.PRATS.filter(matches).sort(function (a, b) {
-      return s.sort === 'asc' ? a.price - b.price
-        : s.sort === 'desc' ? b.price - a.price
-        : s.sort === 'note' ? Number(b.rating) - Number(a.rating)
-        : meta(a).dayIdx - meta(b).dayIdx;
+    return LIST.filter(matches).sort(function (a, b) {
+      return s.sort === 'asc' ? (a.price || 0) - (b.price || 0)
+        : s.sort === 'desc' ? (b.price || 0) - (a.price || 0)
+        : s.sort === 'note' ? Number(b.rating || 0) - Number(a.rating || 0)
+        : dIdx(a) - dIdx(b);
     });
   }
 
@@ -79,7 +83,7 @@
   }
   function renderFilters() {
     $('f-pillars').innerHTML = ['corps', 'esprit', 'ame'].map(function (k) {
-      return check(P[k].label, s.fPillars.indexOf(k) !== -1, D.PRATS.filter(function (p) { return p.pillar === k; }).length, 'data-pillar="' + k + '"');
+      return check(P[k].label, s.fPillars.indexOf(k) !== -1, LIST.filter(function (p) { return p.pillar === k; }).length, 'data-pillar="' + k + '"');
     }).join('');
     $('f-dispo').innerHTML = [['today', "Aujourd'hui"], ['week', 'Cette semaine'], ['month', 'Ce mois']].map(function (o) {
       return '<button type="button" class="pill' + (s.fDispo === o[0] ? ' is-on' : '') + '" data-dispo="' + o[0] + '">' + o[1] + '</button>';
@@ -116,12 +120,12 @@
 
   /* ----- Rendu : cartes praticiens ----- */
   function card(p) {
-    var pl = P[p.pillar], m = D.meta(p, SLOTS), rt = Math.round(Number(p.rating));
-    var distance = p.format === 'visio' ? 'En visio' : (1 + (p.id % 9)) + ',' + (p.id % 10) + ' km';
-    var avail = m.dayIdx === 0 ? ['● Disponible', 'var(--olive)'] : m.dayIdx > 0 ? ['◐ Cette semaine', 'var(--rose)'] : ['○ Agenda complet', 'var(--slate-lt)'];
-    var next = m.first ? m.day + ' · ' + m.first : 'Agenda complet';
-    var profile = 'praticien.html?id=' + p.id;
-    var book = profile + (m.first ? '&date=' + encodeURIComponent(m.day) + '&heure=' + encodeURIComponent(m.first) : '');
+    var pl = P[p.pillar], m = M(p), rt = Math.round(Number(p.rating || 0));
+    var distance = p.real ? (p.format === 'visio' ? 'En visio' : '') : p.format === 'visio' ? 'En visio' : (1 + (p.id % 9)) + ',' + (p.id % 10) + ' km';
+    var avail = !m.first ? ['○ Agenda complet', 'var(--slate-lt)'] : m.dayIdx === 0 ? ['● Disponible', 'var(--olive)'] : m.dayIdx > 0 ? ['◐ Cette semaine', 'var(--rose)'] : ['○ Agenda complet', 'var(--slate-lt)'];
+    var next = m.first ? m.day + ' · ' + m.first : (p.real ? 'Pas de créneau ouvert' : 'Agenda complet');
+    var profile = p.real ? 'praticien.html?p=' + encodeURIComponent(p.id) : 'praticien.html?id=' + p.id;
+    var book = profile + (m.first ? (p.real ? '&jour=' + encodeURIComponent(m.firstDay) : '&date=' + encodeURIComponent(m.day)) + '&heure=' + encodeURIComponent(m.first) : '');
     var tagStyle = 'background:' + pl.bg + ';color:' + pl.color;
     return '<article class="pcard" data-href="' + profile + '">' +
       '<div class="pcard__side"><div class="avatar" style="background:' + pl.bg + ';color:' + pl.color + '">' + D.initials(p.name) + '</div>' +
@@ -129,12 +133,13 @@
       '<div class="pcard__main"><div class="tags"><span class="tag" style="' + tagStyle + '">' + pl.label + '</span><span class="tag" style="' + tagStyle + '">' + p.discipline + '</span></div>' +
       '<div class="pcard__name-row"><a class="pcard__name" href="' + profile + '">' + p.name + '</a>' +
       (p.founder ? '<span class="badge-founder">★ MEMBRE FONDATEUR</span>' : '') + '</div>' +
-      '<div class="pcard__place">' + p.place + ' · ' + distance + '</div>' +
+      '<div class="pcard__place">' + p.place + (distance ? ' · ' + distance : '') + '</div>' +
       '<p class="pcard__teaser">' + p.teaser + '</p>' +
       '<div class="modes">' + m.modes.map(function (x) { return '<span class="mode">' + x + '</span>'; }).join('') + '</div>' +
+      (p.rating == null ? '<div class="rating"><span class="rating__reviews">Nouveau sur Holisanna · pas encore d’avis</span></div></div>' :
       '<div class="rating"><span class="rating__stars">' + '★★★★★'.slice(0, rt) + '☆☆☆☆☆'.slice(0, 5 - rt) + '</span>' +
-      '<span class="rating__n">' + p.rating + '</span><span class="rating__reviews">· ' + p.reviews + '</span></div></div>' +
-      '<div class="pcard__side-r"><div><div class="pcard__price">' + p.price + ' €<small>' + p.duration + '</small></div>' +
+      '<span class="rating__n">' + p.rating + '</span><span class="rating__reviews">· ' + p.reviews + '</span></div></div>') +
+      '<div class="pcard__side-r"><div>' + (p.price == null ? '' : '<div class="pcard__price">' + p.price + ' €<small>' + p.duration + '</small></div>') +
       '<div class="pcard__next">' + next + '</div></div>' +
       '<div class="pcard__actions"><a class="btn btn-cta" href="' + book + '" data-book>Réserver →</a>' +
       '<a class="btn-ghost" href="' + profile + '">Voir le profil</a></div></div></article>';
@@ -142,16 +147,16 @@
 
   /* ----- Rendu : page complète ----- */
   function render() {
-    var list = sorted();
+    var list = loaded ? sorted() : [];
     var pageCount = Math.max(1, Math.ceil(list.length / PER));
     s.page = Math.min(s.page, pageCount);
     renderFilters(); renderChips();
 
     $('s-q').value = s.q; $('s-city').value = s.city; $('sort').value = s.sort;
-    $('count').textContent = list.length + ' praticien' + (list.length > 1 ? 's' : '');
+    $('count').textContent = !loaded ? 'Chargement…' : list.length + ' praticien' + (list.length > 1 ? 's' : '');
     $('query').textContent = (s.q.trim() ? 'pour « ' + s.q.trim() + ' »' : 'toutes disciplines') + ' · ' + (s.city.trim() || 'partout en France');
     $('cards').innerHTML = list.slice((s.page - 1) * PER, s.page * PER).map(card).join('');
-    $('empty').hidden = list.length !== 0;
+    $('empty').hidden = !loaded || list.length !== 0;
 
     var pager = $('pager');
     pager.hidden = list.length <= PER;
@@ -214,5 +219,8 @@
     });
 
     render();
+    var done = function (arr) { LIST = arr.concat(DEMO ? D.PRATS : []); loaded = true; render(); };
+    if (!window.HOL_DIR) return done([]);
+    HOL_DIR.list().then(done).catch(function () { HOL.toast('Impossible de charger les praticiens pour le moment.'); done([]); });
   });
 })();
