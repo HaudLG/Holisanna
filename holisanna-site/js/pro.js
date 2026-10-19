@@ -138,9 +138,9 @@
         var x = map[day + ' ' + t], c, attr = '';
         if (x && x.statut === 'reserve') c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: 'Réservé', b: '' };
         else if (x && x.statut === 'bloque') c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Bloqué', b: '·' };
-        else if (x) { c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'var(--slate-lt)', a: 'Libre', b: 'Cliquer pour fermer' }; attr = ' data-act="close-slot" data-id="' + x.id + '" style="cursor:pointer;'; }
+        else if (x) { c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'var(--slate-lt)', a: 'Libre', b: 'Fermer ×' }; attr = ' data-act="close-slot" data-id="' + x.id + '"'; }
         else c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: '—', b: '·' };
-        var st2 = attr ? attr.slice(0, -1) + 'background:' + c.bg + ';border-color:' + c.bd + '"' : ' style="background:' + c.bg + ';border-color:' + c.bd + '"';
+        var st2 = attr + ' style="background:' + c.bg + ';border-color:' + c.bd + '"';
         var tag = attr ? 'button type="button"' : 'div';
         return '<' + tag + ' class="acell"' + st2 + (attr ? ' aria-label="Fermer le créneau du ' + dayLabel(day) + ' à ' + t + '"' : '') + '><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></' + (attr ? 'button' : 'div') + '>';
       }).join('') + '</div>';
