@@ -191,8 +191,71 @@
     }).join('') + '</div>';
   }
   function field(k, label) { return '<div class="ffield"><label for="f-' + k + '">' + label + '</label><input id="f-' + k + '" data-f="' + k + '" value="' + esc(fiche[k]) + '"></div>'; }
+  /* Correspondances interface ↔ base */
+  var MODES_UI = { cabinet: 'Cabinet', visio: 'Visio', domicile: 'À domicile' };
+  var LANGS_UI = { fr: 'Français', en: 'Anglais', es: 'Espagnol', it: 'Italien', lsf: 'LSF' };
+  function invert(o) { var r = {}; Object.keys(o).forEach(function (k) { r[o[k]] = k; }); return r; }
+  var discById = {}, discByName = {}, ficheErr = false, ficheDb = false;
+
+  /* Charge la fiche depuis Supabase (repli : données locales si la base est injoignable) */
+  function loadFiche() {
+    var c = HOL.sb();
+    if (!c) { ficheErr = true; return Promise.resolve(); }
+    return c.auth.getUser().then(function (r) {
+      var u = r.data && r.data.user; if (!u) throw new Error('no user');
+      return Promise.all([
+        c.from('disciplines').select('id,nom'),
+        c.from('profils_praticien').select('*').eq('utilisateur_id', u.id).single(),
+        c.from('utilisateurs').select('nom_complet,telephone').eq('id', u.id).single()
+      ]);
+    }).then(function (r) {
+      if (r[0].error || r[1].error || r[2].error) throw new Error('db');
+      (r[0].data || []).forEach(function (x) { discById[x.id] = x.nom; discByName[x.nom] = x.id; });
+      var p = r[1].data, u = r[2].data;
+      fiche = {
+        nom: u.nom_complet || '', tel: u.telephone || '',
+        disc: discById[p.discipline_principale_id] || MAIN_SPECS[0],
+        comp: (p.disciplines_complementaires || []).map(function (i) { return discById[i]; }).filter(Boolean),
+        pres: p.presentation || '', parcours: p.parcours || '',
+        adresse: p.adresse || '', ville: p.ville || '',
+        modes: (p.modes_seance || []).map(function (m) { return MODES_UI[m]; }).filter(Boolean),
+        langs: (p.langues || []).map(function (l) { return LANGS_UI[l]; }).filter(Boolean),
+        site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || ''
+      };
+      ficheDb = true;
+    }).catch(function () { ficheErr = true; });
+  }
+  function saveFiche() {
+    var c = HOL.sb(), f = fiche;
+    if (!ficheDb || !c) { var s = st(); s.fiche = JSON.parse(JSON.stringify(f)); save(s); HOL.toast('Base injoignable : fiche enregistrée sur cet appareil seulement.'); return; }
+    var mi = invert(MODES_UI), li = invert(LANGS_UI);
+    c.auth.getUser().then(function (r) {
+      var id = r.data.user.id;
+      return Promise.all([
+        c.from('utilisateurs').update({ nom_complet: f.nom.trim() || undefined, telephone: f.tel.trim() || null }).eq('id', id),
+        c.from('profils_praticien').update({
+          discipline_principale_id: discByName[f.disc] || null,
+          disciplines_complementaires: f.comp.map(function (n) { return discByName[n]; }).filter(Boolean),
+          presentation: f.pres.slice(0, 600).trim() || null, parcours: f.parcours.trim() || null,
+          adresse: f.adresse.trim() || null, ville: f.ville.trim() || null,
+          modes_seance: f.modes.map(function (m) { return mi[m]; }),
+          langues: f.langs.map(function (l) { return li[l]; }),
+          site_web: f.site.trim() || null, instagram: f.insta.trim() || null
+        }).eq('utilisateur_id', id)
+      ]);
+    }).then(function (r) {
+      if (r[0].error || r[1].error) throw new Error('db');
+      HOL.Session.refresh();
+      HOL.toast('Fiche enregistrée. Elle sera visible dans la recherche dès sa publication.');
+    }).catch(function () { HOL.toast('Enregistrement impossible pour le moment. Réessayez dans un instant.'); });
+  }
+
   function secFiche(d) {
-    if (!fiche) fiche = JSON.parse(JSON.stringify(d.s.fiche));
+    if (!fiche) {
+      if (ficheErr) fiche = JSON.parse(JSON.stringify(d.s.fiche));
+      else return '<div class="sec-head"><h2>Modifier ma fiche</h2></div><p class="fcard__lead">Chargement de votre fiche…</p>';
+    }
+    ['comp', 'modes', 'langs'].forEach(function (k) { if (!fiche[k]) fiche[k] = []; });
     var f = fiche, done = [f.nom, f.disc, f.pres, f.parcours, f.adresse, f.ville, f.tel, f.site].filter(function (v) { return v && v.trim(); }).length;
     return '<div class="sec-head" style="flex-wrap:wrap"><h2>Modifier ma fiche</h2><div class="card-pro__count" id="fcount">' + done + ' / 8 champs renseignés</div></div>' +
       '<div class="fcard"><div class="fcard__title">Identité</div><div class="fgrid">' + field('nom', 'Nom affiché') +
@@ -321,7 +384,7 @@
     },
     fchip: function (el) { var a = fiche[el.dataset.key], v = el.dataset.v, i = a.indexOf(v); if (i > -1) a.splice(i, 1); else a.push(v); render(); },
     photo: function () { HOL.toast('Ajout de photos bientôt disponible.'); },
-    'save-fiche': function () { var s = st(); s.fiche = JSON.parse(JSON.stringify(fiche)); save(s); HOL.toast('Fiche mise à jour. Les modifications sont en ligne.'); },
+    'save-fiche': saveFiche,
     conv: function (el) {
       var s = st(), id = Number(el.dataset.id), key = 'p' + id;
       if (s.proReadConvs.indexOf(key) === -1) { s.proReadConvs.push(key); save(s); }
@@ -361,5 +424,6 @@
     root.addEventListener('keydown', function (e) { if (e.target.id === 'draft' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ACTIONS.send(); } });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
+    if (section === 'fedit') loadFiche().then(render);
   });
 })();
