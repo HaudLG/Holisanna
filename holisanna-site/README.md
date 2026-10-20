@@ -47,3 +47,9 @@ Choix retenu (design system) : **Corps = olive, Âme = or, Esprit = rose**. Pour
 - **Adresse e-mail** `contact@holisanna.fr` et expéditeur `bonjour@holisanna.fr` : à vérifier.
 - Photos des praticiens : l'envoi n'est pas encore branché (« Photo à venir »).
 - Les chiffres affichés (1 400+ praticiens, 4,9, 412 vues…) sont ceux du prototype.
+
+## Avant le lancement public : retirer le « ne pas référencer »
+Pendant les tests, le site demande aux moteurs de recherche de ne pas l'indexer. Au lancement, retirer :
+1. `<meta name="robots" content="noindex, nofollow">` dans chaque page HTML (rechercher « TESTS : à retirer »),
+2. `robots.txt` (ou le remplacer par une version qui autorise l'indexation),
+3. l'en-tête `X-Robots-Tag` dans `vercel.json`.
