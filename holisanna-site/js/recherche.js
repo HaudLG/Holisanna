@@ -127,7 +127,7 @@
     var profile = p.real ? 'praticien.html?p=' + encodeURIComponent(p.id) : 'praticien.html?id=' + p.id;
     var book = profile + (m.first ? (p.real ? '&jour=' + encodeURIComponent(m.firstDay) : '&date=' + encodeURIComponent(m.day)) + '&heure=' + encodeURIComponent(m.first) : '');
     var tagStyle = 'background:' + pl.bg + ';color:' + pl.color;
-    return '<article class="pcard" data-href="' + profile + '">' +
+    return '<article class="pcard" data-href="' + profile + '">' + (p.real && window.HOL_FAV ? HOL_FAV.btn(p.uid) : '') +
       '<div class="pcard__side"><div class="avatar" style="background:' + pl.bg + ';color:' + pl.color + (p.photo ? ';background-image:url(' + p.photo + ');background-size:cover;background-position:center' : '') + '">' + (p.photo ? '' : D.initials(p.name)) + '</div>' +
       '<div class="pcard__avail" style="color:' + avail[1] + '">' + avail[0] + '</div></div>' +
       '<div class="pcard__main"><div class="tags"><span class="tag" style="' + tagStyle + '">' + pl.label + '</span><span class="tag" style="' + tagStyle + '">' + p.discipline + '</span></div>' +
@@ -214,6 +214,7 @@
 
     /* Carte entière cliquable (sauf liens et boutons) */
     $('cards').addEventListener('click', function (e) {
+      if (window.HOL_FAV && HOL_FAV.click(e, $('cards'))) return;
       if (e.target.closest('a')) return;
       var c = e.target.closest('.pcard'); if (c) location.href = c.dataset.href;
     });
@@ -221,6 +222,6 @@
     render();
     var done = function (arr) { LIST = arr.concat(DEMO ? D.PRATS : []); loaded = true; render(); };
     if (!window.HOL_DIR) return done([]);
-    HOL_DIR.list().then(done).catch(function () { HOL.toast('Impossible de charger les praticiens pour le moment.'); done([]); });
+    (window.HOL_FAV ? HOL_FAV.load() : Promise.resolve()).then(function () { return HOL_DIR.list(); }).then(done).catch(function () { HOL.toast('Impossible de charger les praticiens pour le moment.'); done([]); });
   });
 })();

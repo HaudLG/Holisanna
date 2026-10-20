@@ -14,7 +14,7 @@
   if (sess.role === 'praticien') { location.replace('espace-praticien.html'); return; }
 
   /* ----- Données réelles (Supabase) : réservations et praticiens recommandés ----- */
-  var rd = { ready: false, err: false, list: [], recos: [], avis: [] }, cancelId = null, rv = { idx: null, note: 0, text: '', busy: false };
+  var rd = { ready: false, err: false, list: [], recos: [], avis: [], favs: [] }, cancelId = null, rv = { idx: null, note: 0, text: '', busy: false };
   function paris(iso) {
     var o = {}; new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso)).forEach(function (x) { o[x.type] = x.value; });
     return o;
@@ -43,8 +43,10 @@
       window.HOL_DIR ? HOL_DIR.list().catch(function () { return []; }) : Promise.resolve([])
     ]).then(function (r) {
       if (r[0].error) throw r[0].error;
-      rd.list = r[0].data || []; rd.avis = r[1].error ? [] : (r[1].data || []); rd.recos = (r[2] || []).slice(0, 3); rd.ready = true;
-    }).catch(function () { rd.err = true; });
+      rd.list = r[0].data || []; rd.avis = r[1].error ? [] : (r[1].data || []); rd.recos = (r[2] || []).slice(0, 3);
+      if (!window.HOL_FAV) return;
+      return HOL_FAV.load().then(function () { return HOL_DIR.byUids(HOL_FAV.ids()); }).then(function (a) { rd.favs = a; }).catch(function () { rd.favs = []; });
+    }).then(function () { rd.ready = true; }).catch(function () { rd.err = true; });
   }
   function pendingNote(what) { return '<div class="empty-note">' + (rd.err ? 'Impossible de charger ' + what + ' pour le moment. Rechargez la page dans un instant.' : 'Chargement…') + '</div>'; }
 
@@ -176,16 +178,17 @@
         '<div class="hrow__price">' + esc(h.price) + '</div>') + '</div>';
   }
   function favs() {
-    return head('Mes praticiens favoris', 'Voir tous →', 'recherche.html') +
-      '<div class="empty-note">Vos praticiens favoris apparaîtront ici. <a class="sec-link" href="recherche.html">Explorer →</a></div>';
-    var rows = [1, 6, 9].map(D.findPrat).filter(Boolean);
-    return head('Mes praticiens favoris', 'Voir tous →', 'recherche.html') +
-      '<div class="favs">' + rows.map(function (p) {
-        var pl = P[p.pillar];
-        return '<div class="fav"><div class="fav__avatar" style="background:' + pl.bg + ';color:' + pl.color + '">' + D.initials(p.name) + '</div>' +
-          '<div class="fav__name">' + p.name + '</div><div class="fav__disc" style="color:' + pl.color + '">' + p.discipline + '</div>' +
-          '<a class="btn-rose" href="praticien.html?id=' + p.id + '">Réserver</a></div>';
-      }).join('') + '</div>';
+    var h = head('Mes praticiens favoris', 'Voir tous →', 'espace-favoris.html');
+    if (!rd.ready) return h + pendingNote('vos favoris');
+    var rows = rd.favs.filter(function (p) { return HOL_FAV.has(p.uid); });
+    if (!rows.length) return h + '<div class="empty-note">Vos praticiens favoris apparaîtront ici : touchez le cœur sur une fiche ou dans la recherche. <a class="sec-link" href="recherche.html">Explorer →</a></div>';
+    return h + '<div class="favs">' + rows.map(function (p) {
+      var pl = P[p.pillar];
+      return '<div class="fav" style="position:relative">' + HOL_FAV.btn(p.uid).replace('class="favbtn', 'style="position:absolute;top:6px;right:6px" class="favbtn') +
+        '<div class="fav__avatar" style="background:' + pl.bg + ';color:' + pl.color + (p.photo ? ';background-image:url(' + p.photo + ');background-size:cover;background-position:center' : '') + '">' + (p.photo ? '' : esc(D.initials(p.name))) + '</div>' +
+        '<div class="fav__name">' + esc(p.name) + '</div><div class="fav__disc" style="color:' + pl.color + '">' + esc(p.discipline) + '</div>' +
+        '<a class="btn-rose" href="praticien.html?p=' + encodeURIComponent(p.id) + '">Réserver</a></div>';
+    }).join('') + '</div>';
   }
 
   /* ----- Sections ----- */
@@ -457,6 +460,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     root.addEventListener('click', function (e) {
+      if (window.HOL_FAV && e.target.closest('[data-fav]')) { HOL_FAV.click(e, root); render(); return; }
       var el = e.target.closest('[data-act]'); if (!el) return;
       if (el.dataset.act === 'close-bg' && e.target !== el) return;   // clic sur le fond seulement
       var fn = ACTIONS[el.dataset.act === 'close-bg' ? 'close' : el.dataset.act]; if (fn) fn(el);

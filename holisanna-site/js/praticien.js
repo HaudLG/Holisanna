@@ -72,7 +72,7 @@
       '<section class="panel panel--identity">' +
         (p.photo ? '<div class="photo" style="background:url(' + p.photo + ') center/cover"></div>' : '<div class="photo" style="background:' + pr.bg + '"><div class="photo__initials" style="color:' + pr.color + '">' + esc(pr.initials) + '</div>' + (p.real ? '' : '<div class="photo__soon" style="color:' + pr.color + '">Photo à venir</div>') + '</div>') +
         '<div class="identity"><div class="identity__top"><span class="identity__pillar" style="color:' + pr.color + '">' + pr.pillarLabel + '</span>' +
-        (p.founder ? '<span class="badge-founder">★ MEMBRE FONDATEUR</span>' : '') + '</div>' +
+        (p.founder ? '<span class="badge-founder">★ MEMBRE FONDATEUR</span>' : '') + (p.real && p.published && window.HOL_FAV ? '<span style="margin-left:auto">' + HOL_FAV.btn(p.uid) + '</span>' : '') + '</div>' +
         '<h1>' + esc(p.name) + '</h1><div class="identity__sub">' + esc(p.discipline) + (p.place ? ' · ' + esc(p.place) : '') + '</div>' +
         '<div class="identity__meta">' + meta + '</div></div>' +
       '</section>' +
@@ -128,6 +128,7 @@
         updateFoot(p, days);
       });
     });
+    host.addEventListener('click', function (e) { if (window.HOL_FAV) HOL_FAV.click(e, host); });
     document.getElementById('go').addEventListener('click', function (e) {
       if (!(sel.date && sel.time)) { e.preventDefault(); return; }
       if (p.real && !offerOf(p)) { e.preventDefault(); HOL.toast('Ce praticien n’a pas encore de prestation réservable.'); }
@@ -145,7 +146,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (!slug) { prat ? render(prat) : notFound(); return; }
     loading();
-    HOL_DIR.one(slug).then(function (p) { if (!p) return notFound(); render(p, !p.published); })
+    (window.HOL_FAV ? HOL_FAV.load() : Promise.resolve()).then(function () { return HOL_DIR.one(slug); }).then(function (p) { if (!p) return notFound(); render(p, !p.published); })
       .catch(function () { host.innerHTML = '<div class="empty"><h3>Fiche momentanément indisponible</h3><p>Réessayez dans un instant.</p><a class="btn btn-outline" href="recherche.html">Voir tous les praticiens</a></div>'; });
   });
 })();

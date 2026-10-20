@@ -981,3 +981,12 @@ button.rrow:hover { background: var(--ivory-2); }
 .err__foot { font-size: 12px; font-weight: 300; line-height: 1.8; color: var(--slate-lt); max-width: 420px; }
 .err__foot a { color: var(--olive); border-bottom: .5px solid var(--olive-lt); }
 @media (max-width: 600px) { .err h1 { font-size: 36px; } .pagehead h1 { font-size: 36px; } }
+
+/* Cœur « favori » */
+.favbtn { background: transparent; border: 0; padding: 6px; cursor: pointer; line-height: 0; color: var(--slate-lt); }
+.favbtn svg { fill: none; stroke: currentColor; }
+.favbtn:hover { color: var(--rose); }
+.favbtn.is-on { color: var(--rose); }
+.favbtn.is-on svg { fill: currentColor; }
+.pcard { position: relative; }
+.pcard > .favbtn { position: absolute; top: 6px; left: 6px; z-index: 2; }

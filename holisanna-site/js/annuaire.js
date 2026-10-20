@@ -85,8 +85,57 @@
     });
   }
 
+  /* Favoris de l'explorateur connecté (table `favoris`). Le cœur est un bouton [data-fav=<uid praticien>]. */
+  var favSet = new Set(), favLoaded = false;
+  var HEART = '<svg width="18" height="18" viewBox="0 0 24 24" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5S3.5 15 3.5 9.2A4.7 4.7 0 0 1 12 6.6a4.7 4.7 0 0 1 8.5 2.6c0 5.8-8.5 11.3-8.5 11.3z"/></svg>';
+  function isExplorer() { var s = window.HOL && HOL.Session && HOL.Session.get(); return !!(s && s.loggedIn && s.role !== 'praticien'); }
+  window.HOL_FAV = {
+    has: function (uid) { return favSet.has(uid); },
+    ids: function () { return Array.from(favSet); },
+    btn: function (uid) {
+      var on = favSet.has(uid);
+      return '<button type="button" class="favbtn' + (on ? ' is-on' : '') + '" data-fav="' + uid + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Retirer des favoris' : 'Ajouter aux favoris') + '" title="' + (on ? 'Retirer des favoris' : 'Ajouter aux favoris') + '">' + HEART + '</button>';
+    },
+    paint: function (root) {
+      (root || document).querySelectorAll('[data-fav]').forEach(function (b) {
+        var on = favSet.has(b.dataset.fav); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on));
+        b.setAttribute('aria-label', on ? 'Retirer des favoris' : 'Ajouter aux favoris'); b.title = b.getAttribute('aria-label');
+      });
+    },
+    load: function () {
+      var c = sb(); if (!isExplorer() || !c) { favLoaded = true; return Promise.resolve(); }
+      return c.from('favoris').select('praticien_id').then(function (r) {
+        if (!r.error) { favSet = new Set((r.data || []).map(function (x) { return x.praticien_id; })); } favLoaded = true;
+      }).catch(function () { favLoaded = true; });
+    },
+    /* Clic sur un cœur : renvoie true si le clic a été traité */
+    click: function (e, root) {
+      var b = e.target.closest('[data-fav]'); if (!b) return false;
+      e.preventDefault(); e.stopPropagation();
+      var s = HOL.Session.get(), uid = b.dataset.fav, c = sb();
+      if (!s.loggedIn) { HOL.flash('Connectez-vous avec un compte explorateur pour ajouter ce praticien à vos favoris.'); location.href = 'connexion.html?next=' + encodeURIComponent(location.pathname.split('/').pop() + location.search); return true; }
+      if (s.role === 'praticien') { HOL.toast('Les favoris sont réservés aux comptes explorateur.'); return true; }
+      var was = favSet.has(uid);
+      if (was) favSet.delete(uid); else favSet.add(uid);
+      HOL_FAV.paint(root);
+      c.auth.getUser().then(function (r) {
+        var me = r.data && r.data.user; if (!me) throw new Error('no user');
+        return was ? c.from('favoris').delete().eq('explorateur_id', me.id).eq('praticien_id', uid)
+                   : c.from('favoris').insert({ explorateur_id: me.id, praticien_id: uid });
+      }).then(function (r) {
+        if (r.error) throw r.error; HOL.toast(was ? 'Retiré de vos favoris.' : 'Ajouté à vos favoris.');
+      }).catch(function () {
+        if (was) favSet.add(uid); else favSet.delete(uid); HOL_FAV.paint(root); HOL.toast('Action impossible pour le moment.');
+      });
+      return true;
+    }
+  };
+
   window.HOL_DIR = {
-    photoUrl: photoUrl, dayLabel: dayLabel, todayYmd: todayYmd, dayIndex: dayIndex,
+    photoUrl: photoUrl, byUids: function (uids) {
+      var c = sb(); if (!c || !uids.length) return Promise.resolve([]);
+      return c.from('profils_praticien').select(COLS).in('utilisateur_id', uids).eq('statut_publication', 'en_ligne').then(function (r) { if (r.error) throw r.error; return fetchAll(r.data || []); });
+    }, dayLabel: dayLabel, todayYmd: todayYmd, dayIndex: dayIndex,
     /* Tous les praticiens en ligne */
     list: function () {
       var c = sb(); if (!c) return Promise.reject(new Error('no client'));
