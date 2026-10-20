@@ -124,7 +124,7 @@
     var rdvTxt = !rd.ready ? 'Bienvenue' : wk ? 'Vous avez ' + wk + ' rendez-vous' : 'Vous n’avez aucun rendez-vous';
     return '<div class="banner"><div class="banner__text"><div class="banner__date">' + date + '</div>' +
       '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>prenez soin de vous.</em></h1>' +
-      '<p>' + rdvTxt + ' cette semaine et ' + d.touched + ' piliers dans votre cocktail.</p></div>' +
+      '<p>' + rdvTxt + ' cette semaine et ' + d.touched + ' pilier' + (d.touched > 1 ? 's' : '') + ' dans votre cocktail.</p></div>' +
       '<a class="banner__search" href="recherche.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(250,246,238,0.45)" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg><span>Rechercher un praticien…</span></a></div>';
   }
   function stats(d) {
@@ -213,6 +213,7 @@
       }).join('') : '<div class="empty-note">Vos avis publiés apparaîtront ici.</div>') + '</div>';
   }
   function secFavoris() { return favs(); }
+  var PILLAR_HINT = { corps: 'Massage, réflexologie, naturopathie…', esprit: 'Sophrologie, hypnothérapie, EFT…', ame: 'Reiki, chamanisme, astrologie…' };
   function secCocktail(d) {
     var s = d.s;
     if (!s.sessions.length) {
@@ -238,15 +239,15 @@
       var pool = D.PRATS.filter(function (p) { return p.pillar === k; }), pl = P[k];
       return '<a class="sugg" href="recherche.html?pilier=' + k + '" style="background:' + pl.bg + ';--c:' + pl.color + '">' +
         '<div class="sugg__pillar" style="color:' + pl.color + '">' + pl.label + '</div>' +
-        '<div class="sugg__title">' + pool[0].discipline + ', ' + pool[1].discipline.toLowerCase() + '</div>' +
-        '<div class="sugg__detail">' + pool.length + ' praticiens ' + pl.label.toLowerCase() + ' →</div></a>';
+        '<div class="sugg__title">' + (s.demoCocktail ? pool[0].discipline + ', ' + pool[1].discipline.toLowerCase() : PILLAR_HINT[k]) + '</div>' +
+        '<div class="sugg__detail">' + (s.demoCocktail ? pool.length + ' praticiens ' + pl.label.toLowerCase() : 'Découvrir les praticiens ' + pl.label.toLowerCase()) + ' →</div></a>';
     }).join('');
     return '<div class="cocktail-grid"><div class="glass-card"><div class="glass"><div class="glass__bowl">' + layers + '</div>' +
       '<div class="glass__rim"></div><div class="glass__stem"></div><div class="glass__foot"></div></div>' +
-      '<div><div class="glass-count">' + s.sessions.length + ' couches</div><div class="glass-sub">' + d.counts.corps + ' Corps · ' + d.counts.esprit + ' Esprit · ' + d.counts.ame + ' Âme</div></div>' +
+      '<div><div class="glass-count">' + s.sessions.length + ' couche' + (s.sessions.length > 1 ? 's' : '') + '</div><div class="glass-sub">' + d.counts.corps + ' Corps · ' + d.counts.esprit + ' Esprit · ' + d.counts.ame + ' Âme</div></div>' +
       '<div class="btn-row-c"><button class="btn btn-outline" type="button" data-act="save">Sauvegarder</button><button class="btn btn-primary" type="button" data-act="share">Partager</button></div>' +
       '<div class="progress">' + progress + '</div></div>' +
-      '<div class="cocktail-side"><div class="panel2"><div class="panel2__head"><div class="panel2__title">Composition</div><div class="panel2__count">' + s.sessions.length + ' séances réalisées</div></div>' + rows + '</div>' +
+      '<div class="cocktail-side"><div class="panel2"><div class="panel2__head"><div class="panel2__title">Composition</div><div class="panel2__count">' + s.sessions.length + ' séance' + (s.sessions.length > 1 ? 's' : '') + ' réalisée' + (s.sessions.length > 1 ? 's' : '') + '</div></div>' + rows + '</div>' +
       '<div class="panel2"><div class="panel2__title" style="margin-bottom:6px">Compléter le cocktail</div><p class="panel2__lead" style="margin-top:0">Chaque pilier propose les disciplines que vous n\'avez pas encore goûtées.</p><div class="suggs">' + suggs + '</div></div></div></div>';
   }
 
