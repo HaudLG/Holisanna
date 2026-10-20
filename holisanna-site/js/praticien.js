@@ -30,7 +30,7 @@
       access: cab ? '' : 'Séances à distance ou à domicile : le lieu est précisé après la réservation.',
       langs: r.langs, socials: socials,
       formatLabel: r.modes.join(' · '), bio: r.bio, parcours: r.parcours,
-      tags: [r.discipline].concat(r.comp).concat(r.modes).filter(Boolean), offers: r.offers, reviews: []
+      tags: [r.discipline].concat(r.comp).concat(r.modes).filter(Boolean), offers: r.offers, reviews: r.reviewList.map(function (a) { return { stars: a.stars, text: esc(a.text) + (a.reponse ? '<br><span style="display:block;margin-top:8px;font-size:13px;opacity:.8"><b>Réponse du praticien :</b> ' + esc(a.reponse) + '</span>' : ''), author: esc(a.author) }; })
     };
   }
 
@@ -61,7 +61,7 @@
       : '<div><div class="label-s">Adresse du cabinet</div><div class="address">' + pr.address1 + '<br>' + pr.address2 + '</div><div class="access">' + pr.access + '</div></div>';
     var socials = pr.socials.length ? '<div class="socials-block"><div class="label-s" style="margin-bottom:12px">Retrouver ' + esc(pr.firstName) + '</div><div class="socials">' +
       pr.socials.map(function (s) { return '<a class="social" href="' + esc(s.url) + '" target="_blank" rel="noopener"><span>' + esc(s.net) + '</span><span>' + esc(s.handle) + '</span></a>'; }).join('') + '</div></div>' : '';
-    var meta = p.real ? '<span>' + (p.published ? 'Nouveau sur Holisanna' : 'Aperçu · non publiée') + '</span><span>' + esc(pr.formatLabel) + '</span>'
+    var meta = p.real ? '<span>' + (!p.published ? 'Aperçu · non publiée' : p.reviews ? '★ ' + String(p.rating).replace('.', ',') + ' · ' + p.reviews + ' avis' : 'Nouveau sur Holisanna') + '</span><span>' + esc(pr.formatLabel) + '</span>'
       : '<span>★ ' + p.rating + ' · ' + p.reviews + '</span><span>' + p.experience + '</span><span>' + pr.formatLabel + '</span>';
 
     host.innerHTML =

@@ -14,7 +14,7 @@
   if (sess.role === 'praticien') { location.replace('espace-praticien.html'); return; }
 
   /* ----- Données réelles (Supabase) : réservations et praticiens recommandés ----- */
-  var rd = { ready: false, err: false, list: [], recos: [] }, cancelId = null;
+  var rd = { ready: false, err: false, list: [], recos: [], avis: [] }, cancelId = null, rv = { idx: null, note: 0, text: '', busy: false };
   function paris(iso) {
     var o = {}; new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso)).forEach(function (x) { o[x.type] = x.value; });
     return o;
@@ -24,23 +24,26 @@
   function upcoming() { var n = Date.now(); return rd.list.filter(function (r) { return r.statut === 'confirmee' && new Date(r.debut).getTime() > n; }).sort(function (a, b) { return new Date(a.debut) - new Date(b.debut); }); }
   function pastList() { var n = Date.now(); return rd.list.filter(function (r) { return !(r.statut === 'confirmee' && new Date(r.debut).getTime() > n); }); }
   /* Séances réalisées = réservations confirmées dont l'heure de fin est passée (ou marquées « honorée ») */
+  var SESS = [];   /* séances affichées (réelles ou démo), recalculées à chaque rendu */
+  function avisOf(rid) { return rd.avis.filter(function (a) { return a.reservation_id === rid; })[0] || null; }
   function realSessions() {
     var n = Date.now();
     return rd.list.filter(function (r) { return r.statut === 'honoree' || (r.statut === 'confirmee' && new Date(r.fin).getTime() <= n); })
       .sort(function (a, b) { return new Date(a.debut) - new Date(b.debut); })
       .map(function (r) {
         var p = paris(r.debut);
-        return { discipline: r.discipline_nom || r.prestation_nom, pillar: P[r.pilier] ? r.pilier : 'corps', prat: r.praticien_nom, date: p.day + ' ' + p.month, price: r.prix_annonce + ' €' };
+        return { rid: r.id, discipline: r.discipline_nom || r.prestation_nom, pillar: P[r.pilier] ? r.pilier : 'corps', prat: r.praticien_nom, date: p.day + ' ' + p.month, price: r.prix_annonce + ' €' };
       });
   }
   function loadReal() {
     var c = HOL.sb(); if (!c) { rd.err = true; return Promise.resolve(); }
     return Promise.all([
       c.from('reservations').select('*').order('debut', { ascending: false }).limit(200),
+      c.from('avis').select('id,reservation_id,note,commentaire,reponse,cree_le,praticien_id').order('cree_le', { ascending: false }).limit(200),
       window.HOL_DIR ? HOL_DIR.list().catch(function () { return []; }) : Promise.resolve([])
     ]).then(function (r) {
       if (r[0].error) throw r[0].error;
-      rd.list = r[0].data || []; rd.recos = (r[1] || []).slice(0, 3); rd.ready = true;
+      rd.list = r[0].data || []; rd.avis = r[1].error ? [] : (r[1].data || []); rd.recos = (r[2] || []).slice(0, 3); rd.ready = true;
     }).catch(function () { rd.err = true; });
   }
   function pendingNote(what) { return '<div class="empty-note">' + (rd.err ? 'Impossible de charger ' + what + ' pour le moment. Rechargez la page dans un instant.' : 'Chargement…') + '</div>'; }
@@ -52,14 +55,16 @@
   /* ----- Données dérivées ----- */
   function derive() {
     var s = st(), counts = { corps: 0, ame: 0, esprit: 0 };
-    if (!s.demoCocktail) { s.sessions = realSessions(); s.reviewed = []; }   /* compte réel : séances réellement passées (sauf « exemple rempli ») */
+    if (!s.demoCocktail) { s.sessions = realSessions(); s.reviewed = []; s.sessions.forEach(function (x, i) { if (avisOf(x.rid)) s.reviewed.push(i); }); }   /* compte réel : séances réellement passées (sauf « exemple rempli ») */
+    SESS = s.sessions;
     s.sessions.forEach(function (x) { counts[x.pillar]++; });
     var hist = s.sessions.slice().reverse().map(function (x, i) {
       var idx = s.sessions.length - 1 - i, pl = P[x.pillar];
       return Object.assign({}, x, {
         idx: idx, initials: D.initials(x.prat), bg: pl.bg, color: pl.color,
         done: s.reviewed.indexOf(idx) !== -1,
-        quote: QUOTES[idx % QUOTES.length],
+        quote: s.demoCocktail ? QUOTES[idx % QUOTES.length] : esc((avisOf(x.rid) || {}).commentaire || ''),
+        note: s.demoCocktail ? 5 : (avisOf(x.rid) || {}).note || 5, reponse: s.demoCocktail ? '' : (avisOf(x.rid) || {}).reponse || '',
         target: D.PRATS.filter(function (p) { return p.name === x.prat; })[0] || null
       });
     });
@@ -204,12 +209,12 @@
       (d.toReview.length ? d.toReview.map(function (h) {
         return '<div class="hrow hrow--lg"><div class="hrow__avatar" style="background:' + h.bg + ';color:' + h.color + '">' + h.initials + '</div>' +
           '<div class="hrow__body"><div class="hrow__name">' + esc(h.prat) + '</div><div class="hrow__meta" style="color:' + h.color + '">' + esc(h.discipline) + ' · ' + esc(h.date) + '</div></div>' +
-          (d.s.demoCocktail ? '<button class="btn-rose" type="button" data-act="review" data-idx="' + h.idx + '" style="padding:9px 16px">Laisser un avis</button>' : '<span class="hrow__meta">Avis bientôt disponibles</span>') + '</div>';
+          '<button class="btn-rose" type="button" data-act="review" data-idx="' + h.idx + '" style="padding:9px 16px">Laisser un avis</button>' + '</div>';
       }).join('') : '<div class="empty-note">Vous avez répondu à toutes vos invitations d’avis.</div>') + '</div>' +
       head('Avis publiés') + '<div class="hlist" style="margin-bottom:0">' +
       (d.reviewed.length ? d.reviewed.map(function (h) {
-        return '<div class="review-card"><div class="review-card__top"><span class="review-card__stars">★★★★★</span><span class="review-card__who">' + esc(h.prat) + '</span>' +
-          '<span class="review-card__meta">' + esc(h.discipline) + ' · ' + esc(h.date) + '</span></div><p>' + h.quote + '</p></div>';
+        return '<div class="review-card"><div class="review-card__top"><span class="review-card__stars">' + '★★★★★'.slice(0, h.note) + '☆☆☆☆☆'.slice(0, 5 - h.note) + '</span><span class="review-card__who">' + esc(h.prat) + '</span>' +
+          '<span class="review-card__meta">' + esc(h.discipline) + ' · ' + esc(h.date) + '</span></div><p>' + h.quote + '</p>' + (h.reponse ? '<p style="margin-top:8px;font-size:13px;color:var(--muted)"><b>Réponse du praticien :</b> ' + esc(h.reponse) + '</p>' : '') + '</div>';
       }).join('') : '<div class="empty-note">Vos avis publiés apparaîtront ici.</div>') + '</div>';
   }
   function secFavoris() { return favs(); }
@@ -352,7 +357,19 @@
     { day: '10', month: 'Septembre', when: 'Jeudi · 10h30 — 12h00' }, { day: '11', month: 'Septembre', when: 'Vendredi · 14h00 — 15h30' },
     { day: '15', month: 'Septembre', when: 'Mardi · 09h00 — 10h30' }, { day: '16', month: 'Septembre', when: 'Mercredi · 17h00 — 18h30' }
   ];
+  function reviewModal() {
+    var h = SESS[rv.idx]; if (!h) return '';
+    var stars = [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-act="star" data-n="' + n + '" aria-label="' + n + ' sur 5" style="background:none;border:0;font-size:32px;cursor:pointer;color:' + (n <= rv.note ? 'var(--gold,#c9a24b)' : 'var(--border)') + '">' + (n <= rv.note ? '★' : '☆') + '</button>'; }).join('');
+    return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
+      '<div class="modal__k">Votre avis</div><h3>' + esc(h.prat) + '</h3>' +
+      '<p class="modal__lead" style="margin-bottom:10px">' + esc(h.discipline) + ' · ' + esc(h.date) + '. Votre avis est public, signé de votre prénom.</p>' +
+      '<div style="margin-bottom:10px">' + stars + '</div>' +
+      '<textarea id="rv-text" rows="5" maxlength="1200" placeholder="Racontez votre séance en quelques mots (10 caractères minimum)" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--border);font:inherit;margin-bottom:6px">' + esc(rv.text) + '</textarea>' +
+      '<div id="rv-warn" class="modal__lead" style="color:var(--rose);min-height:18px;margin:0 0 8px"></div>' +
+      '<div class="modal__btns"><button class="btn-rose" type="button" data-act="send-review"' + (rv.busy ? ' disabled' : '') + '>PUBLIER MON AVIS</button><button class="btn-ghost2" type="button" data-act="close">PLUS TARD</button></div></div></div>';
+  }
   function modalHtml() {
+    if (modal === 'review') return reviewModal();
     if (modal !== 'cancel') return '';
     var r = rd.list.filter(function (x) { return x.id === cancelId; })[0]; if (!r) return '';
     var free = Date.now() <= new Date(r.annulable_jusqu_au).getTime();
@@ -383,14 +400,32 @@
       }).then(function () { modal = ''; render(); HOL.toast('Séance annulée. Aucun frais : le créneau est rouvert.'); })
         .catch(function (e) { modal = ''; render(); HOL.toast(e && e.code === 'P0001' ? e.message : 'Annulation impossible pour le moment.'); });
     },
+    star: function (el) { var t = document.getElementById('rv-text'); if (t) rv.text = t.value; rv.note = Number(el.dataset.n); render(); },
+    'send-review': function () {
+      var t = document.getElementById('rv-text'), w = document.getElementById('rv-warn'); rv.text = t ? t.value : rv.text;
+      var x = SESS[rv.idx]; if (!x) return;
+      if (!rv.note) { w.textContent = 'Choisissez une note de 1 à 5 étoiles.'; return; }
+      if (rv.text.trim().length < 10) { w.textContent = 'Écrivez quelques mots (10 caractères minimum).'; return; }
+      rv.busy = true; render();
+      HOL.sb().rpc('laisser_avis', { p_resa: x.rid, p_note: rv.note, p_commentaire: rv.text }).then(function (r) {
+        if (r.error) throw r.error; return loadReal();
+      }).then(function () { rv.busy = false; modal = ''; render(); HOL.toast('Merci. Votre avis sur ' + x.prat + ' est publié.'); })
+        .catch(function (e) { rv.busy = false; render(); var w2 = document.getElementById('rv-warn'); if (w2) w2.textContent = e && e.code === 'P0001' ? e.message : 'Publication impossible pour le moment. Réessayez dans un instant.'; });
+    },
     review: function (el) {
-      var idx = Number(el.dataset.idx), s = st(), h = s.sessions[idx];
+      var idx = Number(el.dataset.idx), s = st(), h = SESS[idx];
+      if (!s.demoCocktail) {
+        if (s.reviewed.indexOf(idx) !== -1) { HOL.toast('Votre avis sur ' + h.prat + ' est déjà en ligne.'); return; }
+        rv = { idx: idx, note: 0, text: '', busy: false }; modal = 'review'; render(); return;
+      }
       if (s.reviewed.indexOf(idx) !== -1) { HOL.toast('Votre avis sur ' + h.prat + ' est déjà en ligne.'); return; }
       s.reviewed.push(idx); save(s); render();
       HOL.toast('Merci. Votre avis sur ' + h.prat + ' est publié.');
     },
     'rebook-pr': function (el) {
-      var h = st().sessions[Number(el.dataset.idx)];
+      var h = SESS[Number(el.dataset.idx)];
+      var real = rd.recos.filter(function (x) { return x.name === h.prat; })[0];
+      if (real && !st().demoCocktail) { location.href = 'praticien.html?p=' + encodeURIComponent(real.id); return; }
       var p = D.PRATS.filter(function (x) { return x.name === h.prat; })[0];
       if (!p) { HOL.toast('Ce praticien n’a plus de fiche active.'); return; }
       location.href = 'praticien.html?id=' + p.id;

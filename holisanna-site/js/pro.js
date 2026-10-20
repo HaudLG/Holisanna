@@ -20,7 +20,8 @@
   var TZ = 'Europe/Paris', SLOT_MIN = 90, WEEKS_AHEAD = 8, DAYS_N = 6;
   var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   var MODE_LBL = { cabinet: 'Au cabinet', visio: 'Visio', domicile: 'À domicile' }, MODE_COL = { cabinet: 'var(--olive)', visio: 'var(--gold)', domicile: 'var(--rose)' };
-  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [] };
+  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [], avis: [] };
+  var replySel = null, replyText = '';
   var resaSel = null;
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function ymd(dt) { return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate()); }
@@ -53,7 +54,8 @@
   function loadResas() {
     var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
     return c.from('reservations').select('*').eq('praticien_id', db.uid).order('debut', { ascending: false }).limit(200)
-      .then(function (r) { if (r.error) throw r.error; db.allResas = r.data || []; });
+      .then(function (r) { if (r.error) throw r.error; db.allResas = r.data || []; return c.from('avis').select('*').eq('praticien_id', db.uid).is('deleted_at', null).order('cree_le', { ascending: false }).limit(200); })
+      .then(function (r) { db.avis = r.error ? [] : (r.data || []); });
   }
   function when(iso) { var p = fromIso(iso); return dayLabel(p.day) + ' · ' + p.hm; }
   function loadOffers() {
@@ -130,7 +132,7 @@
   function stats(d) {
     var items = [
       [d.confirmed, 'réservations cette semaine', 'var(--olive)'], [d.free, 'créneaux encore libres', 'var(--slate)'],
-      ['—', 'note moyenne · pas encore d’avis', 'var(--gold)'], [db.vues || 0, 'vues de votre fiche ce mois-ci', 'var(--rose)']
+      (db.avis.length ? [String(avg()).replace('.', ','), 'note moyenne · ' + db.avis.length + ' avis', 'var(--gold)'] : ['—', 'note moyenne · pas encore d’avis', 'var(--gold)']), [db.vues || 0, 'vues de votre fiche ce mois-ci', 'var(--rose)']
     ];
     return '<div class="pstats">' + items.map(function (i) {
       return '<div class="pstat"><div class="pstat__n" style="color:' + i[2] + '">' + i[0] + '</div><div class="pstat__label">' + i[1] + '</div></div>';
@@ -211,7 +213,21 @@
   }
 
   /* ----- Avis reçus ----- */
+  function avg() { return Math.round(db.avis.reduce(function (t, a) { return t + a.note; }, 0) / db.avis.length * 10) / 10; }
   function secAvis() {
+    if (!db.ready) return '<div class="sec-head"><h2>Avis reçus</h2></div>' + pending('vos avis');
+    if (db.avis.length) {
+      var bars = [5, 4, 3, 2, 1].map(function (n) { var c = db.avis.filter(function (a) { return a.note === n; }).length; return [n + ' ★', c, Math.round(c / db.avis.length * 100) + '%']; });
+      return '<div class="sec-head"><h2>Avis reçus</h2></div>' +
+        '<div class="rating-row"><div class="rating-box"><div class="rating-box__n">' + String(avg()).replace('.', ',') + '</div><div class="rating-box__stars">' + '★★★★★'.slice(0, Math.round(avg())) + '</div><div class="rating-box__sub">' + db.avis.length + ' avis</div></div>' +
+        '<div class="rating-bars">' + bars.map(function (b) { return '<div class="rbar"><span class="rbar__s">' + b[0] + '</span><div class="rbar__t"><div style="width:' + b[2] + '"></div></div><span class="rbar__n">' + b[1] + '</span></div>'; }).join('') + '</div></div>' +
+        '<div class="hlist" style="margin-bottom:0">' + db.avis.map(function (a) {
+          var p = fromIso(a.cree_le);
+          return '<div class="preview"><div class="preview__top"><div class="preview__avatar">' + esc(a.auteur_nom.charAt(0)) + '</div><div><div class="preview__who">' + esc(a.auteur_nom) + '</div><div class="preview__meta">' + esc(a.discipline_nom || '') + ' · ' + dayLabel(p.day) + '</div></div><span class="preview__stars">' + '★★★★★'.slice(0, a.note) + '☆☆☆☆☆'.slice(0, 5 - a.note) + '</span></div>' +
+            '<p>' + esc(a.commentaire) + '</p>' +
+            (a.reponse ? '<p style="font-size:13px;opacity:.8"><b>Votre réponse :</b> ' + esc(a.reponse) + '</p>' : '<button class="btn-outline-s" type="button" data-act="open-reply" data-id="' + a.id + '">Répondre</button>') + '</div>';
+        }).join('') + '</div>';
+    }
     return '<div class="sec-head"><h2>Avis reçus</h2></div><div class="empty-note">Pas encore d’avis. Ils apparaissent ici après vos premières séances : seuls les explorateurs ayant réellement suivi une séance peuvent en laisser un.</div>';
   }
   function secAvisDemo() {
@@ -439,6 +455,15 @@
     if (!modal) return '';
     if (modal === 'offer') return offerModal();
     if (modal === 'resa') return resaModal();
+    if (modal === 'reply') {
+      var av = db.avis.filter(function (x) { return x.id === replySel; })[0]; if (!av) return '';
+      return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
+        '<div class="modal__k" style="color:var(--gold)">Avis de ' + esc(av.auteur_nom) + '</div><h3>Répondre</h3>' +
+        '<p class="modal__lead" style="margin-bottom:10px">« ' + esc(av.commentaire) + ' »<br>Votre réponse sera publique et ne pourra plus être modifiée.</p>' +
+        '<textarea id="reply-text" rows="4" maxlength="1200" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--border);font:inherit;margin-bottom:6px">' + esc(replyText) + '</textarea>' +
+        '<div id="reply-warn" class="modal__lead" style="color:var(--rose);min-height:18px;margin:0 0 8px"></div>' +
+        '<div class="modal__btns"><button class="btn-dark2" type="button" data-act="send-reply">PUBLIER MA RÉPONSE</button><button class="btn-ghost2" type="button" data-act="close">ANNULER</button></div></div></div>';
+    }
     var n = slotDays.length * slotTimes.length;
     return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
       '<div class="modal__k" style="color:var(--gold)">Agenda · semaine du ' + weekLabel() + '</div><h3>Ouvrir des créneaux</h3>' +
@@ -530,6 +555,15 @@
     'week-prev': function () { db.week = addDays(db.week, -7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
     'week-next': function () { db.week = addDays(db.week, 7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
     'week-today': function () { db.week = mondayOf(todayYmd()); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
+    'open-reply': function (el) { replySel = el.dataset.id; replyText = ''; modal = 'reply'; render(); },
+    'send-reply': function () {
+      var t = document.getElementById('reply-text'), w = document.getElementById('reply-warn'); replyText = t ? t.value : replyText;
+      if (replyText.trim().length < 5) { w.textContent = 'Écrivez quelques mots (5 caractères minimum).'; return; }
+      HOL.sb().rpc('repondre_avis', { p_avis: replySel, p_texte: replyText }).then(function (r) {
+        if (r.error) throw r.error; return loadResas();
+      }).then(function () { modal = false; render(); HOL.toast('Votre réponse est publiée.'); })
+        .catch(function (e) { var w2 = document.getElementById('reply-warn'); if (w2) w2.textContent = e && e.code === 'P0001' ? e.message : 'Publication impossible pour le moment.'; });
+    },
     reply: function (el) { HOL.toast(el.dataset.done === 'true' ? 'Vous avez déjà répondu à cet avis.' : 'Réponse publiée sous l’avis de ' + el.dataset.who); },
     'add-offer': function () { offerForm = { id: null, nom: '', duree: '60', prix: '', mode: 'cabinet' }; modal = 'offer'; render(); var i = document.getElementById('o-nom'); if (i) i.focus(); },
     'edit-offer': function (el) {

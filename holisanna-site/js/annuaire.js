@@ -25,7 +25,7 @@
   var PILLAR_LABEL = { corps: 'Corps', ame: 'Âme', esprit: 'Esprit' };
 
   /* Fabrique le praticien « normalisé » à partir des lignes de la base */
-  function build(row, disc, offers, slots) {
+  function build(row, disc, offers, slots, avis) {
     var d = disc.byId[row.discipline_principale_id] || null;
     var pillar = (d && d.pilier) || 'corps';
     var modes = row.modes_seance || [];
@@ -41,7 +41,8 @@
       place: row.ville || '', ville: row.ville || '', cp: row.code_postal || '', adresse: row.adresse || '',
       price: prix.length ? Math.min.apply(null, prix) : null,
       duration: first ? first.duree_minutes + ' min · ' + MODE_LONG[first.mode] : '',
-      rating: null, reviews: 0, founder: false,
+      rating: avis.length ? Math.round(avis.reduce(function (t, a) { return t + a.note; }, 0) / avis.length * 10) / 10 : null, reviews: avis.length, founder: false,
+      reviewList: avis.map(function (a) { return { stars: '★★★★★'.slice(0, a.note) + '☆☆☆☆☆'.slice(0, 5 - a.note), text: a.commentaire, author: a.auteur_nom + (a.discipline_nom ? ' · ' + a.discipline_nom : ''), reponse: a.reponse || '' }; }),
       format: modes.length === 1 && modes[0] === 'visio' ? 'visio' : 'cabinet',
       teaser: text.length > 150 ? text.slice(0, 147).replace(/\s+\S*$/, '') + '…' : text,
       bio: text, parcours: (row.parcours || '').trim(),
@@ -64,14 +65,16 @@
     return Promise.all([
       c.from('disciplines').select('id,nom,pilier'),
       c.from('prestations').select('id,praticien_id,nom,duree_minutes,prix_euros,mode,masquee,ordre,cree_le').in('praticien_id', ids).eq('masquee', false).is('deleted_at', null).order('ordre').order('cree_le'),
-      c.from('creneaux').select('id,praticien_id,debut').in('praticien_id', ids).eq('statut', 'libre').gt('debut', new Date().toISOString()).order('debut').limit(2000)
+      c.from('creneaux').select('id,praticien_id,debut').in('praticien_id', ids).eq('statut', 'libre').gt('debut', new Date().toISOString()).order('debut').limit(2000),
+      c.from('avis').select('praticien_id,note,commentaire,auteur_nom,discipline_nom,reponse,cree_le').in('praticien_id', ids).is('deleted_at', null).order('cree_le', { ascending: false }).limit(2000)
     ]).then(function (rs) {
-      rs.forEach(function (r) { if (r.error) throw r.error; });
+      rs.slice(0, 3).forEach(function (r) { if (r.error) throw r.error; });
       var disc = { byId: {} }; rs[0].data.forEach(function (x) { disc.byId[x.id] = x; });
       return rows.map(function (row) {
         return build(row, disc,
           rs[1].data.filter(function (o) { return o.praticien_id === row.utilisateur_id; }),
-          rs[2].data.filter(function (s) { return s.praticien_id === row.utilisateur_id; }));
+          rs[2].data.filter(function (s) { return s.praticien_id === row.utilisateur_id; }),
+          (rs[3].data || []).filter(function (a) { return a.praticien_id === row.utilisateur_id; }));
       });
     });
   }
