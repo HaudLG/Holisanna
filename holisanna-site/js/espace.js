@@ -23,6 +23,16 @@
   function whenLong(iso) { var p = paris(iso); return cap(p.weekday) + ' ' + p.day + ' ' + p.month + ' · ' + p.hour + 'h' + p.minute; }
   function upcoming() { var n = Date.now(); return rd.list.filter(function (r) { return r.statut === 'confirmee' && new Date(r.debut).getTime() > n; }).sort(function (a, b) { return new Date(a.debut) - new Date(b.debut); }); }
   function pastList() { var n = Date.now(); return rd.list.filter(function (r) { return !(r.statut === 'confirmee' && new Date(r.debut).getTime() > n); }); }
+  /* Séances réalisées = réservations confirmées dont l'heure de fin est passée (ou marquées « honorée ») */
+  function realSessions() {
+    var n = Date.now();
+    return rd.list.filter(function (r) { return r.statut === 'honoree' || (r.statut === 'confirmee' && new Date(r.fin).getTime() <= n); })
+      .sort(function (a, b) { return new Date(a.debut) - new Date(b.debut); })
+      .map(function (r) {
+        var p = paris(r.debut);
+        return { discipline: r.discipline_nom || r.prestation_nom, pillar: P[r.pilier] ? r.pilier : 'corps', prat: r.praticien_nom, date: p.day + ' ' + p.month, price: r.prix_annonce + ' €' };
+      });
+  }
   function loadReal() {
     var c = HOL.sb(); if (!c) { rd.err = true; return Promise.resolve(); }
     return Promise.all([
@@ -42,7 +52,7 @@
   /* ----- Données dérivées ----- */
   function derive() {
     var s = st(), counts = { corps: 0, ame: 0, esprit: 0 };
-    if (!s.demoCocktail) { s.sessions = []; s.reviewed = []; }   /* compte réel : pas de séances fictives (sauf « exemple rempli ») */
+    if (!s.demoCocktail) { s.sessions = realSessions(); s.reviewed = []; }   /* compte réel : séances réellement passées (sauf « exemple rempli ») */
     s.sessions.forEach(function (x) { counts[x.pillar]++; });
     var hist = s.sessions.slice().reverse().map(function (x, i) {
       var idx = s.sessions.length - 1 - i, pl = P[x.pillar];
@@ -194,7 +204,7 @@
       (d.toReview.length ? d.toReview.map(function (h) {
         return '<div class="hrow hrow--lg"><div class="hrow__avatar" style="background:' + h.bg + ';color:' + h.color + '">' + h.initials + '</div>' +
           '<div class="hrow__body"><div class="hrow__name">' + esc(h.prat) + '</div><div class="hrow__meta" style="color:' + h.color + '">' + esc(h.discipline) + ' · ' + esc(h.date) + '</div></div>' +
-          '<button class="btn-rose" type="button" data-act="review" data-idx="' + h.idx + '" style="padding:9px 16px">Laisser un avis</button></div>';
+          (d.s.demoCocktail ? '<button class="btn-rose" type="button" data-act="review" data-idx="' + h.idx + '" style="padding:9px 16px">Laisser un avis</button>' : '<span class="hrow__meta">Avis bientôt disponibles</span>') + '</div>';
       }).join('') : '<div class="empty-note">Vous avez répondu à toutes vos invitations d’avis.</div>') + '</div>' +
       head('Avis publiés') + '<div class="hlist" style="margin-bottom:0">' +
       (d.reviewed.length ? d.reviewed.map(function (h) {
