@@ -20,7 +20,7 @@
   var TZ = 'Europe/Paris', SLOT_MIN = 90, WEEKS_AHEAD = 8, DAYS_N = 6;
   var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   var MODE_LBL = { cabinet: 'Au cabinet', visio: 'Visio', domicile: 'À domicile' }, MODE_COL = { cabinet: 'var(--olive)', visio: 'var(--gold)', domicile: 'var(--rose)' };
-  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [], avis: [] };
+  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [], avis: [], abo: null };
   var replySel = null, replyText = '';
   var resaSel = null;
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -55,8 +55,13 @@
     var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
     return c.from('reservations').select('*').eq('praticien_id', db.uid).order('debut', { ascending: false }).limit(200)
       .then(function (r) { if (r.error) throw r.error; db.allResas = r.data || []; return c.from('avis').select('*').eq('praticien_id', db.uid).is('deleted_at', null).order('cree_le', { ascending: false }).limit(200); })
-      .then(function (r) { db.avis = r.error ? [] : (r.data || []); });
+      .then(function (r) { db.avis = r.error ? [] : (r.data || []); return loadAbo(); });
   }
+  function loadAbo() {
+    var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
+    return c.from('abonnements').select('*').eq('praticien_id', db.uid).maybeSingle().then(function (r) { db.abo = r.error ? null : r.data; });
+  }
+  function dateFr(iso) { return new Intl.DateTimeFormat('fr-FR', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso)); }
   function when(iso) { var p = fromIso(iso); return dayLabel(p.day) + ' · ' + p.hm; }
   function loadOffers() {
     var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
@@ -273,17 +278,28 @@
 
   /* ----- Abonnement & factures ----- */
   var INVOICES = [['Août 2026', 'HOL-2608-0412'], ['Juillet 2026', 'HOL-2607-0412'], ['Juin 2026', 'HOL-2606-0412'], ['Mai 2026', 'HOL-2605-0412']];
+  function aboStatus() {
+    var a = db.abo;
+    if (!db.ready) return pending('votre abonnement');
+    if (!a) return '<div class="empty-note">Impossible de charger votre abonnement pour le moment. Rechargez la page dans un instant.</div>';
+    var left = a.essai_fin ? Math.max(0, Math.ceil((new Date(a.essai_fin) - Date.now()) / 86400000)) : 0, t, c;
+    if (a.statut === 'avant_essai') { t = 'Votre mois d’essai gratuit démarrera à la publication de votre fiche.'; c = 'var(--slate-md)'; }
+    else if (a.statut === 'essai') { t = 'Mois d’essai gratuit en cours, jusqu’au ' + dateFr(a.essai_fin) + ' (' + left + ' jour' + (left > 1 ? 's' : '') + ' restant' + (left > 1 ? 's' : '') + '). Aucun prélèvement.'; c = 'var(--olive)'; }
+    else if (a.statut === 'expire') { t = 'Votre mois d’essai est terminé : votre fiche est hors ligne. Elle sera remise en ligne dès l’activation de votre formule.'; c = 'var(--rose)'; }
+    else { t = 'Abonnement actif' + (a.periode_fin ? ' jusqu’au ' + dateFr(a.periode_fin) : '') + '.'; c = 'var(--olive)'; }
+    return '<div class="pay-card" style="margin-bottom:16px"><div><div class="pay-card__t" style="color:' + c + '">' + t + '</div></div></div>';
+  }
   function secAbo(d) {
-    var card = d.s.payMethod === 'card';
+    var a = db.abo, pick = a && a.formule_choisie;
+    var names = { continu: 'Fil Continu', libre: 'Fil Libre' };
     return '<div class="abo-grid"><div class="abo-col"><div class="abo-box"><h2>Abonnement</h2>' +
-      '<p class="abo-box__lead">Aucune commission sur vos séances. Vous réglez un forfait mensuel, résiliable à tout moment.</p>' +
+      '<p class="abo-box__lead">Aucune commission sur vos séances, réglées directement par l’explorateur. Un mois d’essai gratuit à la première publication de votre fiche.</p>' + aboStatus() +
       '<div class="stack-10">' + D.PLANS.map(function (pl) {
-        var on = d.s.plan === pl.name;
-        return '<button class="plan-row' + (on ? ' is-on' : '') + '" type="button" data-act="plan" data-name="' + pl.name + '" aria-pressed="' + on + '"><div><div class="plan-row__name">' + pl.name + '</div><div class="plan-row__desc">' + pl.desc + '</div><div class="plan-row__state">' + (on ? 'Formule active' : 'Choisir') + '</div></div><div class="plan-row__price">' + pl.price + '</div></button>';
-      }).join('') + '</div><div class="abo-foot">Formule ' + d.s.plan + ' · sans engagement, résiliable en un clic.</div></div>' +
-      '<div class="abo-box"><div class="abo-head"><h2>Facturation</h2><button class="link-s" type="button" data-act="invoices">Tout télécharger</button></div>' +
-      '<div class="pay-card"><div><div class="pay-card__t">' + (card ? 'Carte bancaire · Visa •••• 4218' : 'Prélèvement SEPA · FR76 •••• 3390') + '</div><div class="pay-card__s">' + (card ? 'Expire 04/29 · prélèvement le 1er de chaque mois' : 'Mandat signé le 12 mai 2026 · prélèvement le 1er de chaque mois') + '</div></div><button type="button" data-act="pay-method">MODIFIER</button></div>' +
-      INVOICES.map(function (i) { return '<div class="invoice"><div><div class="invoice__m">' + i[0] + '</div><div class="invoice__r">' + i[1] + '</div></div><div class="invoice__a"><span>11,99 €</span><button class="link-s link-s--mute" type="button" data-act="invoices">PDF</button></div></div>'; }).join('') + '</div></div></div>';
+        var key = pl.name === 'Fil Continu' ? 'continu' : 'libre', on = pick === key;
+        return '<button class="plan-row' + (on ? ' is-on' : '') + '" type="button" data-act="plan" data-key="' + key + '" aria-pressed="' + on + '"><div><div class="plan-row__name">' + pl.name + '</div><div class="plan-row__desc">' + pl.hook + ' ' + pl.note + '</div><div class="plan-row__state">' + (on ? 'Formule choisie' : 'Choisir') + '</div></div><div class="plan-row__price">' + pl.price + '<small style="display:block;font-size:11px">' + pl.period + '</small></div></button>';
+      }).join('') + '</div><div class="abo-foot">' + (pick ? 'Formule ' + names[pick] + ' enregistrée. ' : '') + 'Le paiement (carte bancaire ou prélèvement SEPA) vous sera demandé avant la fin de l’essai ; il n’est pas encore ouvert pendant la phase de tests.</div></div>' +
+      '<div class="abo-box"><div class="abo-head"><h2>Facturation</h2></div>' +
+      '<div class="empty-note">Aucune facture pour le moment. Vos factures apparaîtront ici dès le premier prélèvement.</div></div></div></div>';
   }
 
   /* ----- Modifier ma fiche ----- */
@@ -423,8 +439,8 @@
   function setStatut(statut, okMsg) {
     var c = HOL.sb();
     return c.from('profils_praticien').update({ statut_publication: statut }).eq('utilisateur_id', db.uid).then(function (r) {
-      if (r.error) { var e = new Error(r.error.message || 'db'); e.pub = /^Fiche incomplète/.test(r.error.message || ''); throw e; }
-      db.statut = statut; render(); HOL.toast(okMsg);
+      if (r.error) { var e = new Error(r.error.message || 'db'); e.pub = /^(Fiche incomplète|Votre mois d.essai)/.test(r.error.message || ''); throw e; }
+      db.statut = statut; return loadAbo().then(function () { render(); HOL.toast(okMsg); });
     });
   }
   function pubUrl() { return db.slug ? 'praticien.html?p=' + encodeURIComponent(db.slug) + '&from=pro' : 'pro-fiche.html'; }
@@ -432,7 +448,7 @@
     var on = db.statut === 'en_ligne';
     return '<div class="fcard"><div class="fcard__title">Publication</div>' +
       '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
-        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance et au moins une prestation visible.') + '</p>' +
+        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance et au moins une prestation visible.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
       '<div class="fbtns" style="margin-top:14px">' + (on
         ? '<button class="btn-ghost2" type="button" data-act="unpublish">RETIRER MA FICHE DE LA RECHERCHE</button>'
         : '<button class="btn-dark2 btn-dark2--l" type="button" data-act="publish">PUBLIER MA FICHE</button>') +
@@ -647,7 +663,12 @@
       }).then(function () { render(); HOL.toast(o.masquee ? o.nom + ' est de nouveau visible sur votre fiche.' : o.nom + ' est masquée de votre fiche.'); })
         .catch(function () { HOL.toast('Modification impossible pour le moment.'); });
     },
-    plan: function (el) { var s = st(); s.plan = el.dataset.name; save(s); render(); HOL.toast('Formule ' + el.dataset.name + ' active dès le prochain prélèvement.'); },
+    plan: function (el) {
+      var key = el.dataset.key; if (!db.abo || db.abo.formule_choisie === key) return;
+      HOL.sb().rpc('choisir_formule', { p_formule: key }).then(function (r) {
+        if (r.error) throw r.error; db.abo.formule_choisie = key; render(); HOL.toast((key === 'continu' ? 'Fil Continu' : 'Fil Libre') + ' enregistrée. Vous ne serez prélevée qu’à la fin du mois d’essai.');
+      }).catch(function () { HOL.toast('Enregistrement impossible pour le moment.'); });
+    },
     invoices: function () { HOL.toast('Factures exportées en PDF.'); },
     'pay-method': function () {
       var s = st(); s.payMethod = s.payMethod === 'card' ? 'sepa' : 'card'; save(s); render();
