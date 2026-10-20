@@ -8,7 +8,7 @@
   var host = document.getElementById('profile');
   var slug = params.get('p');
   var prat = slug ? null : D.findPrat(params.get('id'));
-  var sel = { date: params.get('jour') || params.get('date'), time: params.get('heure') };
+  var sel = { date: params.get('jour') || params.get('date'), time: params.get('heure'), offer: params.get('prestation') };
 
   function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function notFound() {
@@ -37,9 +37,9 @@
   /* Jours proposés dans l'agenda : démo = semaine fixe ; réel = prochains jours ayant des créneaux */
   function agendaDays(p) {
     if (!p.real) { var sl = HOL.Store.slots()[p.id]; return D.DATES.map(function (d) { return { key: d, label: d, times: sl[d] || [] }; }); }
-    var map = {}, out = [];
-    p.slots.forEach(function (s) { if (s.di <= 28) { (map[s.day] = map[s.day] || []).push(s.hm); } });
-    Object.keys(map).sort().slice(0, 8).forEach(function (d) { out.push({ key: d, label: HOL_DIR.dayLabel(d), times: map[d] }); });
+    var map = {}, ids = {}, out = [];
+    p.slots.forEach(function (s) { if (s.di <= 28) { (map[s.day] = map[s.day] || []).push(s.hm); ids[s.day + ' ' + s.hm] = s.id; } });
+    Object.keys(map).sort().slice(0, 8).forEach(function (d) { out.push({ key: d, label: HOL_DIR.dayLabel(d), times: map[d], ids: ids }); });
     return out;
   }
 
@@ -91,6 +91,7 @@
 
       '<aside class="booking-aside"><h2>Réserver une séance</h2><div class="booking-aside__sub">Agenda synchronisé en direct</div>' +
       (empty ? '<div class="no-slots"><h3>Aucun créneau ouvert</h3><p>' + (p.real ? esc(pr.firstName) + ' n’a pas encore ouvert de disponibilités.' : 'Cette praticienne n\'a pas encore ouvert de disponibilités pour la semaine affichée.') + '</p>' + (p.real ? '' : '<button class="btn-small" type="button" id="ask">Demander ses disponibilités</button>') + '</div>' : '') +
+      (p.real && p.offers.length > 1 ? '<div class="ffield" style="margin:0 0 16px"><label for="offer">Prestation</label><select id="offer">' + p.offers.map(function (o) { return '<option value="' + esc(o.id) + '"' + (offerOf(p).id === o.id ? ' selected' : '') + '>' + esc(o.name + ' · ' + o.detail + ' · ' + o.price) + '</option>'; }).join('') + '</select></div>' : '') +
       '<div class="agenda">' + days.map(function (d) {
         return '<div><div class="agenda__day">' + esc(d.label) + '</div><div class="agenda__times">' +
           d.times.map(function (t) { return '<button type="button" class="slot' + (sel.date === d.key && sel.time === t ? ' is-on' : '') + '" data-date="' + esc(d.key) + '" data-time="' + t + '" aria-pressed="' + (sel.date === d.key && sel.time === t) + '">' + t + '</button>'; }).join('') +
@@ -104,13 +105,15 @@
     bind(p, pr, days);
   }
 
+  function offerOf(p) { return p.offers.filter(function (o) { return o.id === sel.offer; })[0] || p.offers[0] || null; }
   function updateFoot(p, days) {
     var ok = sel.date && sel.time, go = document.getElementById('go');
     var lbl = ok ? (days.filter(function (d) { return d.key === sel.date; })[0] || {}).label : '';
-    document.getElementById('line').textContent = ok ? lbl + ' à ' + sel.time + (p.price != null ? ' · ' + (p.real ? 'dès ' : '') + p.price + ' €' : '') : 'Choisissez un créneau ci-dessus';
+    document.getElementById('line').textContent = ok ? lbl + ' à ' + sel.time + (p.real ? (offerOf(p) ? ' · ' + offerOf(p).prix + ' €' : '') : (p.price != null ? ' · ' + p.price + ' €' : '')) : 'Choisissez un créneau ci-dessus';
     go.classList.toggle('is-disabled', !ok);
     go.setAttribute('aria-disabled', String(!ok));
-    go.href = ok ? (p.real ? '#' : 'reservation.html?id=' + p.id + '&date=' + encodeURIComponent(sel.date) + '&heure=' + encodeURIComponent(sel.time)) : '#';
+    var cur = days.filter(function (d) { return d.key === sel.date; })[0];
+    go.href = ok ? (p.real ? 'reservation.html?p=' + encodeURIComponent(p.id) + '&creneau=' + encodeURIComponent(cur.ids[sel.date + ' ' + sel.time]) + '&prestation=' + encodeURIComponent((offerOf(p) || {}).id || '') : 'reservation.html?id=' + p.id + '&date=' + encodeURIComponent(sel.date) + '&heure=' + encodeURIComponent(sel.time)) : '#';
   }
 
   function bind(p, pr, days) {
@@ -126,8 +129,10 @@
     });
     document.getElementById('go').addEventListener('click', function (e) {
       if (!(sel.date && sel.time)) { e.preventDefault(); return; }
-      if (p.real) { e.preventDefault(); HOL.toast('La réservation en ligne ouvre très bientôt. Votre créneau n’est pas encore réservé.'); }
+      if (p.real && !offerOf(p)) { e.preventDefault(); HOL.toast('Ce praticien n’a pas encore de prestation réservable.'); }
     });
+    var off = document.getElementById('offer');
+    if (off) off.addEventListener('change', function () { sel.offer = off.value; updateFoot(p, days); });
     var ask = document.getElementById('ask');
     if (ask) ask.addEventListener('click', function () { HOL.toast('Demande envoyée. ' + pr.firstName + ' vous répondra par message.'); });
     /* « Retour aux résultats » conserve les filtres si l'on arrive de la recherche */

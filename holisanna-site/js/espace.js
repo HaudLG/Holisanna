@@ -13,6 +13,28 @@
   if (!sess.loggedIn) { location.replace('connexion.html'); return; }
   if (sess.role === 'praticien') { location.replace('espace-praticien.html'); return; }
 
+  /* ----- Données réelles (Supabase) : réservations et praticiens recommandés ----- */
+  var rd = { ready: false, err: false, list: [], recos: [] }, cancelId = null;
+  function paris(iso) {
+    var o = {}; new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso)).forEach(function (x) { o[x.type] = x.value; });
+    return o;
+  }
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function whenLong(iso) { var p = paris(iso); return cap(p.weekday) + ' ' + p.day + ' ' + p.month + ' · ' + p.hour + 'h' + p.minute; }
+  function upcoming() { var n = Date.now(); return rd.list.filter(function (r) { return r.statut === 'confirmee' && new Date(r.debut).getTime() > n; }).sort(function (a, b) { return new Date(a.debut) - new Date(b.debut); }); }
+  function pastList() { var n = Date.now(); return rd.list.filter(function (r) { return !(r.statut === 'confirmee' && new Date(r.debut).getTime() > n); }); }
+  function loadReal() {
+    var c = HOL.sb(); if (!c) { rd.err = true; return Promise.resolve(); }
+    return Promise.all([
+      c.from('reservations').select('*').order('debut', { ascending: false }).limit(200),
+      window.HOL_DIR ? HOL_DIR.list().catch(function () { return []; }) : Promise.resolve([])
+    ]).then(function (r) {
+      if (r[0].error) throw r[0].error;
+      rd.list = r[0].data || []; rd.recos = (r[1] || []).slice(0, 3); rd.ready = true;
+    }).catch(function () { rd.err = true; });
+  }
+  function pendingNote(what) { return '<div class="empty-note">' + (rd.err ? 'Impossible de charger ' + what + ' pour le moment. Rechargez la page dans un instant.' : 'Chargement…') + '</div>'; }
+
   function st() { return HOL.Store.get(); }
   function save(s) { HOL.Store.set(s); }
   function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -20,6 +42,7 @@
   /* ----- Données dérivées ----- */
   function derive() {
     var s = st(), counts = { corps: 0, ame: 0, esprit: 0 };
+    if (!s.demoCocktail) { s.sessions = []; s.reviewed = []; }   /* compte réel : pas de séances fictives (sauf « exemple rempli ») */
     s.sessions.forEach(function (x) { counts[x.pillar]++; });
     var hist = s.sessions.slice().reverse().map(function (x, i) {
       var idx = s.sessions.length - 1 - i, pl = P[x.pillar];
@@ -66,12 +89,11 @@
       '<span>' + label + '</span>' + (badge ? '<span class="badge-n">' + badge + '</span>' : '') + '</a>';
   }
   function sidebar(d) {
-    var unreadMsg = D.EXPL_CONVOS.filter(function (c) { return c.unread && d.s.readConvs.indexOf('e' + c.id) === -1; }).length;
-    var unreadNot = D.EXPL_NOTIFS.filter(function (n) { return d.s.notifRead.indexOf(n.id) === -1; }).length;
+    var unreadMsg = 0, unreadNot = 0, nUp = upcoming().length;
     return '<aside class="sidenav">' +
       '<div class="sidenav__group"><div class="sidenav__title">Navigation</div>' +
       navItem('Tableau de bord', 'dash', 'espace.html') + navItem('Mon Cocktail', 'cocktail', 'cocktail.html') +
-      navItem('Mes rendez-vous', 'rdv', 'espace-rendez-vous.html', d.s.rdv.cancelled ? '' : '1') +
+      navItem('Mes rendez-vous', 'rdv', 'espace-rendez-vous.html', nUp ? String(nUp) : '') +
       navItem('Mes avis', 'avis', 'espace-avis.html', d.toReview.length ? String(d.toReview.length) : '') +
       navItem('Messages', 'messages', 'espace-messages.html', unreadMsg ? String(unreadMsg) : '') +
       navItem('Notifications', 'notifs', 'espace-notifications.html', unreadNot ? String(unreadNot) : '') + '</div>' +
@@ -88,7 +110,8 @@
   function banner(d) {
     var date = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     date = date.charAt(0).toUpperCase() + date.slice(1);
-    var rdvTxt = d.s.rdv.cancelled ? 'Vous n’avez aucun rendez-vous' : 'Vous avez 1 rendez-vous';
+    var wk = upcoming().filter(function (r) { return new Date(r.debut).getTime() < Date.now() + 7 * 86400000; }).length;
+    var rdvTxt = !rd.ready ? 'Bienvenue' : wk ? 'Vous avez ' + wk + ' rendez-vous' : 'Vous n’avez aucun rendez-vous';
     return '<div class="banner"><div class="banner__text"><div class="banner__date">' + date + '</div>' +
       '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>prenez soin de vous.</em></h1>' +
       '<p>' + rdvTxt + ' cette semaine et ' + d.touched + ' piliers dans votre cocktail.</p></div>' +
@@ -96,10 +119,10 @@
   }
   function stats(d) {
     var items = [
-      [d.s.sessions.length, 'Séances totales', '+2 ce mois'],
-      [d.touched, 'Piliers touchés', 'Corps · Esprit · Âme'],
-      [d.pratCount, 'Praticiens', 'dont 3 favoris'],
-      [d.s.reviewed.length, 'Avis publiés', d.toReview.length + ' en attente']
+      [d.s.sessions.length, 'Séances totales', ''],
+      [d.touched, 'Piliers touchés', ''],
+      [d.pratCount, 'Praticiens', ''],
+      [d.s.reviewed.length, 'Avis publiés', d.toReview.length ? d.toReview.length + ' en attente' : '']
     ];
     return '<div class="xstats">' + items.map(function (i) {
       return '<div class="xstat"><div class="xstat__n">' + i[0] + '</div><div class="xstat__label">' + i[1] + '</div><div class="xstat__trend">' + i[2] + '</div></div>';
@@ -108,18 +131,26 @@
   function head(title, linkLabel, href) {
     return '<div class="sec-head"><h2>' + title + '</h2>' + (linkLabel ? '<a class="sec-link" href="' + href + '">' + linkLabel + '</a>' : '') + '</div>';
   }
-  function nextRdv(d) {
-    var r = d.s.rdv;
-    var card = r.cancelled ? '' :
-      '<div class="rdv"><div class="rdv__date"><div class="rdv__day">' + esc(r.day) + '</div><div class="rdv__month">' + esc(r.month) + '</div></div>' +
-      '<div class="rdv__body"><div class="rdv__when">' + esc(r.when) + '</div><div class="rdv__title">Naturopathie avec Naïma Belkacem</div><div class="rdv__meta">24 rue de la Roquette, Paris 11e · 85 €</div></div>' +
-      '<div class="rdv__actions"><a class="btn-rose" href="praticien.html?id=2">Voir le détail →</a>' +
-      '<button class="btn-ghost2" type="button" data-act="agenda">Ajouter à l\'agenda</button>' +
-      '<div class="rdv__row"><button class="btn-mini btn-mini--ok" type="button" data-act="open-move">Déplacer</button><button class="btn-mini btn-mini--no" type="button" data-act="open-cancel">Annuler</button></div></div></div>';
-    var cancelled = r.cancelled ?
-      '<div class="rdv-cancelled"><div><div class="rdv-cancelled__k">Séance annulée</div><div class="rdv-cancelled__t">Naturopathie avec Naïma Belkacem</div><div class="rdv-cancelled__d">Annulée plus de 24 h avant le rendez-vous, aucun frais retenu.</div></div>' +
-      '<button class="btn-rose" type="button" data-act="rebook">Reprendre un créneau →</button></div>' : '';
-    return head('Prochain rendez-vous', 'Voir tous →', 'espace-rendez-vous.html') + card + cancelled;
+  function ics(r) {
+    var f = function (iso) { return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''); };
+    var t = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Holisanna//FR', 'BEGIN:VEVENT', 'UID:' + r.id + '@holisanna', 'DTSTAMP:' + f(new Date().toISOString()), 'DTSTART:' + f(r.debut), 'DTEND:' + f(r.fin),
+      'SUMMARY:' + r.prestation_nom + ' avec ' + r.praticien_nom, 'LOCATION:' + (r.lieu || ''), 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/calendar' })); a.download = 'seance-holisanna.ics'; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function rdvCard(r) {
+    var p = paris(r.debut);
+    return '<div class="rdv"><div class="rdv__date"><div class="rdv__day">' + esc(p.day) + '</div><div class="rdv__month">' + esc(cap(p.month)) + '</div></div>' +
+      '<div class="rdv__body"><div class="rdv__when">' + esc(cap(p.weekday)) + ' · ' + p.hour + 'h' + p.minute + '</div><div class="rdv__title">' + esc(r.prestation_nom) + ' avec ' + esc(r.praticien_nom) + '</div>' +
+      '<div class="rdv__meta">' + esc(r.lieu || '') + (r.lieu ? ' · ' : '') + esc(r.prix_annonce) + ' € sur place</div></div>' +
+      '<div class="rdv__actions"><button class="btn-ghost2" type="button" data-act="agenda" data-id="' + r.id + '">Ajouter à l\'agenda</button>' +
+      '<div class="rdv__row"><button class="btn-mini btn-mini--no" type="button" data-act="open-cancel" data-id="' + r.id + '">Annuler</button></div></div></div>';
+  }
+  function nextRdv(d, all) {
+    if (!rd.ready) return head('Prochain rendez-vous', 'Voir tous →', 'espace-rendez-vous.html') + pendingNote('vos rendez-vous');
+    var up = upcoming();
+    if (!up.length) return head('Prochain rendez-vous', 'Voir tous →', 'espace-rendez-vous.html') +
+      '<div class="empty-note">Aucun rendez-vous à venir. <a class="sec-link" href="recherche.html">Trouver un praticien →</a></div>';
+    return head(all ? 'Rendez-vous à venir' : 'Prochain rendez-vous', 'Voir tous →', 'espace-rendez-vous.html') + (all ? up : up.slice(0, 1)).map(rdvCard).join('');
   }
   function histRow(h, withBtns) {
     return '<div class="hrow"><div class="hrow__avatar" style="background:' + h.bg + ';color:' + h.color + '">' + h.initials + '</div>' +
@@ -130,6 +161,8 @@
         '<div class="hrow__price">' + esc(h.price) + '</div>') + '</div>';
   }
   function favs() {
+    return head('Mes praticiens favoris', 'Voir tous →', 'recherche.html') +
+      '<div class="empty-note">Vos praticiens favoris apparaîtront ici. <a class="sec-link" href="recherche.html">Explorer →</a></div>';
     var rows = [1, 6, 9].map(D.findPrat).filter(Boolean);
     return head('Mes praticiens favoris', 'Voir tous →', 'recherche.html') +
       '<div class="favs">' + rows.map(function (p) {
@@ -148,8 +181,13 @@
       '<div class="hlist">' + (top.length ? top.map(function (h) { return histRow(h, true); }).join('') : '<div class="empty-note">Aucune séance pour le moment.</div>') + '</div>' + favs();
   }
   function secRdv(d) {
-    return nextRdv(d) + head('Séances passées') +
-      '<div class="hlist" style="margin-bottom:8px">' + (d.hist.length ? d.hist.map(function (h) { return histRow(h, false); }).join('') : '<div class="empty-note">Aucune séance pour le moment.</div>') + '</div>';
+    var past = pastList();
+    return nextRdv(d, true) + head('Séances passées ou annulées') +
+      '<div class="hlist" style="margin-bottom:8px">' + (!rd.ready ? pendingNote('vos séances') : past.length ? past.map(function (r) {
+        var lbl = { confirmee: 'Séance passée', honoree: 'Séance réalisée', annulee_explorateur: 'Annulée par vous', annulee_praticien: 'Annulée par le praticien', absente: 'Absence' }[r.statut] || '';
+        var ini = r.praticien_nom.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+        return '<div class="hrow"><div class="hrow__avatar" style="background:var(--olive-bg);color:var(--olive)">' + esc(ini) + '</div><div class="hrow__body"><div class="hrow__name">' + esc(r.praticien_nom) + '</div><div class="hrow__meta">' + esc(r.prestation_nom) + ' · ' + esc(whenLong(r.debut)) + ' · ' + lbl + '</div></div><div class="hrow__price">' + esc(r.prix_annonce) + ' €</div></div>';
+      }).join('') : '<div class="empty-note">Aucune séance pour le moment.</div>') + '</div>';
   }
   function secAvis(d) {
     return head('Avis à laisser') + '<div class="hlist" style="margin-bottom:32px">' +
@@ -217,20 +255,18 @@
     var tags = s.sessions.slice(-3).map(function (x) {
       return '<span class="mini-tag" style="background:' + P[x.pillar].bg + ';color:' + P[x.pillar].color + ';border-color:' + P[x.pillar].color + '">' + esc(x.discipline) + '</span>';
     }).join('');
-    var recos = [7, 11, 5].map(D.findPrat).filter(Boolean).map(function (p) {
+    var recos = rd.recos.map(function (p) {
       var pl = P[p.pillar];
-      return '<a class="reco" href="praticien.html?id=' + p.id + '"><div class="reco__avatar" style="background:' + pl.bg + ';color:' + pl.color + '">' + D.initials(p.name) + '</div>' +
-        '<div style="min-width:0"><div class="reco__name">' + p.name + '</div><div class="reco__disc" style="color:' + pl.color + '">' + p.discipline + '</div>' +
-        '<div class="reco__meta">★ ' + p.rating + ' · ' + p.price + ' €</div></div><span class="reco__go">→</span></a>';
-    }).join('');
+      return '<a class="reco" href="praticien.html?p=' + encodeURIComponent(p.id) + '"><div class="reco__avatar" style="background:' + pl.bg + ';color:' + pl.color + '">' + esc(D.initials(p.name)) + '</div>' +
+        '<div style="min-width:0"><div class="reco__name">' + esc(p.name) + '</div><div class="reco__disc" style="color:' + pl.color + '">' + esc(p.discipline) + '</div>' +
+        '<div class="reco__meta">' + (p.price != null ? 'dès ' + p.price + ' €' : '') + '</div></div><span class="reco__go">→</span></a>';
+    }).join('') || '<div class="today-sub" style="margin-top:0">Les praticiens arrivent bientôt.</div>';
     return '<aside class="rside"><div class="rside__block"><div class="rside__title">Mon Cocktail</div>' +
       '<div class="rside__sub">' + d.counts.corps + ' Corps · ' + d.counts.esprit + ' Esprit · ' + d.counts.ame + ' Âme</div>' +
       '<div class="glass glass--s"><div class="glass__bowl">' + layers + '</div><div class="glass__rim"></div><div class="glass__stem"></div><div class="glass__foot"></div></div>' +
       '<div class="mini-tags">' + tags + '</div><a class="btn-dark2" href="cocktail.html">Composer mon cocktail →</a></div>' +
       '<div class="rside__block"><div class="rside__row"><span class="rside__label">Notifications</span><a class="rside__more" href="espace-notifications.html">Tout voir</a></div>' +
-      ASIDE_NOTIFS.map(function (n) {
-        return '<div class="anotif"><div class="anotif__dot" style="background:' + n.dot + '"></div><div><div class="anotif__text"><strong>' + n.title + '</strong> ' + n.text + '</div><div class="anotif__time">' + n.time + '</div></div></div>';
-      }).join('') + '</div>' +
+      '<div class="today-sub" style="margin-top:6px">Rien de nouveau pour le moment.</div></div>' +
       '<div><div class="rside__label" style="display:block;margin-bottom:12px">Praticiens recommandés</div>' + recos + '</div></aside>';
   }
 
@@ -238,7 +274,10 @@
   var convId = Number(new URLSearchParams(location.search).get('c')) || 1;
   var draft = '';
   function convMessages(c, s) { return (c.messages || []).concat(s.sentMsgs['e' + c.id] || []); }
-  function secMessages(d) {
+  function secMessages() {
+    return '<div class="sec-head"><h2>Messages</h2></div><div class="empty-note">Aucun message pour le moment. La messagerie avec les praticiens sera activée prochainement.</div>';
+  }
+  function secMessagesDemo(d) {
     var s = d.s, convs = D.EXPL_CONVOS;
     var active = convs.filter(function (c) { return c.id === convId; })[0] || convs[0];
     var list = convs.map(function (c) {
@@ -260,7 +299,10 @@
   /* ----- Notifications ----- */
   var notifFilter = 'all';
   var FILTERS = [['all', 'Tout'], ['rdv', 'Rendez-vous'], ['avis', 'Avis'], ['reco', 'Recommandations'], ['compte', 'Compte']];
-  function secNotifs(d) {
+  function secNotifs() {
+    return '<div class="sec-head"><h2>Notifications</h2></div><div class="empty-note">Rien de nouveau pour le moment.</div>';
+  }
+  function secNotifsDemo(d) {
     var s = d.s, shown = D.EXPL_NOTIFS.filter(function (n) { return notifFilter === 'all' || n.type === notifFilter; });
     var groups = [];
     shown.forEach(function (n) {
@@ -299,47 +341,37 @@
     { day: '10', month: 'Septembre', when: 'Jeudi · 10h30 — 12h00' }, { day: '11', month: 'Septembre', when: 'Vendredi · 14h00 — 15h30' },
     { day: '15', month: 'Septembre', when: 'Mardi · 09h00 — 10h30' }, { day: '16', month: 'Septembre', when: 'Mercredi · 17h00 — 18h30' }
   ];
-  function modalHtml(d) {
-    if (!modal) return '';
-    var body = modal === 'move' ?
-      '<div class="modal__k" style="color:var(--gold)">Déplacer la séance</div><h3>Choisissez un autre créneau</h3>' +
-      '<p class="modal__lead">Voici les disponibilités de Naïma Belkacem dans les deux prochaines semaines. Elle sera informée du changement.</p>' +
-      '<div class="modal__list">' + MOVE_SLOTS.map(function (o, i) {
-        return '<button class="mslot" type="button" data-act="move" data-i="' + i + '"><div class="mslot__date"><div class="mslot__day">' + o.day + '</div><div class="mslot__month">' + o.month + '</div></div>' +
-          '<span class="mslot__when">' + o.when + '</span><span class="mslot__go">→</span></button>';
-      }).join('') + '</div>' :
+  function modalHtml() {
+    if (modal !== 'cancel') return '';
+    var r = rd.list.filter(function (x) { return x.id === cancelId; })[0]; if (!r) return '';
+    var free = Date.now() <= new Date(r.annulable_jusqu_au).getTime();
+    return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
       '<div class="modal__k" style="color:var(--rose)">Annuler la séance</div><h3>Annuler ce rendez-vous ?</h3>' +
-      '<p class="modal__lead" style="margin-bottom:18px">Naturopathie avec Naïma Belkacem, ' + esc(d.s.rdv.when) + '. Nous sommes à plus de 24 heures du rendez-vous : l\'annulation est gratuite et le créneau sera rouvert.</p>' +
-      '<div class="modal__box">Si vous préférez garder la séance à une autre date, déplacer le rendez-vous évite à Naïma de perdre le créneau.</div>' +
-      '<div class="modal__btns"><button class="btn-rose" type="button" data-act="cancel">CONFIRMER L\'ANNULATION</button><button class="btn-ghost2" type="button" data-act="open-move">PLUTÔT DÉPLACER</button></div>';
-    return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' + body + '<button class="modal__close" type="button" data-act="close">Fermer</button></div></div>';
+      '<p class="modal__lead" style="margin-bottom:18px">' + esc(r.prestation_nom) + ' avec ' + esc(r.praticien_nom) + ', ' + esc(whenLong(r.debut)) + '. ' +
+      (free ? 'Nous sommes à plus de 24 heures du rendez-vous : l\'annulation est gratuite et le créneau sera rouvert.' : 'Nous sommes à moins de 24 heures du rendez-vous : l\'annulation en ligne n\'est plus possible. Contactez directement le praticien.') + '</p>' +
+      '<div class="modal__btns">' + (free ? '<button class="btn-rose" type="button" data-act="cancel" data-id="' + r.id + '">CONFIRMER L\'ANNULATION</button>' : '') + '<button class="btn-ghost2" type="button" data-act="close">GARDER LE RENDEZ-VOUS</button></div></div></div>';
   }
 
   /* ----- Rendu ----- */
   function render() {
     var d = derive();
     var content = { dash: secDash, rdv: secRdv, avis: secAvis, favoris: secFavoris, cocktail: secCocktail, messages: secMessages, notifs: secNotifs, profil: secProfil }[section](d);
-    root.innerHTML = sidebar(d) + '<div class="espace__main">' + banner(d) + content + '</div>' + aside(d) + modalHtml(d);
+    root.innerHTML = sidebar(d) + '<div class="espace__main">' + banner(d) + content + '</div>' + aside(d) + modalHtml();
     var th = document.getElementById('thread'); if (th) th.scrollTop = th.scrollHeight;
   }
 
   /* ----- Actions ----- */
   var ACTIONS = {
     logout: function () { HOL.Session.logout().then(function () { HOL.flash('Vous êtes déconnectée. À bientôt.'); location.href = 'index.html'; }); },
-    agenda: function () { HOL.toast('Séance ajoutée à votre agenda.'); },
-    'open-move': function () { modal = 'move'; render(); },
-    'open-cancel': function () { modal = 'cancel'; render(); },
+    agenda: function (el) { var r = rd.list.filter(function (x) { return x.id === el.dataset.id; })[0]; if (r) { ics(r); HOL.toast('Fichier calendrier téléchargé : ouvrez-le pour ajouter la séance à votre agenda.'); } },
+    'open-cancel': function (el) { cancelId = el.dataset.id; modal = 'cancel'; render(); },
     close: function () { modal = ''; render(); },
-    move: function (el) {
-      var o = MOVE_SLOTS[Number(el.dataset.i)], s = st();
-      s.rdv = { day: o.day, month: o.month, when: o.when, cancelled: false }; save(s); modal = ''; render();
-      HOL.toast('Séance déplacée au ' + o.day + ' septembre, ' + o.when.split(' · ')[1] + '. Naïma en est informée.');
+    cancel: function (el) {
+      HOL.sb().rpc('annuler_reservation', { p_id: el.dataset.id }).then(function (r) {
+        if (r.error) throw r.error; return loadReal();
+      }).then(function () { modal = ''; render(); HOL.toast('Séance annulée. Aucun frais : le créneau est rouvert.'); })
+        .catch(function (e) { modal = ''; render(); HOL.toast(e && e.code === 'P0001' ? e.message : 'Annulation impossible pour le moment.'); });
     },
-    cancel: function () {
-      var s = st(); s.rdv.cancelled = true; save(s); modal = ''; render();
-      HOL.toast('Séance annulée. Aucun frais : nous sommes à plus de 24 h du rendez-vous.');
-    },
-    rebook: function () { var s = st(); s.rdv.cancelled = false; save(s); location.href = 'praticien.html?id=2'; },
     review: function (el) {
       var idx = Number(el.dataset.idx), s = st(), h = s.sessions[idx];
       if (s.reviewed.indexOf(idx) !== -1) { HOL.toast('Votre avis sur ' + h.prat + ' est déjà en ligne.'); return; }
@@ -352,7 +384,7 @@
       if (!p) { HOL.toast('Ce praticien n’a plus de fiche active.'); return; }
       location.href = 'praticien.html?id=' + p.id;
     },
-    demo: function () { var s = st(); s.sessions = JSON.parse(JSON.stringify(D.DEMO_SESSIONS)); save(s); render(); HOL.toast('Jeu de démonstration chargé.'); },
+    demo: function () { var s = st(); s.demoCocktail = true; s.sessions = JSON.parse(JSON.stringify(D.DEMO_SESSIONS)); save(s); render(); HOL.toast('Exemple de démonstration chargé (fictif).'); },
     save: function () { HOL.toast('Cocktail sauvegardé sur votre profil explorateur.'); },
     share: function () { HOL.toast('Lien de partage copié : holisanna.fr/cocktail/sarah-n'); },
     conv: function (el) {
@@ -392,5 +424,6 @@
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
+    loadReal().then(render);
   });
 })();

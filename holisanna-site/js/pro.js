@@ -18,9 +18,10 @@
 
   /* ----- Données réelles (Supabase) ----- */
   var TZ = 'Europe/Paris', SLOT_MIN = 90, WEEKS_AHEAD = 8, DAYS_N = 6;
-  var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   var MODE_LBL = { cabinet: 'Au cabinet', visio: 'Visio', domicile: 'À domicile' }, MODE_COL = { cabinet: 'var(--olive)', visio: 'var(--gold)', domicile: 'var(--rose)' };
-  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null };
+  var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [] };
+  var resaSel = null;
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function ymd(dt) { return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate()); }
   function addDays(s, n) { var d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
@@ -43,10 +44,18 @@
 
   function loadWeek() {
     var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
-    return c.from('creneaux').select('id,debut,fin,statut').eq('praticien_id', db.uid)
-      .gte('debut', toIso(db.week, '00:00')).lt('debut', toIso(addDays(db.week, DAYS_N), '00:00')).order('debut')
-      .then(function (r) { if (r.error) throw r.error; db.slots = r.data || []; });
+    var lo = toIso(db.week, '00:00'), hi = toIso(addDays(db.week, DAYS_N), '00:00');
+    return Promise.all([
+      c.from('creneaux').select('id,debut,fin,statut').eq('praticien_id', db.uid).gte('debut', lo).lt('debut', hi).order('debut'),
+      c.from('reservations').select('*').eq('praticien_id', db.uid).eq('statut', 'confirmee').gte('debut', lo).lt('debut', hi)
+    ]).then(function (r) { if (r[0].error || r[1].error) throw (r[0].error || r[1].error); db.slots = r[0].data || []; db.resas = r[1].data || []; });
   }
+  function loadResas() {
+    var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
+    return c.from('reservations').select('*').eq('praticien_id', db.uid).order('debut', { ascending: false }).limit(200)
+      .then(function (r) { if (r.error) throw r.error; db.allResas = r.data || []; });
+  }
+  function when(iso) { var p = fromIso(iso); return dayLabel(p.day) + ' · ' + p.hm; }
   function loadOffers() {
     var c = HOL.sb(); if (!c || !db.uid) return Promise.resolve();
     return c.from('prestations').select('*').eq('praticien_id', db.uid).is('deleted_at', null).order('ordre').order('cree_le')
@@ -58,13 +67,13 @@
     return c.auth.getUser().then(function (r) {
       if (!r.data || !r.data.user) throw new Error('no user');
       db.uid = r.data.user.id;
-      return Promise.all([loadWeek(), loadOffers(), loadFiche()]);
+      return Promise.all([loadWeek(), loadOffers(), loadFiche(), loadResas()]);
     }).then(function () { db.ready = true; }).catch(function () { db.err = true; });
   }
 
   function derive() {
     var free = db.slots.filter(function (x) { return x.statut === 'libre'; }).length;
-    var booked = db.slots.filter(function (x) { return x.statut === 'reserve'; }).length;
+    var booked = db.resas.length;
     var s = st();
     return { s: s, confirmed: booked, free: free, empty: free + booked === 0 };
   }
@@ -136,13 +145,15 @@
     var rows = D.POOL.map(function (t) {
       return '<div class="agenda-row" style="' + cols + '"><div class="agenda-row__t">' + t + '</div>' + days.map(function (day) {
         var x = map[day + ' ' + t], c, attr = '';
-        if (x && x.statut === 'reserve') c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: 'Réservé', b: '' };
+        var rs = x && x.statut === 'reserve' ? db.resas.filter(function (q) { return q.creneau_id === x.id; })[0] : null;
+        if (x && x.statut === 'reserve') { c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: rs ? esc(rs.client_nom) : 'Réservé', b: rs ? esc(rs.prestation_nom) : '' }; if (rs) attr = ' data-act="open-resa" data-id="' + rs.id + '"'; }
         else if (x && x.statut === 'bloque') c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Bloqué', b: '·' };
         else if (x) { c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'var(--slate-lt)', a: 'Libre', b: 'Fermer ×' }; attr = ' data-act="close-slot" data-id="' + x.id + '"'; }
         else c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: '—', b: '·' };
         var st2 = attr + ' style="background:' + c.bg + ';border-color:' + c.bd + '"';
         var tag = attr ? 'button type="button"' : 'div';
-        return '<' + tag + ' class="acell"' + st2 + (attr ? ' aria-label="Fermer le créneau du ' + dayLabel(day) + ' à ' + t + '"' : '') + '><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></' + (attr ? 'button' : 'div') + '>';
+        var closeLbl = x && x.statut === 'libre';
+        return '<' + tag + ' class="acell"' + st2 + (attr ? ' aria-label="' + (closeLbl ? 'Fermer' : 'Voir') + ' le créneau du ' + dayLabel(day) + ' à ' + t + '"' : '') + '><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></' + (attr ? 'button' : 'div') + '>';
       }).join('') + '</div>';
     }).join('');
     var legend = [['Réservé', 'var(--olive-bg)', 'var(--olive)'], ['Libre', 'var(--white)', 'var(--border)'], ['Fermé', 'var(--ivory-2)', 'var(--ivory-2)']];
@@ -152,19 +163,45 @@
       '<div class="legend">' + legend.map(function (g) { return '<span><i style="background:' + g[1] + ';border-color:' + g[2] + '"></i>' + g[0] + '</span>'; }).join('') + '</div></div>' +
       '<div class="agenda-grid"><div class="agenda-row" style="' + cols + '"><div></div>' + days.map(function (x) { return '<div class="agenda-row__h"' + (x === today ? ' style="color:var(--rose)"' : '') + '>' + dayLabel(x) + '</div>'; }).join('') + '</div>' + rows + '</div></div>';
   }
+  var RSTAT = { confirmee: ['confirmed', '✓ Confirmé'], honoree: ['confirmed', '✓ Honorée'], absente: ['cancelled', 'Absente'], annulee_explorateur: ['cancelled', '✕ Annulée par l’explorateur'], annulee_praticien: ['cancelled', '✕ Annulée par vous'] };
   function resa() {
-    return '<div class="card-pro"><div class="card-pro__head"><div class="card-pro__title">Réservations</div><div class="card-pro__count">0 confirmée</div></div>' +
-      '<div class="empty-note" style="margin:0">Aucune réservation pour le moment. Elles apparaîtront ici dès que votre fiche sera publiée et que des explorateurs réserveront vos créneaux.</div></div>';
+    var upc = db.allResas.filter(function (r) { return r.statut === 'confirmee'; }).length;
+    var head = '<div class="card-pro"><div class="card-pro__head"><div class="card-pro__title">Réservations</div><div class="card-pro__count">' + upc + ' confirmée' + (upc > 1 ? 's' : '') + '</div></div>';
+    if (!db.ready) return head + pending('vos réservations') + '</div>';
+    if (!db.allResas.length) return head + '<div class="empty-note" style="margin:0">Aucune réservation pour le moment. Elles apparaîtront ici dès que des explorateurs réserveront vos créneaux.</div></div>';
+    return head + db.allResas.map(function (b) {
+      var st2 = RSTAT[b.statut] || RSTAT.confirmee, ini = HOL.who ? b.client_nom.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase() : '';
+      return '<button type="button" class="rrow" data-act="open-resa" data-id="' + b.id + '" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="rrow__avatar">' + esc(ini) + '</div><div class="rrow__body"><div class="rrow__client">' + esc(b.client_nom) + '</div>' +
+        '<div class="rrow__meta">' + esc(when(b.debut)) + ' · ' + esc(b.prestation_nom) + '</div></div>' +
+        '<div class="rrow__pay">' + esc(b.prix_annonce) + ' € sur place</div><span class="badge-s badge-s--' + st2[0] + '">' + st2[1] + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function resaModal() {
+    var b = db.allResas.concat(db.resas).filter(function (x) { return x.id === resaSel; })[0]; if (!b) return '';
+    var ok = b.statut === 'confirmee' && new Date(b.debut).getTime() > Date.now();
+    return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
+      '<div class="modal__k" style="color:var(--gold)">Réservation</div><h3>' + esc(b.client_nom) + '</h3>' +
+      '<div class="recap" style="margin-bottom:18px"><div class="recap__row"><span class="recap__k">Séance</span><span class="recap__v">' + esc(b.prestation_nom) + ' · ' + esc(b.duree_minutes) + ' min</span></div>' +
+      '<div class="recap__row"><span class="recap__k">Créneau</span><span class="recap__v">' + esc(when(b.debut)) + '</span></div>' +
+      '<div class="recap__row"><span class="recap__k">À régler sur place</span><span class="recap__v">' + esc(b.prix_annonce) + ' €</span></div>' +
+      '<div class="recap__row"><span class="recap__k">Statut</span><span class="recap__v">' + esc((RSTAT[b.statut] || RSTAT.confirmee)[1]) + '</span></div></div>' +
+      (ok ? '<div class="ffield" style="margin-bottom:16px"><label for="motif">Message pour l’explorateur (facultatif)</label><textarea id="motif" rows="2" data-motif placeholder="Un imprévu de ma part…"></textarea></div>' +
+        '<div class="modal__btns--pro"><button class="btn-ghost2" type="button" data-act="cancel-resa" data-id="' + b.id + '">ANNULER CETTE SÉANCE</button><button class="modal__close" type="button" data-act="close">Fermer</button></div>' +
+        '<p class="modal__lead" style="margin:14px 0 0">Annuler libère l’explorateur de sa réservation ; le créneau passe en « bloqué » dans votre agenda.</p>'
+        : '<div class="modal__btns--pro"><button class="modal__close" type="button" data-act="close">Fermer</button></div>') +
+      '</div></div>';
   }
 
 
   /* ----- Colonne de droite (toutes les pages de l'espace praticien) ----- */
   function aside(d) {
+    var todayR = db.allResas.filter(function (b) { return b.statut === 'confirmee' && fromIso(b.debut).day === todayYmd(); }).reverse();
     var f = fiche || {}, on = db.prestations.filter(function (o) { return !o.masquee; }).length;
     var compl = [['Photo de profil', 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', 0]];
     var done = compl.filter(function (c) { return c[1]; }).length, pct = Math.round(done / compl.length * 100);
     return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd\'hui</div>' +
-      '<div class="today-sub" style="margin-top:0">Aucune séance prévue aujourd’hui.</div></div>' +
+      (todayR.length ? todayR.map(function (b) { return '<div class="today"><span class="today__t">' + fromIso(b.debut).hm.replace(':', 'h') + '</span><div style="min-width:0"><div class="today__c">' + esc(b.client_nom) + '</div><div class="today__o" style="color:var(--olive)">' + esc(b.prestation_nom) + ' · ' + esc(b.duree_minutes) + ' min</div></div></div>'; }).join('')
+        : '<div class="today-sub" style="margin-top:0">Aucune séance prévue aujourd’hui.</div>') + '</div>' +
       '<div class="rside__block"><div class="rside__row" style="margin-bottom:10px"><span class="rside__label">Complétude de ma fiche</span><span style="font-size:11px;color:var(--gold)">' + pct + '%</span></div>' +
       '<div class="compl__bar"><div style="width:' + pct + '%"></div></div>' +
       compl.map(function (c) { return '<div class="compl__item"><span style="color:' + (c[1] ? 'var(--olive)' : 'var(--slate-lt)') + '">' + (c[1] ? '✓' : '○') + '</span><span style="color:' + (c[1] ? 'var(--slate-md)' : 'var(--slate-lt)') + '">' + c[0] + '</span></div>'; }).join('') +
@@ -401,6 +438,7 @@
   function modalHtml() {
     if (!modal) return '';
     if (modal === 'offer') return offerModal();
+    if (modal === 'resa') return resaModal();
     var n = slotDays.length * slotTimes.length;
     return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
       '<div class="modal__k" style="color:var(--gold)">Agenda · semaine du ' + weekLabel() + '</div><h3>Ouvrir des créneaux</h3>' +
@@ -439,6 +477,15 @@
     logout: function () { HOL.Session.logout().then(function () { HOL.flash('Vous êtes déconnectée. À bientôt.'); location.href = 'index.html'; }); },
     'open-slots': function () { modal = true; slotDays = []; slotTimes = []; render(); },
     close: function () { modal = false; render(); },
+    'open-resa': function (el) { resaSel = el.dataset.id; modal = 'resa'; render(); },
+    'cancel-resa': function (el) {
+      var m = document.getElementById('motif'), c = HOL.sb();
+      if (!window.confirm('Annuler cette séance ? L’explorateur sera libéré de sa réservation.')) return;
+      c.rpc('annuler_reservation', { p_id: el.dataset.id, p_motif: m ? m.value : null }).then(function (r) {
+        if (r.error) throw r.error; return Promise.all([loadWeek(), loadResas()]);
+      }).then(function () { modal = false; render(); HOL.toast('Séance annulée. Le créneau est bloqué dans votre agenda.'); })
+        .catch(function (e) { HOL.toast(e && e.code === 'P0001' ? e.message : 'Annulation impossible pour le moment.'); });
+    },
     day: function (el) { toggle(slotDays, el.dataset.v); render(); },
     time: function (el) { toggle(slotTimes, el.dataset.v); render(); },
     repeat: function () { slotRepeat = !slotRepeat; render(); },
