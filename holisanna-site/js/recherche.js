@@ -128,7 +128,7 @@
     var book = profile + (m.first ? (p.real ? '&jour=' + encodeURIComponent(m.firstDay) : '&date=' + encodeURIComponent(m.day)) + '&heure=' + encodeURIComponent(m.first) : '');
     var tagStyle = 'background:' + pl.bg + ';color:' + pl.color;
     return '<article class="pcard" data-href="' + profile + '">' +
-      '<div class="pcard__side"><div class="avatar" style="background:' + pl.bg + ';color:' + pl.color + '">' + D.initials(p.name) + '</div>' +
+      '<div class="pcard__side"><div class="avatar" style="background:' + pl.bg + ';color:' + pl.color + (p.photo ? ';background-image:url(' + p.photo + ');background-size:cover;background-position:center' : '') + '">' + (p.photo ? '' : D.initials(p.name)) + '</div>' +
       '<div class="pcard__avail" style="color:' + avail[1] + '">' + avail[0] + '</div></div>' +
       '<div class="pcard__main"><div class="tags"><span class="tag" style="' + tagStyle + '">' + pl.label + '</span><span class="tag" style="' + tagStyle + '">' + p.discipline + '</span></div>' +
       '<div class="pcard__name-row"><a class="pcard__name" href="' + profile + '">' + p.name + '</a>' +

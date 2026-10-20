@@ -199,7 +199,7 @@
   function aside(d) {
     var todayR = db.allResas.filter(function (b) { return b.statut === 'confirmee' && fromIso(b.debut).day === todayYmd(); }).reverse();
     var f = fiche || {}, on = db.prestations.filter(function (o) { return !o.masquee; }).length;
-    var compl = [['Photo de profil', 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', 0]];
+    var ph = f.photos || {}, compl = [['Photo de profil', ph.principale ? 1 : 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', ph.cabinet || ph.seance ? 1 : 0]];
     var done = compl.filter(function (c) { return c[1]; }).length, pct = Math.round(done / compl.length * 100);
     return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd\'hui</div>' +
       (todayR.length ? todayR.map(function (b) { return '<div class="today"><span class="today__t">' + fromIso(b.debut).hm.replace(':', 'h') + '</span><div style="min-width:0"><div class="today__c">' + esc(b.client_nom) + '</div><div class="today__o" style="color:var(--olive)">' + esc(b.prestation_nom) + ' · ' + esc(b.duree_minutes) + ' min</div></div></div>'; }).join('')
@@ -287,7 +287,59 @@
   }
 
   /* ----- Modifier ma fiche ----- */
-  var fiche = null;
+  var fiche = null, photoKey = null, photoBusy = null;
+  var PHOTO_SLOTS = [['principale', 'Photo principale', 1200], ['cabinet', 'Le cabinet', 1600], ['seance', 'En séance', 1600]];
+  function photoSrc(path) { return window.HOL_DIR && HOL_DIR.photoUrl ? HOL_DIR.photoUrl(path) : ''; }
+  function photosHtml() {
+    var ph = (fiche && fiche.photos) || {};
+    return '<input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" hidden>' +
+      '<div class="photos">' + PHOTO_SLOTS.map(function (s) {
+        var url = photoSrc(ph[s[0]]);
+        if (photoBusy === s[0]) return '<div class="photo-slot"><span>Envoi en cours…</span></div>';
+        if (url) return '<div class="photo-slot" style="background:url(' + url + ') center/cover;cursor:default;position:relative;justify-content:flex-end"><span style="background:rgba(255,255,255,.92);padding:4px 8px;margin-bottom:8px;display:flex;gap:10px"><button type="button" class="sec-link" data-act="photo" data-k="' + s[0] + '">Remplacer</button><button type="button" class="sec-link" data-act="photo-del" data-k="' + s[0] + '">Retirer</button></span></div>';
+        return '<button class="photo-slot" type="button" data-act="photo" data-k="' + s[0] + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-lt)" stroke-width="1.4" stroke-linecap="round"><path d="M12 5v14 M5 12h14"></path></svg><span>' + s[1] + '</span></button>';
+      }).join('') + '</div>';
+  }
+  /* Réduit l'image (côté le plus long ≤ max) et l'encode en JPEG : léger et sans métadonnées (position GPS retirée) */
+  function shrink(file, max) {
+    return new Promise(function (ok, ko) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.round(img.naturalWidth * k), h = Math.round(img.naturalHeight * k);
+        var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url);
+        cv.toBlob(function (b) { b ? ok(b) : ko(new Error('encode')); }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); ko(new Error('read')); };
+      img.src = url;
+    });
+  }
+  function savePhotos(next) {
+    return HOL.sb().from('profils_praticien').update({ photos: next }).eq('utilisateur_id', db.uid).then(function (r) { if (r.error) throw r.error; fiche.photos = next; });
+  }
+  function uploadPhoto(file) {
+    var key = photoKey, slot = PHOTO_SLOTS.filter(function (s) { return s[0] === key; })[0];
+    if (!slot || !file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { HOL.toast('Format non accepté : choisissez une image JPEG, PNG ou WebP.'); return; }
+    if (file.size > 25 * 1024 * 1024) { HOL.toast('Image trop volumineuse (25 Mo maximum).'); return; }
+    var old = (fiche.photos || {})[key], path = db.uid + '/' + key + '-' + Date.now() + '.jpg';
+    photoBusy = key; render();
+    shrink(file, slot[2]).then(function (blob) {
+      return HOL.sb().storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+    }).then(function (r) {
+      if (r.error) throw r.error;
+      var next = Object.assign({}, fiche.photos); next[key] = path; return savePhotos(next);
+    }).then(function () {
+      if (old) HOL.sb().storage.from('photos').remove([old]);
+      photoBusy = null; render(); HOL.toast('Photo enregistrée.');
+    }).catch(function () { photoBusy = null; render(); HOL.toast('Envoi impossible pour le moment. Vérifiez votre connexion et réessayez.'); });
+  }
+  function removePhoto(key) {
+    var old = (fiche.photos || {})[key]; if (!old) return;
+    var next = Object.assign({}, fiche.photos); delete next[key];
+    savePhotos(next).then(function () { HOL.sb().storage.from('photos').remove([old]); render(); HOL.toast('Photo retirée.'); })
+      .catch(function () { HOL.toast('Suppression impossible pour le moment.'); });
+  }
   var MAIN_SPECS = ['Naturopathie', 'Sophrologie', 'Kinésiologie', 'Ostéopathie', 'Hypnothérapie', 'Massage bien-être', 'Reiki', 'EFT', 'PNL', 'Yoga', 'Réflexologie', 'Autre'];
   var COMP_SPECS = ['Phytothérapie', 'Iridologie', 'Breathwork', 'Janzu / Watsu', 'Aromathérapie', 'Nutrition', 'Coaching mental', 'Astrologie', 'Chamanisme'];
   function chips(key, options) {
@@ -334,7 +386,8 @@
         adresse: p.adresse || '', ville: p.ville || '',
         modes: (p.modes_seance || []).map(function (m) { return MODES_UI[m]; }).filter(Boolean),
         langs: (p.langues || []).map(function (l) { return LANGS_UI[l]; }).filter(Boolean),
-        site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || ''
+        site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || '',
+        photos: (p.photos && typeof p.photos === 'object') ? p.photos : {}
       };
       db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
     }).catch(function () { ficheErr = true; });
@@ -402,10 +455,8 @@
       '<div class="fcard"><div class="fcard__title">Lieu et modalités</div><div class="fgrid fgrid--200" style="margin-bottom:20px">' + field('adresse', 'Adresse du cabinet') + field('ville', 'Ville') + '</div>' +
       '<div style="margin-bottom:20px"><span class="flabel">Modes de séance</span>' + chips('modes', ['Cabinet', 'Visio', 'À domicile']) + '</div>' +
       '<div><span class="flabel">Langues parlées</span>' + chips('langs', ['Français', 'Anglais', 'Espagnol', 'Italien', 'LSF']) + '</div></div>' +
-      '<div class="fcard"><div class="fcard__title" style="margin-bottom:6px">Photos</div><p class="fcard__lead" style="margin-top:0">Trois images suffisent : vous, le lieu, une séance. Format paysage, lumière naturelle.</p>' +
-      '<div class="photos">' + ['Photo principale', 'Le cabinet', 'En séance'].map(function (n) {
-        return '<button class="photo-slot" type="button" data-act="photo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-lt)" stroke-width="1.4" stroke-linecap="round"><path d="M12 5v14 M5 12h14"></path></svg><span>' + n + '</span></button>';
-      }).join('') + '</div></div>' +
+      '<div class="fcard"><div class="fcard__title" style="margin-bottom:6px">Photos</div><p class="fcard__lead" style="margin-top:0">Trois images suffisent : vous, le lieu, une séance. Format paysage, lumière naturelle. JPEG, PNG ou WebP : l’image est automatiquement allégée.</p>' +
+      photosHtml() + '</div>' +
       '<div class="fcard fcard--last"><div class="fcard__title">Contact et liens</div><div class="fgrid fgrid--200">' + field('tel', 'Téléphone') + field('site', 'Site web') + field('insta', 'Instagram') + '</div></div>' +
       '<div class="fbtns"><button class="btn-dark2 btn-dark2--l" type="button" data-act="save-fiche">ENREGISTRER LES MODIFICATIONS</button><a class="btn-ghost2" href="' + pubUrl() + '">PRÉVISUALISER MA FICHE</a></div>';
   }
@@ -603,7 +654,11 @@
       HOL.toast(s.payMethod === 'card' ? 'Moyen de prélèvement : carte bancaire.' : 'Moyen de prélèvement : prélèvement SEPA.');
     },
     fchip: function (el) { var a = fiche[el.dataset.key], v = el.dataset.v, i = a.indexOf(v); if (i > -1) a.splice(i, 1); else a.push(v); render(); },
-    photo: function () { HOL.toast('Ajout de photos bientôt disponible.'); },
+    photo: function (el) {
+      if (!ficheDb) { HOL.toast('Photos indisponibles tant que la base est injoignable.'); return; }
+      photoKey = el.dataset.k; var i = document.getElementById('photo-file'); if (i) { i.value = ''; i.click(); }
+    },
+    'photo-del': function (el) { removePhoto(el.dataset.k); },
     'save-fiche': saveFiche,
     publish: function () {
       persistFiche().then(function () { return setStatut('en_ligne', 'Votre fiche est en ligne. Les explorateurs peuvent maintenant la trouver.'); })
@@ -634,6 +689,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', function () {
+    root.addEventListener('change', function (e) { if (e.target.id === 'photo-file' && e.target.files[0]) uploadPhoto(e.target.files[0]); });
     root.addEventListener('click', function (e) {
       var el = e.target.closest('[data-act]'); if (!el) return;
       if (el.dataset.act === 'close-bg') { if (e.target === el) ACTIONS.close(); return; }

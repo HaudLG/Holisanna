@@ -22,6 +22,10 @@
   function dayIndex(day) { return Math.round((Date.parse(day + 'T12:00:00Z') - Date.parse(todayYmd() + 'T12:00:00Z')) / 86400000); }
   function dayLabel(day) { var d = new Date(day + 'T12:00:00Z'); return DAYS[(d.getUTCDay() + 6) % 7] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
 
+  var PHOTO_BASE = 'https://xvromzlzceqnhalyurcv.supabase.co/storage/v1/object/public/photos/';
+  /* Un chemin de photo n'est accepté que s'il a la forme attendue (<uuid>/<emplacement>-<horodatage>.jpg) */
+  function photoUrl(path) { return typeof path === 'string' && /^[0-9a-f-]{36}\/(principale|cabinet|seance)-\d+\.jpg$/.test(path) ? PHOTO_BASE + path : ''; }
+
   var PILLAR_LABEL = { corps: 'Corps', ame: 'Âme', esprit: 'Esprit' };
 
   /* Fabrique le praticien « normalisé » à partir des lignes de la base */
@@ -50,6 +54,8 @@
       modes: modes.map(function (m) { return MODE_LBL[m]; }),
       langs: langs.length ? langs : ['Français'],
       site: row.site_web || '', insta: (row.instagram || '').replace(/^@/, ''),
+      photo: photoUrl((row.photos || {}).principale),
+      gallery: [['cabinet', 'Le cabinet'], ['seance', 'En séance']].map(function (k) { return { url: photoUrl((row.photos || {})[k[0]]), label: k[1] }; }).filter(function (g) { return g.url; }),
       published: row.statut_publication === 'en_ligne', slots: mine
     };
     var f = mine[0];
@@ -57,7 +63,7 @@
     return r;
   }
 
-  var COLS = 'utilisateur_id,slug,nom_affiche,discipline_principale_id,disciplines_complementaires,presentation,parcours,adresse,ville,code_postal,langues,modes_seance,site_web,instagram,statut_publication';
+  var COLS = 'utilisateur_id,slug,nom_affiche,discipline_principale_id,disciplines_complementaires,presentation,parcours,adresse,ville,code_postal,langues,modes_seance,site_web,instagram,statut_publication,photos';
 
   function fetchAll(rows) {
     var c = sb(), ids = rows.map(function (r) { return r.utilisateur_id; });
@@ -80,7 +86,7 @@
   }
 
   window.HOL_DIR = {
-    dayLabel: dayLabel, todayYmd: todayYmd, dayIndex: dayIndex,
+    photoUrl: photoUrl, dayLabel: dayLabel, todayYmd: todayYmd, dayIndex: dayIndex,
     /* Tous les praticiens en ligne */
     list: function () {
       var c = sb(); if (!c) return Promise.reject(new Error('no client'));

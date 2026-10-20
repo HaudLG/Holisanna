@@ -70,7 +70,7 @@
       '<div class="profile__cols"><div class="profile__main">' +
 
       '<section class="panel panel--identity">' +
-        '<div class="photo" style="background:' + pr.bg + '"><div class="photo__initials" style="color:' + pr.color + '">' + esc(pr.initials) + '</div><div class="photo__soon" style="color:' + pr.color + '">Photo à venir</div></div>' +
+        (p.photo ? '<div class="photo" style="background:url(' + p.photo + ') center/cover"></div>' : '<div class="photo" style="background:' + pr.bg + '"><div class="photo__initials" style="color:' + pr.color + '">' + esc(pr.initials) + '</div>' + (p.real ? '' : '<div class="photo__soon" style="color:' + pr.color + '">Photo à venir</div>') + '</div>') +
         '<div class="identity"><div class="identity__top"><span class="identity__pillar" style="color:' + pr.color + '">' + pr.pillarLabel + '</span>' +
         (p.founder ? '<span class="badge-founder">★ MEMBRE FONDATEUR</span>' : '') + '</div>' +
         '<h1>' + esc(p.name) + '</h1><div class="identity__sub">' + esc(p.discipline) + (p.place ? ' · ' + esc(p.place) : '') + '</div>' +
@@ -81,6 +81,7 @@
         (pr.parcours ? '<h2 class="panel__title" style="margin-top:22px">Parcours</h2><p class="bio">' + esc(pr.parcours).replace(/\n+/g, '</p><p class="bio">') + '</p>' : '') +
         '<div class="bubbles">' + pr.tags.map(function (t) { return '<span class="bubble">' + esc(t) + '</span>'; }).join('') + '</div></section>' +
 
+      ((p.gallery && p.gallery.length) ? '<section class="panel"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">' + p.gallery.map(function (g) { return '<figure style="margin:0"><img src="' + g.url + '" alt="' + esc(g.label + ' — ' + p.name) + '" loading="lazy" style="width:100%;height:200px;object-fit:cover;display:block"><figcaption class="offer__detail" style="margin-top:6px">' + esc(g.label) + '</figcaption></figure>'; }).join('') + '</div></section>' : '') +
       '<section class="panel"><h2 class="panel__title" style="margin-bottom:20px">Informations pratiques</h2><div class="info-grid">' + addr +
         '<div><div class="label-s">Langues parlées</div><div class="bubbles">' + pr.langs.map(function (l) { return '<span class="bubble bubble--lang">' + esc(l) + '</span>'; }).join('') + '</div></div></div>' + socials + '</section>' +
 
