@@ -7,6 +7,8 @@
   var URL = 'https://xvromzlzceqnhalyurcv.supabase.co';
   var KEY = 'sb_publishable_fVkY8bKIxfk5v6sajjvKyQ_tzfDDxrh';
 
+  /* Conserve ce que le lien e-mail a ajouté à l'adresse (le client Supabase l'efface ensuite) : sert à expliquer un lien refusé */
+  var HASH = (location.hash || '') + (location.search || '');
   var client = null;
   if (window.supabase && window.supabase.createClient) {
     client = window.supabase.createClient(URL, KEY, {
@@ -16,6 +18,7 @@
 
   window.HOL_SB = {
     client: client,
+    hashAtLoad: HASH,
     /* Version de la charte éthique acceptée à l'inscription d'un praticien. À faire évoluer avec le document. */
     CHARTE_VERSION: '1.0'
   };

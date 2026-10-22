@@ -250,6 +250,12 @@
       }).join('');
     }
     a.addEventListener('input', paint); b.addEventListener('input', paint); paint();
+    /* Un lien refusé par Supabase arrive avec « error_code » dans l'adresse : on l'explique tout de suite */
+    var h = (window.HOL_SB && window.HOL_SB.hashAtLoad) || '', note = '';
+    if (/otp_expired|expired/i.test(h)) note = 'Ce lien a expiré ou a déjà été utilisé. Certaines messageries ouvrent les liens à l’avance, ce qui les invalide : demandez-en un nouveau et cliquez dessus une seule fois.';
+    else if (/error=|error_code=/i.test(h)) note = 'Ce lien a été refusé (' + (/error_code=([a-z_]+)/i.exec(h) || [0, 'erreur inconnue'])[1] + '). Demandez-en un nouveau.';
+    else if (!/access_token|code=|type=recovery/i.test(h)) note = 'Cette page doit être ouverte depuis le lien reçu par e-mail. Si c’est le cas et que vous voyez ce message, le lien n’a pas transmis votre demande : demandez-en un nouveau.';
+    if (note) { var n = document.createElement('p'); n.className = 'form-note'; n.style.cssText = 'color:var(--rose);margin:0 0 16px'; n.textContent = note; var f = $('reset-form'); f.parentNode.insertBefore(n, f); }
     $('reset-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var p = a.value, c = sb();
