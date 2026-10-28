@@ -43,6 +43,14 @@
     return out;
   }
 
+  /* Bouton « Écrire à… » (praticiens réels et publiés, pas pour un compte praticien) */
+  function writeBtn(p, pr) {
+    if (!p.real || !p.published) return '';
+    var se = HOL.Session.get(); if (se.loggedIn && se.role === 'praticien') return '';
+    var href = se.loggedIn ? 'espace-messages.html?to=' + encodeURIComponent(p.uid) : 'connexion.html';
+    return '<div style="margin-top:14px"><a class="btn-small" href="' + href + '">✉ Écrire à ' + esc(pr.firstName || p.name) + '</a></div>';
+  }
+
   function render(p, preview) {
     var pr = p.real ? realProfile(p) : D.profile(p), days = agendaDays(p);
     var fromPro = params.get('from') === 'pro';
@@ -74,7 +82,7 @@
         '<div class="identity"><div class="identity__top"><span class="identity__pillar" style="color:' + pr.color + '">' + pr.pillarLabel + '</span>' +
         (p.founder ? '<span class="badge-founder">★ MEMBRE FONDATEUR</span>' : '') + (p.real && p.published && window.HOL_FAV ? '<span style="margin-left:auto">' + HOL_FAV.btn(p.uid) + '</span>' : '') + '</div>' +
         '<h1>' + esc(p.name) + '</h1><div class="identity__sub">' + esc(p.discipline) + (p.place ? ' · ' + esc(p.place) : '') + '</div>' +
-        '<div class="identity__meta">' + meta + '</div></div>' +
+        '<div class="identity__meta">' + meta + '</div>' + writeBtn(p, pr) + '</div>' +
       '</section>' +
 
       '<section class="panel"><h2 class="panel__title">L\'approche</h2><p class="bio">' + esc(pr.bio).replace(/\n+/g, '</p><p class="bio">') + '</p>' +

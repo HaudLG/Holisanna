@@ -21,6 +21,7 @@
   var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   var MODE_LBL = { cabinet: 'Au cabinet', visio: 'Visio', domicile: 'À domicile' }, MODE_COL = { cabinet: 'var(--olive)', visio: 'var(--gold)', domicile: 'var(--rose)' };
   var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [], avis: [], abo: null };
+  var M = HOL_MSG.create({ role: 'praticien', section: section, rerender: function () { render(); } });
   var replySel = null, replyText = '';
   var resaSel = null;
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -75,7 +76,7 @@
       if (!r.data || !r.data.user) throw new Error('no user');
       db.uid = r.data.user.id;
       return Promise.all([loadWeek(), loadOffers(), loadFiche(), loadResas()]);
-    }).then(function () { db.ready = true; }).catch(function () { db.err = true; });
+    }).then(function () { db.ready = true; return M.load(); }).then(function () { M.sign(); }).catch(function () { db.err = true; });
   }
 
   function derive() {
@@ -107,7 +108,7 @@
       '<span>' + label + '</span>' + (badge ? '<span class="badge-n">' + badge + '</span>' : '') + '</a>';
   }
   function sidebar(d) {
-    var unreadMsg = 0, unreadNot = 0;
+    var unreadMsg = M.unreadMsgs(), unreadNot = M.unreadNotifs();
     return '<aside class="sidenav sidenav--pro">' +
       '<div class="sidenav__group"><div class="sidenav__title">Navigation</div>' +
       item('Tableau de bord', 'dash', 'espace-praticien.html') + item('Mon agenda', 'agenda', 'pro-agenda.html') +
@@ -213,8 +214,7 @@
       '<div class="compl__bar"><div style="width:' + pct + '%"></div></div>' +
       compl.map(function (c) { return '<div class="compl__item"><span style="color:' + (c[1] ? 'var(--olive)' : 'var(--slate-lt)') + '">' + (c[1] ? '✓' : '○') + '</span><span style="color:' + (c[1] ? 'var(--slate-md)' : 'var(--slate-lt)') + '">' + c[0] + '</span></div>'; }).join('') +
       '<a class="btn-dark2" href="pro-fiche.html" style="margin-top:12px">Compléter ma fiche →</a></div>' +
-      '<div><div class="rside__row"><span class="rside__label">Notifications</span><a class="rside__more" href="pro-notifications.html">Tout voir</a></div>' +
-      '<div class="today-sub" style="margin-top:6px">Rien de nouveau pour le moment.</div></div></aside>';
+      M.asideHtml('pro-notifications.html') + '</aside>';
   }
 
   /* ----- Avis reçus ----- */
@@ -478,44 +478,8 @@
   }
 
   /* ----- Messages ----- */
-  var convId = Number(new URLSearchParams(location.search).get('c')) || 1;
-  var draft = '';
-  function convMessages(c, s) { return (c.messages || []).concat(s.proSentMsgs['p' + c.id] || []); }
-  function secMessages() {
-    return '<div class="sec-head"><h2>Messages</h2></div><div class="empty-note">Aucun message pour le moment. La messagerie avec les explorateurs sera activée avec les réservations.</div>';
-  }
-  function secMessagesDemo(d) {
-    var s = d.s, convs = D.PRO_CONVOS;
-    var active = convs.filter(function (c) { return c.id === convId; })[0] || convs[0];
-    var list = convs.map(function (c) {
-      var msgs = convMessages(c, s), last = msgs[msgs.length - 1], unread = c.unread && s.proReadConvs.indexOf('p' + c.id) === -1;
-      return '<button class="conv' + (c.id === active.id ? ' is-on' : '') + (unread ? ' is-unread' : '') + '" type="button" data-act="conv" data-id="' + c.id + '"><div class="conv__avatar">' + c.initials + '</div><div style="min-width:0;flex:1"><div class="conv__top"><span class="conv__name">' + c.name + '</span><span class="conv__dot"></span><span class="conv__time">' + esc(last.time) + '</span></div><div class="conv__last">' + esc(last.text) + '</div></div></button>';
-    }).join('');
-    var thread = convMessages(active, s).map(function (m) {
-      return '<div class="bubble-m bubble-m--' + (m.from === 'me' ? 'me' : 'them') + '"><div class="bubble-m__t">' + esc(m.text) + '</div><div class="bubble-m__time">' + esc(m.time) + '</div></div>';
-    }).join('');
-    return '<div class="sec-head"><h2>Messages</h2></div><div class="msgs"><div class="msgs__list">' + list + '</div><div class="msgs__thread"><div class="msgs__head"><div class="conv__avatar conv__avatar--on">' + active.initials + '</div><div style="min-width:0"><div class="msgs__name">' + active.name + '</div><div class="msgs__meta">' + active.meta + '</div></div></div>' +
-      '<div class="msgs__body" id="thread">' + thread + '</div><div class="msgs__compose"><input id="draft" value="' + esc(draft) + '" placeholder="Écrire un message…" autocomplete="off"><button class="btn-dark2 btn-dark2--s" type="button" data-act="send">ENVOYER</button></div></div></div>';
-  }
-
-  /* ----- Notifications ----- */
-  var notifFilter = 'all';
-  var FILTERS = [['all', 'Tout'], ['resa', 'Réservations'], ['msg', 'Messages'], ['avis', 'Avis'], ['fact', 'Facturation'], ['fiche', 'Ma fiche']];
-  function secNotifs() {
-    return '<div class="sec-head"><h2>Notifications</h2></div><div class="empty-note">Rien de nouveau pour le moment.</div>';
-  }
-  function secNotifsDemo(d) {
-    var s = d.s, all = D.proNotifs(s.plan), shown = all.filter(function (n) { return notifFilter === 'all' || n.type === notifFilter; }), groups = [];
-    shown.forEach(function (n) { var g = groups.filter(function (x) { return x.day === n.day; })[0]; if (g) g.items.push(n); else groups.push({ day: n.day, items: [n] }); });
-    return '<div class="sec-head" style="flex-wrap:wrap"><h2>Notifications</h2><button class="sec-link" type="button" data-act="read-all">Tout marquer comme lu</button></div>' +
-      '<div class="nfilters">' + FILTERS.map(function (f) { return '<button class="nfilter' + (notifFilter === f[0] ? ' is-on' : '') + '" type="button" data-act="filter" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</div>' +
-      groups.map(function (g) {
-        return '<div class="ngroup"><div class="ngroup__day">' + g.day + '</div><div class="ngroup__list">' + g.items.map(function (n) {
-          var unread = s.proNotifRead.indexOf(n.id) === -1, col = D.NOTIF_ACCENT[n.type];
-          return '<button class="notif' + (unread ? ' is-unread' : '') + '" type="button" data-act="notif" data-id="' + n.id + '" style="border-left-color:' + col + '"><span class="notif__dot" style="background:' + (unread ? col : 'var(--border)') + '"></span><div class="notif__body"><div class="notif__title">' + n.title + '</div><div class="notif__text">' + n.text + '</div></div><span class="notif__time">' + n.time + '</span></button>';
-        }).join('') + '</div></div>';
-      }).join('') + (shown.length ? '' : '<div class="empty-note">Aucune notification dans cette catégorie.</div>');
-  }
+  function secMessages() { return M.messagesHtml(); }
+  function secNotifs() { return M.notifsHtml(); }
 
   /* ----- Modale « Ouvrir des créneaux » ----- */
   function modalHtml() {
@@ -557,10 +521,11 @@
     avis: secAvis, offres: secOffres, abo: secAbo, fedit: secFiche, messages: secMessages, notifs: secNotifs
   };
   function render() {
+    M.beforeRender();
     var d = derive();
     var fn = SECTIONS[section];
     root.innerHTML = sidebar(d) + '<div class="espace__main">' + banner(d) + (fn ? fn(d) : '') + '</div>' + aside(d) + modalHtml();
-    var th = document.getElementById('thread'); if (th) th.scrollTop = th.scrollHeight;
+    M.afterRender();
   }
   
   /* ----- Actions ----- */
@@ -688,24 +653,6 @@
     unpublish: function () {
       if (!window.confirm('Retirer votre fiche de la recherche ? Elle repasse en brouillon, vos données sont conservées.')) return;
       setStatut('brouillon', 'Votre fiche est retirée de la recherche.').catch(function () { HOL.toast('Modification impossible pour le moment.'); });
-    },
-    conv: function (el) {
-      var s = st(), id = Number(el.dataset.id), key = 'p' + id;
-      if (s.proReadConvs.indexOf(key) === -1) { s.proReadConvs.push(key); save(s); }
-      convId = id; draft = ''; history.replaceState(null, '', location.pathname + '?c=' + id); render();
-    },
-    send: function () {
-      var input = document.getElementById('draft'), text = (input ? input.value : draft).trim();
-      if (!text) return;
-      var s = st(), key = 'p' + convId; s.proSentMsgs[key] = (s.proSentMsgs[key] || []).concat([{ from: 'me', text: text, time: 'À l’instant' }]);
-      save(s); draft = ''; render(); var i = document.getElementById('draft'); if (i) i.focus();
-    },
-    filter: function (el) { notifFilter = el.dataset.f; render(); },
-    'read-all': function () { var s = st(); s.proNotifRead = D.proNotifs(s.plan).map(function (n) { return n.id; }); save(s); render(); HOL.toast('Toutes vos notifications sont marquées comme lues.'); },
-    notif: function (el) {
-      var s = st(), n = D.proNotifs(s.plan).filter(function (x) { return x.id === el.dataset.id; })[0];
-      if (s.proNotifRead.indexOf(n.id) === -1) { s.proNotifRead.push(n.id); save(s); }
-      location.href = n.go;
     }
   };
 
@@ -714,11 +661,12 @@
     root.addEventListener('click', function (e) {
       var el = e.target.closest('[data-act]'); if (!el) return;
       if (el.dataset.act === 'close-bg') { if (e.target === el) ACTIONS.close(); return; }
+      if (M.act(el.dataset.act, el)) return;
       var fn = ACTIONS[el.dataset.act]; if (fn) fn(el);
     });
     root.addEventListener('input', function (e) {
       var t = e.target;
-      if (t.id === 'draft') { draft = t.value; return; }
+      if (M.onInput(e)) return;
       if (t.dataset.of) { offerForm[t.dataset.of] = t.value; return; }
       if (!t.dataset.f) return;
       fiche[t.dataset.f] = t.value;
@@ -727,10 +675,11 @@
       var p = document.getElementById('pcount'); if (p) p.textContent = fiche.pres.length + ' / 600 caractères';
     });
     root.addEventListener('change', function (e) { if (e.target.dataset.of) offerForm[e.target.dataset.of] = e.target.value; if (e.target.dataset.f === 'disc') fiche.disc = e.target.value; });
-    root.addEventListener('keydown', function (e) { if (e.target.id === 'draft' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ACTIONS.send(); } });
+    root.addEventListener('keydown', function (e) { M.onKey(e); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
     loadAll().then(render);
+    M.poll();
     syncVille();
   });
 })();

@@ -14,6 +14,7 @@
   if (sess.role === 'praticien') { location.replace('espace-praticien.html'); return; }
 
   /* ----- Données réelles (Supabase) : réservations et praticiens recommandés ----- */
+  var M = HOL_MSG.create({ role: 'explorateur', section: section, rerender: function () { render(); } });
   var rd = { ready: false, err: false, list: [], recos: [], avis: [], favs: [] }, cancelId = null, rv = { idx: null, note: 0, text: '', busy: false };
   function paris(iso) {
     var o = {}; new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso)).forEach(function (x) { o[x.type] = x.value; });
@@ -46,7 +47,7 @@
       rd.list = r[0].data || []; rd.avis = r[1].error ? [] : (r[1].data || []); rd.recos = (r[2] || []).slice(0, 3);
       if (!window.HOL_FAV) return;
       return HOL_FAV.load().then(function () { return HOL_DIR.byUids(HOL_FAV.ids()); }).then(function (a) { rd.favs = a; }).catch(function () { rd.favs = []; });
-    }).then(function () { rd.ready = true; }).catch(function () { rd.err = true; });
+    }).then(function () { rd.ready = true; return M.load(); }).then(function () { M.sign(); }).catch(function () { rd.err = true; });
   }
   function pendingNote(what) { return '<div class="empty-note">' + (rd.err ? 'Impossible de charger ' + what + ' pour le moment. Rechargez la page dans un instant.' : 'Chargement…') + '</div>'; }
 
@@ -106,7 +107,7 @@
       '<span>' + label + '</span>' + (badge ? '<span class="badge-n">' + badge + '</span>' : '') + '</a>';
   }
   function sidebar(d) {
-    var unreadMsg = 0, unreadNot = 0, nUp = upcoming().length;
+    var unreadMsg = M.unreadMsgs(), unreadNot = M.unreadNotifs(), nUp = upcoming().length;
     return '<aside class="sidenav">' +
       '<div class="sidenav__group"><div class="sidenav__title">Navigation</div>' +
       navItem('Tableau de bord', 'dash', 'espace.html') + navItem('Mon Cocktail', 'cocktail', 'cocktail.html') +
@@ -261,11 +262,6 @@
 
 
   /* ----- Colonne de droite (toutes les pages de l'espace) ----- */
-  var ASIDE_NOTIFS = [
-    { title: 'Rappel séance', text: '— Mercredi 9 septembre à 14h avec Naïma Belkacem', time: 'Il y a 2 h', dot: 'var(--rose)' },
-    { title: 'Nouveau praticien', text: '— Sofia Nardi (Sophrologie) correspond à votre cocktail', time: 'Hier', dot: 'var(--rose)' },
-    { title: 'Avis publié', text: '— votre avis sur Yann Le Guen est en ligne', time: 'Il y a 3 jours', dot: 'var(--border)' }
-  ];
   function aside(d) {
     var s = d.s;
     var layers = s.sessions.slice(-9).map(function (x, i) {
@@ -284,61 +280,14 @@
       '<div class="rside__sub">' + d.counts.corps + ' Corps · ' + d.counts.esprit + ' Esprit · ' + d.counts.ame + ' Âme</div>' +
       '<div class="glass glass--s"><div class="glass__bowl">' + layers + '</div><div class="glass__rim"></div><div class="glass__stem"></div><div class="glass__foot"></div></div>' +
       '<div class="mini-tags">' + tags + '</div><a class="btn-dark2" href="cocktail.html">Composer mon cocktail →</a></div>' +
-      '<div class="rside__block"><div class="rside__row"><span class="rside__label">Notifications</span><a class="rside__more" href="espace-notifications.html">Tout voir</a></div>' +
-      '<div class="today-sub" style="margin-top:6px">Rien de nouveau pour le moment.</div></div>' +
+      M.asideHtml('espace-notifications.html') +
       '<div><div class="rside__label" style="display:block;margin-bottom:12px">Praticiens recommandés</div>' + recos + '</div></aside>';
   }
 
   /* ----- Messages ----- */
-  var convId = Number(new URLSearchParams(location.search).get('c')) || 1;
-  var draft = '';
-  function convMessages(c, s) { return (c.messages || []).concat(s.sentMsgs['e' + c.id] || []); }
-  function secMessages() {
-    return '<div class="sec-head"><h2>Messages</h2></div><div class="empty-note">Aucun message pour le moment. La messagerie avec les praticiens sera activée prochainement.</div>';
-  }
-  function secMessagesDemo(d) {
-    var s = d.s, convs = D.EXPL_CONVOS;
-    var active = convs.filter(function (c) { return c.id === convId; })[0] || convs[0];
-    var list = convs.map(function (c) {
-      var msgs = convMessages(c, s), last = msgs[msgs.length - 1];
-      var unread = c.unread && s.readConvs.indexOf('e' + c.id) === -1;
-      return '<button class="conv' + (c.id === active.id ? ' is-on' : '') + (unread ? ' is-unread' : '') + '" type="button" data-act="conv" data-id="' + c.id + '">' +
-        '<div class="conv__avatar">' + c.initials + '</div><div style="min-width:0;flex:1"><div class="conv__top"><span class="conv__name">' + c.name + '</span><span class="conv__dot"></span><span class="conv__time">' + esc(last.time) + '</span></div>' +
-        '<div class="conv__last">' + esc(last.text) + '</div></div></button>';
-    }).join('');
-    var thread = convMessages(active, s).map(function (m) {
-      return '<div class="bubble-m bubble-m--' + (m.from === 'me' ? 'me' : 'them') + '"><div class="bubble-m__t">' + esc(m.text) + '</div><div class="bubble-m__time">' + esc(m.time) + '</div></div>';
-    }).join('');
-    return '<div class="sec-head"><h2>Messages</h2></div><div class="msgs"><div class="msgs__list">' + list + '</div>' +
-      '<div class="msgs__thread"><div class="msgs__head"><div class="conv__avatar conv__avatar--on">' + active.initials + '</div><div style="min-width:0"><div class="msgs__name">' + active.name + '</div><div class="msgs__meta">' + active.meta + '</div></div></div>' +
-      '<div class="msgs__body" id="thread">' + thread + '</div>' +
-      '<div class="msgs__compose"><input id="draft" value="' + esc(draft) + '" placeholder="Écrire un message…" autocomplete="off"><button class="btn-dark2 btn-dark2--s" type="button" data-act="send">ENVOYER</button></div></div></div>';
-  }
-
+  function secMessages() { return M.messagesHtml(); }
   /* ----- Notifications ----- */
-  var notifFilter = 'all';
-  var FILTERS = [['all', 'Tout'], ['rdv', 'Rendez-vous'], ['avis', 'Avis'], ['reco', 'Recommandations'], ['compte', 'Compte']];
-  function secNotifs() {
-    return '<div class="sec-head"><h2>Notifications</h2></div><div class="empty-note">Rien de nouveau pour le moment.</div>';
-  }
-  function secNotifsDemo(d) {
-    var s = d.s, shown = D.EXPL_NOTIFS.filter(function (n) { return notifFilter === 'all' || n.type === notifFilter; });
-    var groups = [];
-    shown.forEach(function (n) {
-      var g = groups.filter(function (x) { return x.day === n.day; })[0];
-      if (g) g.items.push(n); else groups.push({ day: n.day, items: [n] });
-    });
-    return '<div class="sec-head" style="flex-wrap:wrap"><h2>Notifications</h2><button class="sec-link" type="button" data-act="read-all">Tout marquer comme lu</button></div>' +
-      '<div class="nfilters">' + FILTERS.map(function (f) { return '<button class="nfilter' + (notifFilter === f[0] ? ' is-on' : '') + '" type="button" data-act="filter" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</div>' +
-      groups.map(function (g) {
-        return '<div class="ngroup"><div class="ngroup__day">' + g.day + '</div><div class="ngroup__list">' + g.items.map(function (n) {
-          var unread = s.notifRead.indexOf(n.id) === -1, col = D.NOTIF_ACCENT[n.type];
-          return '<button class="notif' + (unread ? ' is-unread' : '') + '" type="button" data-act="notif" data-id="' + n.id + '" style="border-left-color:' + col + '">' +
-            '<span class="notif__dot" style="background:' + (unread ? col : 'var(--border)') + '"></span><div class="notif__body"><div class="notif__title">' + n.title + '</div><div class="notif__text">' + n.text + '</div></div><span class="notif__time">' + n.time + '</span></button>';
-        }).join('') + '</div></div>';
-      }).join('') +
-      (shown.length ? '' : '<div class="empty-note">Aucune notification dans cette catégorie.</div>');
-  }
+  function secNotifs() { return M.notifsHtml(); }
 
   /* ----- Mon profil ----- */
   var profile = null, prefs = null;
@@ -385,10 +334,11 @@
 
   /* ----- Rendu ----- */
   function render() {
+    M.beforeRender();
     var d = derive();
     var content = { dash: secDash, rdv: secRdv, avis: secAvis, favoris: secFavoris, cocktail: secCocktail, messages: secMessages, notifs: secNotifs, profil: secProfil }[section](d);
     root.innerHTML = sidebar(d) + '<div class="espace__main">' + banner(d) + content + '</div>' + aside(d) + modalHtml();
-    var th = document.getElementById('thread'); if (th) th.scrollTop = th.scrollHeight;
+    M.afterRender();
   }
 
   /* ----- Actions ----- */
@@ -436,24 +386,6 @@
     demo: function () { var s = st(); s.demoCocktail = true; s.sessions = JSON.parse(JSON.stringify(D.DEMO_SESSIONS)); save(s); render(); HOL.toast('Exemple de démonstration chargé (fictif).'); },
     save: function () { HOL.toast('Cocktail sauvegardé sur votre profil explorateur.'); },
     share: function () { HOL.toast('Lien de partage copié : holisanna.fr/cocktail/sarah-n'); },
-    conv: function (el) {
-      var s = st(), id = Number(el.dataset.id), key = 'e' + id;
-      if (s.readConvs.indexOf(key) === -1) { s.readConvs.push(key); save(s); }
-      convId = id; draft = ''; history.replaceState(null, '', location.pathname + '?c=' + id); render();
-    },
-    send: function () {
-      var input = document.getElementById('draft'), text = (input ? input.value : draft).trim();
-      if (!text) return;
-      var s = st(), key = 'e' + convId; s.sentMsgs[key] = (s.sentMsgs[key] || []).concat([{ from: 'me', text: text, time: 'À l’instant' }]);
-      save(s); draft = ''; render(); var i = document.getElementById('draft'); if (i) i.focus();
-    },
-    filter: function (el) { notifFilter = el.dataset.f; render(); },
-    'read-all': function () { var s = st(); s.notifRead = D.EXPL_NOTIFS.map(function (n) { return n.id; }); save(s); render(); HOL.toast('Toutes vos notifications sont marquées comme lues.'); },
-    notif: function (el) {
-      var s = st(), n = D.EXPL_NOTIFS.filter(function (x) { return x.id === el.dataset.id; })[0];
-      if (s.notifRead.indexOf(n.id) === -1) { s.notifRead.push(n.id); save(s); }
-      location.href = n.go;
-    },
     pref: function (el) { var v = el.dataset.v, i = prefs.indexOf(v); if (i > -1) prefs.splice(i, 1); else prefs.push(v); render(); },
     'save-profile': function () { var s = st(); s.explProfile = Object.assign({}, profile); s.explPrefs = prefs.slice(); save(s); HOL.toast('Profil enregistré.'); }
   };
@@ -463,17 +395,19 @@
       if (window.HOL_FAV && e.target.closest('[data-fav]')) { HOL_FAV.click(e, root); render(); return; }
       var el = e.target.closest('[data-act]'); if (!el) return;
       if (el.dataset.act === 'close-bg' && e.target !== el) return;   // clic sur le fond seulement
+      if (M.act(el.dataset.act, el)) return;
       var fn = ACTIONS[el.dataset.act === 'close-bg' ? 'close' : el.dataset.act]; if (fn) fn(el);
     });
     root.addEventListener('input', function (e) {
-      if (e.target.id === 'draft') draft = e.target.value;
-      else if (e.target.dataset.field) profile[e.target.dataset.field] = e.target.value;
+      if (M.onInput(e)) return;
+      if (e.target.dataset.field) profile[e.target.dataset.field] = e.target.value;
     });
     root.addEventListener('keydown', function (e) {
-      if (e.target.id === 'draft' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ACTIONS.send(); }
+      M.onKey(e);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
     loadReal().then(render);
+    M.poll();
   });
 })();
