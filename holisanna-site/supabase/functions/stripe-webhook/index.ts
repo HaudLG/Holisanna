@@ -40,6 +40,11 @@ export async function apply(sub: any) {
   if (!uid) { console.error('webhook: praticien introuvable pour', sub.id); return; }
   const cur = (await rest(`abonnements?praticien_id=eq.${uid}&select=*`))[0];
   if (!cur) return;
+  // Un doublon terminé ou jamais abouti ne doit pas effacer l'abonnement enregistré.
+  if (cur.stripe_subscription_id && cur.stripe_subscription_id !== sub.id && ['canceled', 'incomplete_expired', 'incomplete'].includes(sub.status)) {
+    console.log('webhook: abonnement en doublon ignoré', sub.id, sub.status);
+    return;
+  }
   const item = sub.items?.data?.[0];
   const [formule, facturation] = (PRICES[item?.price?.id] ?? '').split(':');
   const periodEnd = sub.current_period_end ?? item?.current_period_end;
@@ -80,6 +85,11 @@ export async function apply(sub: any) {
     default:
       console.log('webhook: statut ignoré', sub.status, sub.id);
       return; // incomplete, paused… : rien à faire
+  }
+  if (!note && (sub.status === 'trialing' || sub.status === 'active') && cur.stripe_subscription_id === sub.id) {
+    const fin = new Date((periodEnd ?? 0) * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
+    if (patch.annule_fin_periode && !cur.annule_fin_periode) note = ['Résiliation enregistrée', `Votre abonnement prendra fin le ${fin}. Vous pouvez le reprendre à tout moment avant cette date dans « Abonnement & factures ».`];
+    else if (!patch.annule_fin_periode && cur.annule_fin_periode) note = ['Abonnement repris', 'Votre abonnement continue : la résiliation est annulée.'];
   }
   await rest(`abonnements?praticien_id=eq.${uid}`, { method: 'PATCH', body: JSON.stringify(patch) });
   if (note) await notify(uid, note[0], note[1]);
