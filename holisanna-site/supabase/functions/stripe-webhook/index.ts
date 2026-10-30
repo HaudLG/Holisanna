@@ -78,6 +78,7 @@ export async function apply(sub: any) {
       break;
     }
     default:
+      console.log('webhook: statut ignoré', sub.status, sub.id);
       return; // incomplete, paused… : rien à faire
   }
   await rest(`abonnements?praticien_id=eq.${uid}`, { method: 'PATCH', body: JSON.stringify(patch) });
@@ -87,6 +88,7 @@ export async function apply(sub: any) {
 export async function handle(raw: string, header: string | null) {
   if (!(await verify(raw, header, WH))) return new Response('signature invalide', { status: 400 });
   const ev = JSON.parse(raw);
+  console.log('webhook: reçu', ev.type, ev.data?.object?.status ?? '');
   try {
     if (ev.type === 'checkout.session.completed' && ev.data.object.mode === 'subscription' && ev.data.object.subscription) {
       const r = await fetch('https://api.stripe.com/v1/subscriptions/' + ev.data.object.subscription, { headers: { Authorization: `Bearer ${SK}` } });
