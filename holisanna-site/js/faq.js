@@ -43,7 +43,17 @@
       {
         "id": "p1",
         "q": "Combien coûte le référencement ?",
-        "a": "Un abonnement, sans commission sur vos séances. Fil Continu : 9,99 € par mois avec engagement annuel. Fil Libre : 11,99 € par mois sans engagement. Prélèvement le 1er de chaque mois, factures disponibles dans votre espace."
+        "a": "Un abonnement, sans commission sur vos séances. Fil Continu : 9,99 € par mois avec engagement de 12 mois, ou 109,89 € en une fois pour l'année (un mois offert). Fil Libre : 11,99 € par mois, sans engagement. Le premier mois est gratuit ; le prélèvement a lieu à la fin de l'essai, puis à la même date chaque mois. Factures disponibles dans votre espace."
+      },
+      {
+        "id": "p1a",
+        "q": "Comment fonctionne le mois d'essai gratuit ?",
+        "a": "Il démarre à la première publication de votre fiche, pas à l'inscription. Rien n'est prélevé pendant ce mois. Vous choisissez votre formule et ajoutez votre carte depuis Abonnement & factures ; le premier prélèvement n'a lieu qu'à la fin de l'essai. Sans formule active à cette date, votre fiche est mise hors ligne."
+      },
+      {
+        "id": "p1b",
+        "q": "Comment résilier mon abonnement ?",
+        "a": "Depuis Abonnement & factures, avec Gérer mon abonnement. Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d'engagement (ou à l'échéance annuelle si vous avez payé l'année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois."
       },
       {
         "id": "p2",

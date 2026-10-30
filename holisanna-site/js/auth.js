@@ -178,6 +178,7 @@
       paintPay();
     }
     function paintPay() {
+      if (!$('pay-opts')) return;
       var methods = [
         { key: 'card', name: 'Carte bancaire', tag: st.plan === 'Fil Libre' ? 'Recommandé' : '', desc: 'Enregistrée pour les prélèvements mensuels. Validation immédiate, résiliation en un clic.' },
         { key: 'sepa', name: 'Prélèvement SEPA', tag: st.plan === 'Fil Continu' ? 'Recommandé' : '', desc: 'Mandat sur RIB. Pas de carte à renouveler — adapté à l’engagement annuel.' }
@@ -193,7 +194,7 @@
 
     bindSpecs('main-specs', 'main', 2); bindSpecs('comp-specs', 'comp', 3);
     $('plan-opts').addEventListener('click', function (e) { var b = e.target.closest('[data-plan]'); if (b) { st.plan = b.dataset.plan; paintPlans(); } });
-    $('pay-opts').addEventListener('click', function (e) { var b = e.target.closest('[data-pay]'); if (b) { st.pay = b.dataset.pay; paintPay(); } });
+    if ($('pay-opts')) $('pay-opts').addEventListener('click', function (e) { var b = e.target.closest('[data-pay]'); if (b) { st.pay = b.dataset.pay; paintPay(); } });
     paintSpecs(); paintPlans();
 
     $('prat-form').addEventListener('submit', function (e) {
