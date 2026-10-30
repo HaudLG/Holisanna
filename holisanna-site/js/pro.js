@@ -284,10 +284,30 @@
     if (!a) return '<div class="empty-note">Impossible de charger votre abonnement pour le moment. Rechargez la page dans un instant.</div>';
     var left = a.essai_fin ? Math.max(0, Math.ceil((new Date(a.essai_fin) - Date.now()) / 86400000)) : 0, t, c;
     if (a.statut === 'avant_essai') { t = 'Votre mois d’essai gratuit démarrera à la publication de votre fiche.'; c = 'var(--slate-md)'; }
-    else if (a.statut === 'essai') { t = 'Mois d’essai gratuit en cours, jusqu’au ' + dateFr(a.essai_fin) + ' (' + left + ' jour' + (left > 1 ? 's' : '') + ' restant' + (left > 1 ? 's' : '') + '). Aucun prélèvement.'; c = 'var(--olive)'; }
+    else if (a.statut === 'essai') { t = 'Mois d’essai gratuit en cours, jusqu’au ' + dateFr(a.essai_fin) + ' (' + left + ' jour' + (left > 1 ? 's' : '') + ' restant' + (left > 1 ? 's' : '') + ').' + (a.stripe_subscription_id ? ' Votre formule est enregistrée : le premier prélèvement aura lieu à la fin de l’essai.' : ' Aucun prélèvement.'); c = 'var(--olive)'; }
     else if (a.statut === 'expire') { t = 'Votre mois d’essai est terminé : votre fiche est hors ligne. Elle sera remise en ligne dès l’activation de votre formule.'; c = 'var(--rose)'; }
-    else { t = 'Abonnement actif' + (a.periode_fin ? ' jusqu’au ' + dateFr(a.periode_fin) : '') + '.'; c = 'var(--olive)'; }
+    else if (a.statut === 'impaye') { t = 'Le dernier prélèvement a échoué. Mettez à jour votre carte avec « Gérer mon abonnement » pour garder votre fiche en ligne.'; c = 'var(--rose)'; }
+    else if (a.annule_fin_periode) { t = 'Abonnement résilié : il reste actif jusqu’au ' + (a.periode_fin ? dateFr(a.periode_fin) : 'terme de la période') + ', puis votre fiche sera mise hors ligne.'; c = 'var(--slate-md)'; }
+    else { t = 'Abonnement actif' + (a.periode_fin ? ' · prochain prélèvement le ' + dateFr(a.periode_fin) : '') + '.'; c = 'var(--olive)'; }
     return '<div class="pay-card" style="margin-bottom:16px"><div><div class="pay-card__t" style="color:' + c + '">' + t + '</div></div></div>';
+  }
+  var aboBilling = null, aboBusy = false;
+  function callFn(name, body) {
+    return HOL.sb().functions.invoke(name, { body: body }).then(function (r) {
+      if (!r.error) return r.data;
+      var ctx = r.error.context;
+      return (ctx && ctx.json ? ctx.json().catch(function () { return {}; }) : Promise.resolve({})).then(function (j) { throw new Error((j && j.error) || 'Opération impossible pour le moment. Réessayez dans un instant.'); });
+    });
+  }
+  function aboActions(a, pick) {
+    if (!a || a.statut === 'avant_essai') return '';
+    var hasSub = !!a.stripe_subscription_id || a.statut === 'actif' || a.statut === 'impaye';
+    if (hasSub) return '<div style="margin-top:16px"><button class="btn-dark2" type="button" data-act="portal"' + (aboBusy ? ' disabled' : '') + '>GÉRER MON ABONNEMENT</button></div>';
+    var bill = pick === 'continu' ? (aboBilling || a.facturation || 'mensuel') : 'mensuel';
+    var opts = pick === 'continu' ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0">' + [['mensuel', '9,99 € par mois (12 mois)'], ['annuel', '109,89 € en une fois · 1 mois offert']].map(function (o) {
+      return '<button class="chipbtn chipbtn--s' + (bill === o[0] ? ' is-on' : '') + '" type="button" data-act="billing" data-v="' + o[0] + '" aria-pressed="' + (bill === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>' : '';
+    return opts + '<div style="margin-top:16px"><button class="btn-dark2" type="button" data-act="checkout"' + (!pick || aboBusy ? ' disabled' : '') + '>' + (a.statut === 'expire' ? 'REMETTRE MA FICHE EN LIGNE' : 'ACTIVER MA FORMULE') + '</button>' +
+      (!pick ? '<div class="abo-foot" style="margin-top:8px">Choisissez d’abord une formule ci-dessus.</div>' : a.statut === 'essai' ? '<div class="abo-foot" style="margin-top:8px">Votre carte sera demandée maintenant, mais rien ne sera prélevé avant la fin de votre mois d’essai.</div>' : '') + '</div>';
   }
   function secAbo(d) {
     var a = db.abo, pick = a && a.formule_choisie;
@@ -297,9 +317,9 @@
       '<div class="stack-10">' + D.PLANS.map(function (pl) {
         var key = pl.name === 'Fil Continu' ? 'continu' : 'libre', on = pick === key;
         return '<button class="plan-row' + (on ? ' is-on' : '') + '" type="button" data-act="plan" data-key="' + key + '" aria-pressed="' + on + '"><div><div class="plan-row__name">' + pl.name + '</div><div class="plan-row__desc">' + pl.hook + ' ' + pl.note + '</div><div class="plan-row__state">' + (on ? 'Formule choisie' : 'Choisir') + '</div></div><div class="plan-row__price">' + pl.price + '<small style="display:block;font-size:11px">' + pl.period + '</small></div></button>';
-      }).join('') + '</div><div class="abo-foot">' + (pick ? 'Formule ' + names[pick] + ' enregistrée. ' : '') + 'Le paiement (carte bancaire ou prélèvement SEPA) vous sera demandé avant la fin de l’essai ; il n’est pas encore ouvert pendant la phase de tests.</div></div>' +
+      }).join('') + '</div><div class="abo-foot">' + (pick ? 'Formule ' + names[pick] + ' enregistrée. ' : '') + 'Paiement sécurisé par Stripe. Aucune commission sur vos séances.</div>' + aboActions(a, pick) + '</div>' +
       '<div class="abo-box"><div class="abo-head"><h2>Facturation</h2></div>' +
-      '<div class="empty-note">Aucune facture pour le moment. Vos factures apparaîtront ici dès le premier prélèvement.</div></div></div></div>';
+      (a && a.stripe_customer_id && (a.stripe_subscription_id || a.statut === 'actif') ? '<div class="empty-note">Vos factures, votre moyen de paiement et la résiliation se gèrent sur l’espace sécurisé de Stripe.<br><button class="btn-dark2" type="button" data-act="portal" style="margin-top:12px">OUVRIR MES FACTURES</button></div>' : '<div class="empty-note">Aucune facture pour le moment. Vos factures apparaîtront ici dès le premier prélèvement.</div>') + '</div></div></div>';
   }
 
   /* ----- Modifier ma fiche ----- */
@@ -634,6 +654,19 @@
         if (r.error) throw r.error; db.abo.formule_choisie = key; render(); HOL.toast((key === 'continu' ? 'Fil Continu' : 'Fil Libre') + ' enregistrée. Vous ne serez prélevée qu’à la fin du mois d’essai.');
       }).catch(function () { HOL.toast('Enregistrement impossible pour le moment.'); });
     },
+    billing: function (el) { aboBilling = el.dataset.v; render(); },
+    checkout: function () {
+      var a = db.abo; if (!a || !a.formule_choisie || aboBusy) return;
+      aboBusy = true; render();
+      callFn('stripe-checkout', { formule: a.formule_choisie, facturation: a.formule_choisie === 'continu' ? (aboBilling || a.facturation || 'mensuel') : 'mensuel' })
+        .then(function (r) { location.href = r.url; })
+        .catch(function (e) { aboBusy = false; render(); HOL.toast(e.message); });
+    },
+    portal: function () {
+      if (aboBusy) return; aboBusy = true; render();
+      callFn('stripe-portal', {}).then(function (r) { location.href = r.url; })
+        .catch(function (e) { aboBusy = false; render(); HOL.toast(e.message); });
+    },
     invoices: function () { HOL.toast('Factures exportées en PDF.'); },
     'pay-method': function () {
       var s = st(); s.payMethod = s.payMethod === 'card' ? 'sepa' : 'card'; save(s); render();
@@ -678,7 +711,18 @@
     root.addEventListener('keydown', function (e) { M.onKey(e); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
-    loadAll().then(render);
+    loadAll().then(function () {
+      render();
+      var ret = new URLSearchParams(location.search).get('paiement');
+      if (section === 'abo' && ret) {
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        if (ret === 'annule') { HOL.toast('Paiement annulé : rien n’a été prélevé.'); return; }
+        HOL.toast('Merci ! Nous enregistrons votre formule…');
+        var tries = 0, t = setInterval(function () {
+          tries++; loadAbo().then(function () { render(); if ((db.abo && db.abo.stripe_subscription_id) || tries >= 8) { clearInterval(t); if (db.abo && db.abo.stripe_subscription_id) HOL.toast('Votre formule est enregistrée.'); } });
+        }, 2000);
+      }
+    });
     M.poll();
     syncVille();
   });

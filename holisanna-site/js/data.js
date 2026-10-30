@@ -215,8 +215,8 @@
       name: 'Fil Continu',
       desc: 'Fiche, agenda, 20 réservations / mois',
       hook: 'Pour celles et ceux qui s’installent dans la durée.',
-      price: '9,99 €', period: '/ mois, facturé à l’année',
-      note: 'Engagement 12 mois · 119,88 € par an',
+      price: '9,99 €', period: '/ mois, engagement 12 mois',
+      note: 'Ou 109,89 € en une fois : 1 mois offert',
       perks: [
         'Fiche praticien complète et agenda en ligne',
         'Réservations illimitées, sans commission',
