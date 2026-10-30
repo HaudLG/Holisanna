@@ -29,6 +29,14 @@ async function rest(path: string, init: RequestInit = {}) {
 }
 const iso = (s?: number | null) => (s ? new Date(s * 1000).toISOString() : null);
 
+const addMonths = (unix: number, n: number) => { const d = new Date(unix * 1000); d.setUTCMonth(d.getUTCMonth() + n); return Math.floor(d.getTime() / 1000); };
+
+async function stripePost(path: string, body: Record<string, string>) {
+  const r = await fetch('https://api.stripe.com/v1/' + path, { method: 'POST', headers: { Authorization: `Bearer ${SK}`, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(body).toString() });
+  if (!r.ok) throw new Error('stripe ' + r.status + ' ' + (await r.text()));
+  return r.json();
+}
+
 async function notify(uid: string, titre: string, texte: string) {
   await rest('notifications', { method: 'POST', body: JSON.stringify({ destinataire_id: uid, type: 'fact', titre, texte, lien: 'pro-abonnement.html' }) });
 }
@@ -45,6 +53,17 @@ export async function apply(sub: any) {
     console.log('webhook: abonnement en doublon ignoré', sub.id, sub.status);
     return;
   }
+  // Engagement de 12 mois du Fil Continu mensuel : une résiliation demandée une fois les paiements commencés
+  // prend effet au 12e mois, pas à la fin du mois en cours. (Pendant l'essai, la résiliation reste libre.)
+  if (sub.status === 'active' && sub.cancel_at_period_end && PRICES[sub.items?.data?.[0]?.price?.id] === 'continu:mensuel') {
+    const debut = sub.trial_end ?? sub.start_date;
+    const fin12 = debut ? addMonths(debut, 12) : 0;
+    const pe = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end;
+    if (fin12 && pe && fin12 > pe) {
+      try { sub = await stripePost('subscriptions/' + sub.id, { cancel_at_period_end: 'false', cancel_at: String(fin12) }); }
+      catch (e) { console.error('webhook: engagement non appliqué', e instanceof Error ? e.message : e); }
+    }
+  }
   const item = sub.items?.data?.[0];
   const [formule, facturation] = (PRICES[item?.price?.id] ?? '').split(':');
   const periodEnd = sub.current_period_end ?? item?.current_period_end;
@@ -52,7 +71,7 @@ export async function apply(sub: any) {
     stripe_customer_id: customer ?? cur.stripe_customer_id,
     stripe_subscription_id: sub.id,
     annule_fin_periode: !!(sub.cancel_at_period_end || sub.cancel_at),
-    periode_fin: iso(periodEnd) ?? cur.periode_fin,
+    periode_fin: iso(sub.cancel_at ?? periodEnd) ?? cur.periode_fin,
   };
   if (formule) { patch.formule_choisie = formule; patch.facturation = facturation; }
   let note: [string, string] | null = null;
@@ -87,8 +106,9 @@ export async function apply(sub: any) {
       return; // incomplete, paused… : rien à faire
   }
   if (!note && (sub.status === 'trialing' || sub.status === 'active') && cur.stripe_subscription_id === sub.id) {
-    const fin = new Date((periodEnd ?? 0) * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
-    if (patch.annule_fin_periode && !cur.annule_fin_periode) note = ['Résiliation enregistrée', `Votre abonnement prendra fin le ${fin}. Vous pouvez le reprendre à tout moment avant cette date dans « Abonnement & factures ».`];
+    const fin = new Date((sub.cancel_at ?? periodEnd ?? 0) * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
+    const engage = sub.status === 'active' && formule === 'continu' && facturation === 'mensuel' ? ' Cette date correspond à la fin de votre engagement de 12 mois.' : '';
+    if (patch.annule_fin_periode && !cur.annule_fin_periode) note = ['Résiliation enregistrée', `Votre abonnement prendra fin le ${fin}.${engage} Vous pouvez le reprendre à tout moment avant cette date dans « Abonnement & factures ».`];
     else if (!patch.annule_fin_periode && cur.annule_fin_periode) note = ['Abonnement repris', 'Votre abonnement continue : la résiliation est annulée.'];
   }
   await rest(`abonnements?praticien_id=eq.${uid}`, { method: 'PATCH', body: JSON.stringify(patch) });
