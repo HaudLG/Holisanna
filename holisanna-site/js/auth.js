@@ -43,7 +43,7 @@
     var c = sb();
     if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
     var email = $('email').value.trim(), pwd = $('pwd').value;
-    if (pwd.length < 8 || pwdScore(pwd) < 4) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
+    if (!HOL_VALID.pwdOk(pwd)) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
     var data = Object.assign({ role: role, cgu_acceptees: 'true' }, fields);
     busy(form, true);
     c.auth.signUp({
@@ -92,20 +92,20 @@
   }
 
   /* ----- Force du mot de passe (inscriptions) ----- */
-  function pwdScore(v) { return [/[A-Z]/.test(v), /[a-z]/.test(v), /[0-9]/.test(v), /[^A-Za-z0-9]/.test(v), v.length >= 8].filter(Boolean).length; }
+  function pwdScore(v) { return HOL_VALID.pwdRules(v).filter(function (r) { return r[1]; }).length; }
   function initPwd() {
     var input = $('pwd'), bars = document.querySelector('[data-bars="pwd"]'), label = document.querySelector('[data-label="pwd"]');
     var input2 = $('pwd2');
     if (!input || !bars) return;
     function paint() {
       var v = input.value, sc = v ? pwdScore(v) : 0;
-      var col = sc <= 2 ? 'var(--error)' : sc <= 3 ? 'var(--gold)' : 'var(--olive)';
-      [].forEach.call(bars.children, function (b, i) { b.style.background = i < sc ? col : 'var(--border)'; });
-      label.textContent = !v ? 'Minimum : 1 majuscule, 1 chiffre, 1 caractère spécial' : sc <= 2 ? 'Mot de passe faible' : sc <= 3 ? 'Mot de passe moyen' : '✓ Mot de passe fort';
+      var col = sc <= 2 ? 'var(--error)' : sc <= 4 ? 'var(--gold)' : 'var(--olive)';
+      [].forEach.call(bars.children, function (b, i) { b.style.background = i < Math.ceil(sc * bars.children.length / 5) ? col : 'var(--border)'; });
+      label.innerHTML = HOL_VALID.pwdRules(v).map(function (r) { return '<div class="rule' + (r[1] ? ' is-ok' : '') + '"><span>' + (r[1] ? '✓' : '○') + '</span><span>' + r[0] + '</span></div>'; }).join('');
       if (input2) match();
     }
     function match() { input2.setCustomValidity(input2.value && input2.value !== input.value ? 'Les deux saisies ne correspondent pas.' : ''); }
-    input.addEventListener('input', paint);
+    input.addEventListener('input', paint); paint();
     if (input2) input2.addEventListener('input', match);
   }
 
@@ -237,12 +237,7 @@
     var a = $('new1'), b = $('new2');
     function rules() {
       var p = a.value;
-      return [
-        ['Au moins 8 caractères', p.length >= 8],
-        ['Une majuscule et une minuscule', /[a-z]/.test(p) && /[A-Z]/.test(p)],
-        ['Un chiffre ou un caractère spécial', /[0-9\W]/.test(p)],
-        ['Les deux saisies correspondent', !!p && p === b.value]
-      ];
+      return [].concat(HOL_VALID.pwdRules(p)).concat([['Les deux saisies correspondent', !!p && p === b.value]]);
     }
     function paint() {
       $('rules').className = 'rules';
@@ -260,7 +255,7 @@
     $('reset-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var p = a.value, c = sb();
-      if (p.length < 8 || !/[a-z]/.test(p) || !/[A-Z]/.test(p) || !/[0-9\W]/.test(p)) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
+      if (!HOL_VALID.pwdOk(p)) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
       if (p !== b.value) { HOL.toast('Les deux saisies ne correspondent pas.'); return; }
       if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
       busy(e.target, true);

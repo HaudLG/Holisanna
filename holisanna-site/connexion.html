@@ -25,7 +25,7 @@
         </div>
         <div class="divider"><span>ou par email</span></div>
       <form class="form" id="login-form">
-        <div class="fld"><label for="email">Adresse email</label><input id="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
+        <div class="fld"><label for="email">Adresse email</label><input id="email" data-v="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
         <div class="fld"><label for="pwd">Mot de passe</label><input id="pwd" type="password" placeholder="Votre mot de passe" autocomplete="current-password" required></div>
         <div class="forgot-row"><a href="mot-de-passe-oublie.html">Mot de passe oublié ?</a></div>
         <button class="btn btn-primary btn-lg" type="submit">Se connecter →</button>
@@ -39,6 +39,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/valid.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>

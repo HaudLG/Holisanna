@@ -993,3 +993,10 @@ button.rrow:hover { background: var(--ivory-2); }
 .favbtn.is-on svg { fill: currentColor; }
 .pcard { position: relative; }
 .pcard > .favbtn { position: absolute; top: 6px; left: 6px; z-index: 2; }
+
+/* Contrôles de saisie */
+.fld__err { font-size: 11px; color: var(--error); min-height: 0; }
+.fld__err:empty { display: none; }
+.fld input.is-bad { border-color: var(--error); }
+.pwd-rules { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 6px; }
+@media (max-width: 700px) { .pwd-rules { grid-template-columns: 1fr; } }

@@ -34,21 +34,21 @@
         <div class="divider"><span>ou par email</span></div>
       <form class="form" id="expl-form">
         <div class="form-2">
-          <div class="fld"><label for="prenom">Prénom *</label><input id="prenom" placeholder="Votre prénom" autocomplete="given-name" required></div>
-          <div class="fld"><label for="nom">Nom *</label><input id="nom" placeholder="Votre nom" autocomplete="family-name" required></div>
+          <div class="fld"><label for="prenom">Prénom *</label><input id="prenom" data-v="name" placeholder="Votre prénom" autocomplete="given-name" required></div>
+          <div class="fld"><label for="nom">Nom *</label><input id="nom" data-v="name" placeholder="Votre nom" autocomplete="family-name" required></div>
         </div>
         <div class="form-2">
-          <div class="fld"><label for="naissance">Date de naissance *</label><input id="naissance" type="date" autocomplete="bday" required></div>
-          <div class="fld"><label for="tel">Téléphone *</label><input id="tel" type="tel" placeholder="+33 6 00 00 00 00" autocomplete="tel" required></div>
+          <div class="fld"><label for="naissance">Date de naissance *</label><input id="naissance" data-v="date18" type="date" autocomplete="bday" required></div>
+          <div class="fld"><label for="tel">Téléphone *</label><input id="tel" data-v="tel" type="tel" placeholder="+33 6 00 00 00 00" autocomplete="tel" required></div>
         </div>
-        <div class="fld"><label for="email">Adresse email *</label><input id="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
+        <div class="fld"><label for="email">Adresse email *</label><input id="email" data-v="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
         <div class="fld">
           <label for="pwd">Mot de passe *</label>
-          <input id="pwd" type="password" placeholder="Créer un mot de passe" autocomplete="new-password" required>
+          <input id="pwd" data-v="pwd" type="password" placeholder="Créer un mot de passe" autocomplete="new-password" required>
           <div class="pwd-bars" data-bars="pwd"><div></div><div></div><div></div><div></div></div>
-          <span class="fld__hint" data-label="pwd">Minimum : 1 majuscule, 1 chiffre, 1 caractère spécial</span>
+          <div class="pwd-rules" data-label="pwd"></div>
         </div>
-        <div class="fld"><label for="pwd2">Confirmer le mot de passe *</label><input id="pwd2" type="password" placeholder="Répéter le mot de passe" autocomplete="new-password" required></div>
+        <div class="fld"><label for="pwd2">Confirmer le mot de passe *</label><input id="pwd2" data-v="pwd2" type="password" placeholder="Répéter le mot de passe" autocomplete="new-password" required></div>
         <button class="btn btn-primary btn-lg" type="submit">Créer mon espace explorateur →</button>
         <p class="fine">En créant votre compte, vous acceptez nos <a href="cgu.html">CGU</a> et notre <a href="confidentialite.html">politique de confidentialité</a>. Un email de confirmation vous sera envoyé.</p>
       </form>
@@ -60,6 +60,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/valid.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>

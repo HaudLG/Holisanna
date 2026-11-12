@@ -16,8 +16,8 @@
     <h1>Nouveau mot de passe</h1>
     <p class="narrow__lead" style="margin-bottom:26px">Choisissez un mot de passe que vous n'utilisez pas ailleurs.</p>
     <form class="form" id="reset-form" novalidate>
-      <div class="fld"><label for="new1">Nouveau mot de passe</label><input id="new1" type="password" placeholder="Au moins 8 caractères" autocomplete="new-password"></div>
-      <div class="fld"><label for="new2">Confirmer le mot de passe</label><input id="new2" type="password" placeholder="Répéter le mot de passe" autocomplete="new-password"></div>
+      <div class="fld"><label for="new1">Nouveau mot de passe</label><input id="new1" data-v="pwd" type="password" placeholder="Au moins 10 caractères" autocomplete="new-password"></div>
+      <div class="fld"><label for="new2">Confirmer le mot de passe</label><input id="new2" data-v="pwd2" data-ref="new1" type="password" placeholder="Répéter le mot de passe" autocomplete="new-password"></div>
       <div class="rules" id="rules"></div>
       <button class="btn-dark" type="submit">Enregistrer le mot de passe →</button>
       <p class="back-link"><a href="connexion.html">← Retour à la connexion</a></p>
@@ -29,6 +29,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/valid.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>

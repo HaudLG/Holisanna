@@ -16,7 +16,7 @@
     <h1>Mot de passe oublié</h1>
     <p class="narrow__lead">Saisissez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
     <form class="form" id="forgot-form">
-      <div class="fld"><label for="email">Votre adresse email</label><input id="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
+      <div class="fld"><label for="email">Votre adresse email</label><input id="email" data-v="email" type="email" placeholder="votre@email.com" autocomplete="email" required></div>
       <button class="btn btn-primary btn-lg" type="submit" style="margin-top:0">Envoyer le lien →</button>
       <p class="back-link"><a href="connexion.html">← Retour à la connexion</a></p>
     </form>
@@ -37,6 +37,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/valid.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>
