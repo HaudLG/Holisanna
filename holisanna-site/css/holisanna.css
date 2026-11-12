@@ -343,6 +343,8 @@ input[type="range"] { width: 100%; accent-color: var(--olive); }
 input::-ms-reveal, input::-ms-clear { display: none; }
 .choice:hover { color: inherit; }
 .choice--expl:hover { border-color: var(--olive); background: var(--olive-bg); }
+.choice--expl .btn { background: var(--olive); border-color: var(--olive); color: var(--ivory); }
+.choice--expl:hover .btn { filter: brightness(.94); }
 .choice--prat:hover { border-color: var(--rose); background: var(--rose-bg); }
 .choice__pic { width: 112px; height: 112px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }
 .choice--expl .choice__pic { background: var(--olive-bg); } .choice--prat .choice__pic { background: var(--rose-bg); }
