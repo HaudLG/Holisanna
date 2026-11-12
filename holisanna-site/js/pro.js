@@ -510,7 +510,7 @@
       '<div class="fcard"><div class="fcard__title">Identité et connexion</div><div class="fgrid fgrid--200">' +
       '<div class="ffield fld"><label for="a-nom">Prénom et nom (état civil)</label><input id="a-nom" data-a="nom" data-v="name" required value="' + esc(acct.nom) + '"></div>' +
       '<div class="ffield fld"><label for="a-email">E-mail de connexion</label><input id="a-email" type="email" data-a="email" data-v="email" required value="' + esc(acct.email) + '"></div></div>' +
-      '<p class="fcard__lead" style="margin:16px 0 18px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
+      '<p class="fcard__lead" style="margin:16px 0 18px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, deux e-mails de confirmation sont envoyés, un à l’ancienne et un à la nouvelle adresse : cliquez sur les deux pour valider le changement.</p>' +
       '<div class="fbtns"><button class="btn-dark2" type="button" data-act="save-acct"' + (busyAcct ? ' disabled' : '') + '>ENREGISTRER MON COMPTE</button></div></div>' +
       '<div class="fcard"><div class="fcard__title">Mot de passe</div><div class="fgrid fgrid--200">' +
       '<div class="ffield fld"><label for="p-a">Nouveau mot de passe</label><input id="p-a" type="password" autocomplete="new-password" data-pw="a" value="' + esc(pw.a) + '"></div>' +
@@ -758,7 +758,7 @@
         });
       }).then(function (mail) {
         busyAcct = false; render();
-        HOL.toast(mail ? 'Compte enregistré. Un lien de confirmation a été envoyé à ' + mail + ' : votre identifiant changera après un clic dessus.' : 'Compte enregistré.');
+        HOL.toast(mail ? 'Compte enregistré. Deux e-mails de confirmation sont envoyés (ancienne adresse et ' + mail + ') : cliquez sur les deux pour valider le changement.' : 'Compte enregistré.');
       }).catch(function (e) {
         busyAcct = false; render();
         var m = (e && e.message || '').toLowerCase();

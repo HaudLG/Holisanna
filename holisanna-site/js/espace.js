@@ -320,7 +320,7 @@
       '<div class="pbox pbox--grid">' + FIELDS.map(function (f) {
         return '<div class="pfield fld"><label for="f-' + f[0] + '">' + f[1] + (f[4] ? ' *' : '') + '</label><input id="f-' + f[0] + '" data-field="' + f[0] + '" data-v="' + f[3] + '" type="' + f[2] + '"' + (f[4] ? ' required' : '') + ' value="' + esc(profile[f[0]] || '') + '"></div>';
       }).join('') + '</div>' +
-      '<p class="pbox__lead" style="margin:-4px 0 16px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
+      '<p class="pbox__lead" style="margin:-4px 0 16px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, deux e-mails de confirmation sont envoyés, un à l’ancienne et un à la nouvelle adresse : cliquez sur les deux pour valider le changement.</p>' +
       '<div class="pbox" style="margin-bottom:20px"><div class="pbox__title">Préférences bien-être</div><p class="pbox__lead">Ces choix orientent les praticiens qui vous sont recommandés.</p><div class="chipset">' +
       PREF_OPTS.map(function (o) { var on = prefs.indexOf(o) !== -1; return '<button class="chipbtn chipbtn--s' + (on ? ' is-on' : '') + '" type="button" data-act="pref" data-v="' + esc(o) + '" aria-pressed="' + on + '">' + o + '</button>'; }).join('') + '</div></div>' +
       '<button class="btn-dark2 btn-dark2--l" type="button" data-act="save-profile"' + (savingProfile ? ' disabled' : '') + '>ENREGISTRER MON PROFIL</button>' + deleteBox();
@@ -445,7 +445,7 @@
         return c.auth.updateUser({ email: mail }, { emailRedirectTo: location.origin + '/connexion.html?confirme=1' }).then(function (u) { if (u.error) throw u.error; return mail; });
       }).then(function (mail) {
         savingProfile = false; render();
-        HOL.toast(mail ? 'Profil enregistré. Un lien de confirmation a été envoyé à ' + mail + ' : votre identifiant changera après un clic dessus.' : 'Profil enregistré.');
+        HOL.toast(mail ? 'Profil enregistré. Deux e-mails de confirmation sont envoyés (ancienne adresse et ' + mail + ') : cliquez sur les deux pour valider le changement.' : 'Profil enregistré.');
       }).catch(function (e) {
         savingProfile = false; render();
         var m = (e && e.message || '').toLowerCase();
