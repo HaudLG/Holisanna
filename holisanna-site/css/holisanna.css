@@ -354,9 +354,10 @@ input[type="range"] { width: 100%; accent-color: var(--olive); }
 /* Écran scindé : panneau coloré + formulaire */
 .auth-split { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
 .auth-side { padding: 56px 52px; display: flex; flex-direction: column; justify-content: center; min-height: calc(100vh - 74px); position: sticky; top: 74px; align-self: start; }
-.auth-side--olive { background: var(--olive); } .auth-side--rose { background: var(--rose); }
+.auth-side--neutral { background: var(--ivory-3); } .auth-side--olive { background: var(--olive); } .auth-side--rose { background: var(--rose); }
 .auth-side img { object-fit: contain; margin-bottom: 32px; }
 .auth-side h2 { font-family: var(--font-serif); font-weight: 300; font-size: 38px; line-height: 1.15; color: var(--ivory); margin-bottom: 20px; }
+.auth-side--neutral h2 { color: var(--slate); margin-bottom: 0; }
 .auth-side h2 em { color: rgba(250,246,238,.78); }
 .auth-side__lead { font-size: 13px; font-weight: 300; line-height: 1.8; color: rgba(250,246,238,.68); margin-bottom: 40px; max-width: 400px; }
 .auth-side__lead--flush { margin-bottom: 0; }
