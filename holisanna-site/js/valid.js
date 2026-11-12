@@ -21,6 +21,7 @@
   function pwdRules(v) { v = v || ''; return PWD_RULES.map(function (r) { return [r[0], r[1](v)]; }); }
   function pwdOk(v) { return pwdRules(v).every(function (r) { return r[1]; }); }
 
+  function luhn(d) { var t = 0; for (var i = 0; i < d.length; i++) { var n = +d.charAt(d.length - 1 - i); if (i % 2) { n *= 2; if (n > 9) n -= 9; } t += n; } return t % 10 === 0; }
   function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function latestBirth() { var d = new Date(); d.setFullYear(d.getFullYear() - MIN_AGE); return ymd(d); }
 
@@ -29,7 +30,8 @@
     name: function (v) { return v.replace(NAME_BAD, ''); },
     city: function (v) { return v.replace(/[^\p{L}'’ .\-]/gu, ''); },
     tel: function (v) { v = v.replace(/[^\d+ ]/g, ''); return v.charAt(0) === '+' ? '+' + v.slice(1).replace(/\+/g, '') : v.replace(/\+/g, ''); },
-    cp: function (v) { return v.replace(/\D/g, '').slice(0, 5); }
+    cp: function (v) { return v.replace(/\D/g, '').slice(0, 5); },
+    siret: function (v) { return v.replace(/[^\d ]/g, '').slice(0, 17); }
   };
 
   /* Chaque contrôle renvoie '' si tout va bien, sinon le message à afficher */
@@ -50,6 +52,8 @@
       if (v < '1900-01-01') return 'Date invalide.';
       return v <= latestBirth() ? '' : 'Vous devez avoir ' + MIN_AGE + ' ans minimum pour créer un compte.';
     },
+    siret: function (v) { var d = v.replace(/\s/g, ''); return !d ? 'Ce champ est requis.' : (/^\d{14}$/.test(d) && luhn(d)) ? '' : 'Un numéro de SIRET comporte 14 chiffres. Vérifiez la saisie.'; },
+    future: function (v) { return !v ? 'Ce champ est requis.' : (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v).getTime())) ? 'Date invalide.' : v < ymd(new Date()) ? 'Cette date est déjà passée.' : ''; },
     email: function (v) { v = v.trim(); return !v ? 'Ce champ est requis.' : EMAIL_OK.test(v) ? '' : 'Adresse e-mail invalide, vérifiez la saisie.'; },
     pwd: function (v) { return !v ? 'Ce champ est requis.' : pwdOk(v) ? '' : 'Le mot de passe ne remplit pas encore toutes les conditions.'; },
     pwd2: function (v, input) {

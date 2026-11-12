@@ -206,7 +206,7 @@
   function aside(d) {
     var todayR = db.allResas.filter(function (b) { return b.statut === 'confirmee' && fromIso(b.debut).day === todayYmd(); }).reverse();
     var f = fiche || {}, on = db.prestations.filter(function (o) { return !o.masquee; }).length;
-    var ph = f.photos || {}, compl = [['Photo de profil', ph.principale ? 1 : 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', ph.cabinet || ph.seance ? 1 : 0]];
+    var ph = f.photos || {}, compl = [['Photo de profil', ph.principale ? 1 : 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', ph.cabinet || ph.seance ? 1 : 0], ['SIRET et assurance RC Pro', f.siret && f.rcAss && f.rcOk ? 1 : 0]];
     var done = compl.filter(function (c) { return c[1]; }).length, pct = Math.round(done / compl.length * 100);
     return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd\'hui</div>' +
       (todayR.length ? todayR.map(function (b) { return '<div class="today"><span class="today__t">' + fromIso(b.debut).hm.replace(':', 'h') + '</span><div style="min-width:0"><div class="today__c">' + esc(b.client_nom) + '</div><div class="today__o" style="color:var(--olive)">' + esc(b.prestation_nom) + ' · ' + esc(b.duree_minutes) + ' min</div></div></div>'; }).join('')
@@ -385,7 +385,7 @@
       return '<button class="chipbtn chipbtn--s' + (on ? ' is-on' : '') + '" type="button" data-act="fchip" data-key="' + key + '" data-v="' + esc(o) + '" aria-pressed="' + on + '">' + o + '</button>';
     }).join('') + '</div>';
   }
-  function field(k, label) { return '<div class="ffield"><label for="f-' + k + '">' + label + '</label><input id="f-' + k + '" data-f="' + k + '" value="' + esc(fiche[k]) + '"></div>'; }
+  function field(k, label, v, type) { return '<div class="ffield fld"><label for="f-' + k + '">' + label + '</label><input id="f-' + k + '" data-f="' + k + '"' + (v ? ' data-v="' + v + '"' : '') + (type ? ' type="' + type + '"' : '') + ' value="' + esc(fiche[k] || '') + '"></div>'; }
   /* Met à jour la ville affichée sous le nom (menu latéral) */
   function syncVille() {
     return HOL.Session.refresh().then(function (n) {
@@ -399,6 +399,7 @@
   var LANGS_UI = { fr: 'Français', en: 'Anglais', es: 'Espagnol', it: 'Italien', lsf: 'LSF' };
   function invert(o) { var r = {}; Object.keys(o).forEach(function (k) { r[o[k]] = k; }); return r; }
   var discById = {}, discByName = {}, ficheErr = false, ficheDb = false;
+  var acct = null, pw = { a: '', b: '' }, busyAcct = false;
 
   /* Charge la fiche depuis Supabase (repli : données locales si la base est injoignable) */
   function loadFiche() {
@@ -406,6 +407,7 @@
     if (!c) { ficheErr = true; return Promise.resolve(); }
     return c.auth.getUser().then(function (r) {
       var u = r.data && r.data.user; if (!u) throw new Error('no user');
+      acct = { nom: '', email: u.email || '' };
       return Promise.all([
         c.from('disciplines').select('id,nom'),
         c.from('profils_praticien').select('*').eq('utilisateur_id', u.id).single(),
@@ -424,8 +426,10 @@
         modes: (p.modes_seance || []).map(function (m) { return MODES_UI[m]; }).filter(Boolean),
         langs: (p.langues || []).map(function (l) { return LANGS_UI[l]; }).filter(Boolean),
         site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || '',
+        siret: p.siret || '', rcAss: p.rc_pro_assureur || '', rcEch: p.rc_pro_echeance || '', rcOk: !!p.rc_pro_declaree_le, rcDate: p.rc_pro_declaree_le || null,
         photos: (p.photos && typeof p.photos === 'object') ? p.photos : {}
       };
+      acct.nom = u.nom_complet || '';
       db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
     }).catch(function () { ficheErr = true; });
   }
@@ -445,12 +449,20 @@
           adresse: f.adresse.trim() || null, ville: f.ville.trim() || null,
           modes_seance: f.modes.map(function (m) { return mi[m]; }),
           langues: f.langs.map(function (l) { return li[l]; }),
-          site_web: f.site.trim() || null, instagram: f.insta.trim() || null
+          site_web: f.site.trim() || null, instagram: f.insta.trim() || null,
+          siret: (f.siret || '').replace(/\s/g, '') || null, rc_pro_assureur: (f.rcAss || '').trim() || null, rc_pro_echeance: f.rcEch || null,
+          rc_pro_declaree_le: f.rcOk ? (f.rcDate || (f.rcDate = new Date().toISOString())) : (f.rcDate = null)
         }).eq('utilisateur_id', id)
       ]);
     }).then(function (r) { if (r[0].error || r[1].error) throw new Error('db'); });
   }
+  function validateRoot() {
+    var bad = null; root.querySelectorAll('[data-v]').forEach(function (i) { if (HOL_VALID.checkInput(i, false) && !bad) bad = i; });
+    if (bad) { bad.focus(); HOL.toast('Merci de corriger les champs signalés.'); return false; }
+    return true;
+  }
   function saveFiche() {
+    if (!validateRoot()) return;
     if (!ficheDb || !HOL.sb()) { var s = st(); s.fiche = JSON.parse(JSON.stringify(fiche)); save(s); HOL.toast('Base injoignable : fiche enregistrée sur cet appareil seulement.'); return; }
     persistFiche().then(function () {
       syncVille(); render();
@@ -469,13 +481,36 @@
     var on = db.statut === 'en_ligne';
     return '<div class="fcard"><div class="fcard__title">Publication</div>' +
       '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
-        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance et au moins une prestation visible.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
+        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
       '<div class="fbtns" style="margin-top:14px">' + (on
         ? '<button class="btn-ghost2" type="button" data-act="unpublish">RETIRER MA FICHE DE LA RECHERCHE</button>'
         : '<button class="btn-dark2 btn-dark2--l" type="button" data-act="publish">PUBLIER MA FICHE</button>') +
       '<a class="btn-ghost2" href="' + pubUrl() + '">VOIR MA FICHE PUBLIQUE</a></div></div>';
   }
 
+  /* Cadre professionnel : exigé avant la première publication (sérieux de la démarche, assurance) */
+  function proCard() {
+    var f = fiche;
+    return '<div class="fcard"><div class="fcard__title">Cadre professionnel</div>' +
+      '<p class="fcard__lead" style="margin-top:0">Ces informations ne sont pas affichées sur votre fiche. Elles sont exigées avant la première publication : elles garantissent le sérieux de la démarche et filtrent les non-professionnels.</p>' +
+      '<div class="fgrid fgrid--200">' + field('siret', 'N° de SIRET (14 chiffres)', 'siret') + field('rcAss', 'Assureur RC Pro') + field('rcEch', 'Échéance de l’assurance', 'future', 'date') + '</div>' +
+      '<label class="toggle-row' + (f.rcOk ? ' is-on' : '') + '" style="margin-top:14px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.6"><input type="checkbox" data-fc="rcOk"' + (f.rcOk ? ' checked' : '') + ' style="margin-top:4px"><span>Je certifie sur l’honneur être couvert(e) par une assurance responsabilité civile professionnelle en cours de validité pour l’exercice de mon activité.</span></label></div>';
+  }
+  function rulesHtml(v) { return HOL_VALID.pwdRules(v).concat([['Les deux saisies correspondent', !!v && v === pw.b]]).map(function (r) { return '<div class="rule' + (r[1] ? ' is-ok' : '') + '"><span>' + (r[1] ? '✓' : '○') + '</span><span>' + r[0] + '</span></div>'; }).join(''); }
+  function accountCards() {
+    if (!acct) return '';
+    return '<div class="sec-head" style="margin-top:36px"><h2>Mon compte</h2></div>' +
+      '<div class="fcard"><div class="fcard__title">Identité et connexion</div><div class="fgrid fgrid--200">' +
+      '<div class="ffield fld"><label for="a-nom">Prénom et nom (état civil)</label><input id="a-nom" data-a="nom" data-v="name" required value="' + esc(acct.nom) + '"></div>' +
+      '<div class="ffield fld"><label for="a-email">E-mail de connexion</label><input id="a-email" type="email" data-a="email" data-v="email" required value="' + esc(acct.email) + '"></div></div>' +
+      '<p class="fcard__lead">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
+      '<div class="fbtns"><button class="btn-dark2" type="button" data-act="save-acct"' + (busyAcct ? ' disabled' : '') + '>ENREGISTRER MON COMPTE</button></div></div>' +
+      '<div class="fcard"><div class="fcard__title">Mot de passe</div><div class="fgrid fgrid--200">' +
+      '<div class="ffield fld"><label for="p-a">Nouveau mot de passe</label><input id="p-a" type="password" autocomplete="new-password" data-pw="a" value="' + esc(pw.a) + '"></div>' +
+      '<div class="ffield fld"><label for="p-b">Confirmer le mot de passe</label><input id="p-b" type="password" autocomplete="new-password" data-pw="b" value="' + esc(pw.b) + '"></div></div>' +
+      '<div class="rules" id="pw-rules" style="margin-top:14px">' + rulesHtml(pw.a) + '</div>' +
+      '<div class="fbtns" style="margin-top:14px"><button class="btn-dark2" type="button" data-act="save-pwd"' + (busyAcct ? ' disabled' : '') + '>CHANGER MON MOT DE PASSE</button></div></div>';
+  }
   function secFiche(d) {
     if (!fiche) {
       if (ficheErr) fiche = JSON.parse(JSON.stringify(d.s.fiche));
@@ -489,13 +524,14 @@
       '<div class="fblock"><span class="flabel">Disciplines complémentaires</span>' + chips('comp', COMP_SPECS) + '</div></div>' +
       '<div class="fcard"><div class="fcard__title">Présentation</div><div class="ffield" style="margin-bottom:18px"><label for="f-pres">Ce que vous proposez</label><textarea id="f-pres" data-f="pres" rows="4">' + esc(f.pres) + '</textarea><div class="ffield__count" id="pcount">' + f.pres.length + ' / 600 caractères</div></div>' +
       '<div class="ffield"><label for="f-parcours">Parcours et formation</label><textarea id="f-parcours" data-f="parcours" rows="3">' + esc(f.parcours) + '</textarea></div></div>' +
-      '<div class="fcard"><div class="fcard__title">Lieu et modalités</div><div class="fgrid fgrid--200" style="margin-bottom:20px">' + field('adresse', 'Adresse du cabinet') + field('ville', 'Ville') + '</div>' +
+      '<div class="fcard"><div class="fcard__title">Lieu et modalités</div><div class="fgrid fgrid--200" style="margin-bottom:20px">' + field('adresse', 'Adresse du cabinet') + field('ville', 'Ville', 'city') + '</div>' +
       '<div style="margin-bottom:20px"><span class="flabel">Modes de séance</span>' + chips('modes', ['Cabinet', 'Visio', 'À domicile']) + '</div>' +
       '<div><span class="flabel">Langues parlées</span>' + chips('langs', ['Français', 'Anglais', 'Espagnol', 'Italien', 'LSF']) + '</div></div>' +
       '<div class="fcard"><div class="fcard__title" style="margin-bottom:6px">Photos</div><p class="fcard__lead" style="margin-top:0">Trois images suffisent : vous, le lieu, une séance. Format paysage, lumière naturelle. JPEG, PNG ou WebP : l’image est automatiquement allégée.</p>' +
       photosHtml() + '</div>' +
-      '<div class="fcard fcard--last"><div class="fcard__title">Contact et liens</div><div class="fgrid fgrid--200">' + field('tel', 'Téléphone') + field('site', 'Site web') + field('insta', 'Instagram') + '</div></div>' +
-      '<div class="fbtns"><button class="btn-dark2 btn-dark2--l" type="button" data-act="save-fiche">ENREGISTRER LES MODIFICATIONS</button><a class="btn-ghost2" href="' + pubUrl() + '">PRÉVISUALISER MA FICHE</a></div>';
+      '<div class="fcard fcard--last"><div class="fcard__title">Contact et liens</div><div class="fgrid fgrid--200">' + field('tel', 'Téléphone', 'tel', 'tel') + field('site', 'Site web') + field('insta', 'Instagram') + '</div></div>' +
+      proCard() +
+      '<div class="fbtns"><button class="btn-dark2 btn-dark2--l" type="button" data-act="save-fiche">ENREGISTRER LES MODIFICATIONS</button><a class="btn-ghost2" href="' + pubUrl() + '">PRÉVISUALISER MA FICHE</a></div>' + accountCards();
   }
 
   /* ----- Messages ----- */
@@ -547,6 +583,7 @@
     var fn = SECTIONS[section];
     root.innerHTML = sidebar(d) + '<div class="espace__main">' + banner(d) + (fn ? fn(d) : '') + '</div>' + aside(d) + modalHtml();
     M.afterRender();
+    if (window.HOL_VALID) root.querySelectorAll('[data-v]').forEach(function (i) { HOL_VALID.bind(i); });
   }
   
   /* ----- Actions ----- */
@@ -692,7 +729,43 @@
     },
     'photo-del': function (el) { removePhoto(el.dataset.k); },
     'save-fiche': saveFiche,
+    'save-acct': function () {
+      if (!validateRoot()) return;
+      var c = HOL.sb(); if (!c || !acct) return;
+      busyAcct = true; render();
+      c.auth.getUser().then(function (r) {
+        var u = r.data.user, oldMail = (u.email || '').toLowerCase(), mail = acct.email.trim();
+        return c.from('utilisateurs').update({ nom_complet: acct.nom.trim() }).eq('id', u.id).then(function (q) {
+          if (q.error) throw q.error;
+          var ses = HOL.Session.get(); ses.name = acct.nom.trim(); HOL.Session.set(ses);
+          if (mail.toLowerCase() === oldMail) return null;
+          return c.auth.updateUser({ email: mail }, { emailRedirectTo: location.origin + '/connexion.html?confirme=1' }).then(function (x) { if (x.error) throw x.error; return mail; });
+        });
+      }).then(function (mail) {
+        busyAcct = false; render();
+        HOL.toast(mail ? 'Compte enregistré. Un lien de confirmation a été envoyé à ' + mail + ' : votre identifiant changera après un clic dessus.' : 'Compte enregistré.');
+      }).catch(function (e) {
+        busyAcct = false; render();
+        var m = (e && e.message || '').toLowerCase();
+        HOL.toast(e && e.code === '23514' ? 'Une information n’est pas valide.' : /already|registered|exists/.test(m) ? 'Cette adresse est déjà utilisée par un autre compte.' : 'Enregistrement impossible pour le moment. Réessayez dans un instant.');
+      });
+    },
+    'save-pwd': function () {
+      if (!HOL_VALID.pwdOk(pw.a)) { HOL.toast('Le mot de passe ne remplit pas encore toutes les conditions.'); return; }
+      if (pw.a !== pw.b) { HOL.toast('Les deux saisies ne correspondent pas.'); return; }
+      var c = HOL.sb(); if (!c) return;
+      busyAcct = true; render();
+      c.auth.updateUser({ password: pw.a }).then(function (x) {
+        if (x.error) throw x.error;
+        pw = { a: '', b: '' }; busyAcct = false; render(); HOL.toast('Mot de passe modifié.');
+      }).catch(function (e) {
+        busyAcct = false; render();
+        var m = (e && e.message || '').toLowerCase();
+        HOL.toast(/same|different/.test(m) ? 'Choisissez un mot de passe différent de l’actuel.' : /reauth|recent/.test(m) ? 'Pour des raisons de sécurité, reconnectez-vous puis réessayez.' : 'Modification impossible pour le moment. Réessayez dans un instant.');
+      });
+    },
     publish: function () {
+      if (!validateRoot()) return;
       persistFiche().then(function () { return setStatut('en_ligne', 'Votre fiche est en ligne. Les explorateurs peuvent maintenant la trouver.'); })
         .catch(function (e) { HOL.toast(e && e.pub ? e.message : 'Publication impossible pour le moment. Réessayez dans un instant.'); });
     },
@@ -714,13 +787,15 @@
       var t = e.target;
       if (M.onInput(e)) return;
       if (t.dataset.of) { offerForm[t.dataset.of] = t.value; return; }
+      if (t.dataset.a) { acct[t.dataset.a] = t.value; return; }
+      if (t.dataset.pw) { pw[t.dataset.pw] = t.value; var rr = document.getElementById('pw-rules'); if (rr) rr.innerHTML = rulesHtml(pw.a); return; }
       if (!t.dataset.f) return;
       fiche[t.dataset.f] = t.value;
       var done = [fiche.nom, fiche.disc, fiche.pres, fiche.parcours, fiche.adresse, fiche.ville, fiche.tel, fiche.site].filter(function (v) { return v && v.trim(); }).length;
       var c = document.getElementById('fcount'); if (c) c.textContent = done + ' / 8 champs renseignés';
       var p = document.getElementById('pcount'); if (p) p.textContent = fiche.pres.length + ' / 600 caractères';
     });
-    root.addEventListener('change', function (e) { if (e.target.dataset.of) offerForm[e.target.dataset.of] = e.target.value; if (e.target.dataset.f === 'disc') fiche.disc = e.target.value; });
+    root.addEventListener('change', function (e) { if (e.target.dataset.fc) { fiche[e.target.dataset.fc] = e.target.checked; return; } if (e.target.dataset.of) offerForm[e.target.dataset.of] = e.target.value; if (e.target.dataset.f === 'disc') fiche.disc = e.target.value; });
     root.addEventListener('keydown', function (e) { M.onKey(e); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal) ACTIONS.close(); });
     render();
