@@ -20,10 +20,12 @@
     /* Appelé après une connexion réussie : { role, name, email } */
     login: function (info) {
       info = info || {};
+      try { localStorage.removeItem(SKEY); } catch (e) {}   /* l'état local (exemples, brouillons) n'est jamais transmis d'un compte à l'autre */
       Session.set({ loggedIn: true, role: info.role === 'praticien' ? 'praticien' : 'explorateur', name: info.name || '', email: info.email || '' });
     },
     /* Déconnexion : renvoie une promesse, à attendre avant de changer de page */
     logout: function () {
+      try { localStorage.removeItem(SKEY); } catch (e) {}
       Session.set(OUT);
       var c = sb();
       return c ? c.auth.signOut().catch(function () {}) : Promise.resolve();

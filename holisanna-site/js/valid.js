@@ -76,6 +76,7 @@
   }
 
   function bind(input) {
+    if (input.__hv) return; input.__hv = true;
     var t = input.getAttribute('data-v');
     if (t === 'tel') { input.setAttribute('inputmode', 'tel'); input.maxLength = 20; }
     if (t === 'cp') { input.setAttribute('inputmode', 'numeric'); input.maxLength = 5; }

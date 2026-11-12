@@ -13,9 +13,12 @@
   if (!sess.loggedIn) { location.replace('connexion.html'); return; }
   if (sess.role === 'praticien') { location.replace('espace-praticien.html'); return; }
 
+  /* Le mode « exemple rempli » ne dure que le temps de la page : il n'est jamais conservé d'une visite à l'autre */
+  (function () { var s0 = HOL.Store.get(); if (s0.demoCocktail) { s0.demoCocktail = false; HOL.Store.set(s0); } })();
+
   /* ----- Données réelles (Supabase) : réservations et praticiens recommandés ----- */
   var M = HOL_MSG.create({ role: 'explorateur', section: section, rerender: function () { render(); } });
-  var rd = { ready: false, err: false, list: [], recos: [], avis: [], favs: [] }, cancelId = null, rv = { idx: null, note: 0, text: '', busy: false };
+  var rd = { ready: false, err: false, list: [], recos: [], avis: [], favs: [], prof: null }, cancelId = null, rv = { idx: null, note: 0, text: '', busy: false };
   function paris(iso) {
     var o = {}; new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso)).forEach(function (x) { o[x.type] = x.value; });
     return o;
@@ -38,11 +41,20 @@
   }
   function loadReal() {
     var c = HOL.sb(); if (!c) { rd.err = true; return Promise.resolve(); }
+    var profP = c.auth.getSession().then(function (r) {
+      var u = r.data && r.data.session && r.data.session.user; if (!u) return null;
+      return Promise.all([c.from('utilisateurs').select('nom_complet,telephone').eq('id', u.id).maybeSingle(), c.from('profils_explorateur').select('ville,date_naissance,piliers_prefs,modes_prefs,budget_max').eq('utilisateur_id', u.id).maybeSingle()]).then(function (q) {
+        var a = q[0].data || {}, b = q[1].data || {};
+        return { uid: u.id, email: u.email || '', nom: a.nom_complet || '', tel: a.telephone || '', naissance: b.date_naissance || '', ville: b.ville || '', piliers: b.piliers_prefs || [], modes: b.modes_prefs || [], budget: b.budget_max };
+      });
+    }).catch(function () { return null; });
     return Promise.all([
+      profP,
       c.from('reservations').select('*').order('debut', { ascending: false }).limit(200),
       c.from('avis').select('id,reservation_id,note,commentaire,reponse,cree_le,praticien_id').order('cree_le', { ascending: false }).limit(200),
       window.HOL_DIR ? HOL_DIR.list().catch(function () { return []; }) : Promise.resolve([])
     ]).then(function (r) {
+      rd.prof = r[0]; r = r.slice(1);
       if (r[0].error) throw r[0].error;
       rd.list = r[0].data || []; rd.avis = r[1].error ? [] : (r[1].data || []); rd.recos = (r[2] || []).slice(0, 3);
       if (!window.HOL_FAV) return;
@@ -132,7 +144,7 @@
     var rdvTxt = !rd.ready ? 'Bienvenue' : wk ? 'Vous avez ' + wk + ' rendez-vous' : 'Vous n’avez aucun rendez-vous';
     return '<div class="banner"><div class="banner__text"><div class="banner__date">' + date + '</div>' +
       '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>prenez soin de vous.</em></h1>' +
-      '<p>' + rdvTxt + ' cette semaine et ' + d.touched + ' pilier' + (d.touched > 1 ? 's' : '') + ' dans votre cocktail.</p></div>' +
+      '<p>' + rdvTxt + ' cette semaine' + (d.touched ? ' et ' + d.touched + ' pilier' + (d.touched > 1 ? 's' : '') + ' dans votre cocktail.' : '. Votre cocktail se construira séance après séance.') + '</p></div>' +
       '<a class="banner__search" href="recherche.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(250,246,238,0.45)" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg><span>Rechercher un praticien…</span></a></div>';
   }
   function stats(d) {
@@ -290,18 +302,28 @@
   function secNotifs() { return M.notifsHtml(); }
 
   /* ----- Mon profil ----- */
-  var profile = null, prefs = null;
-  var FIELDS = [['nom', 'Nom', 'text'], ['email', 'Email', 'email'], ['tel', 'Téléphone', 'text'], ['naissance', 'Date de naissance', 'text'], ['ville', 'Ville', 'text']];
-  var PREF_OPTS = ['Corps', 'Âme', 'Esprit', 'Séances en cabinet', 'Séances en visio', 'À domicile', 'Français', 'Anglais', 'Budget ≤ 90 €'];
+  var profile = null, prefs = null, savingProfile = false;
+  var FIELDS = [['nom', 'Nom complet', 'text', 'name', 1], ['email', 'E-mail de connexion', 'email', 'email', 1], ['tel', 'Téléphone', 'tel', 'tel', 1], ['naissance', 'Date de naissance', 'date', 'date18', 1], ['ville', 'Ville', 'text', 'city', 0]];
+  var PREF_OPTS = ['Corps', 'Âme', 'Esprit', 'Séances en cabinet', 'Séances en visio', 'À domicile', 'Budget ≤ 90 €'];
+  var PIL_DB = { 'Corps': 'corps', 'Âme': 'ame', 'Esprit': 'esprit' }, MODE_DB = { 'Séances en cabinet': 'presentiel', 'Séances en visio': 'distanciel', 'À domicile': 'domicile' };
+  function dbToPrefs(p) {
+    var out = [];
+    Object.keys(PIL_DB).forEach(function (k) { if (p.piliers.indexOf(PIL_DB[k]) !== -1) out.push(k); });
+    Object.keys(MODE_DB).forEach(function (k) { if (p.modes.indexOf(MODE_DB[k]) !== -1) out.push(k); });
+    if (p.budget === 90) out.push('Budget ≤ 90 €');
+    return out;
+  }
   function secProfil(d) {
-    if (!profile) { profile = Object.assign({}, d.s.explProfile); prefs = d.s.explPrefs.slice(); }
+    if (!rd.prof) return head('Mon profil') + pendingNote('votre profil');
+    if (!profile) { profile = { nom: rd.prof.nom, email: rd.prof.email, tel: rd.prof.tel, naissance: rd.prof.naissance, ville: rd.prof.ville }; prefs = dbToPrefs(rd.prof); }
     return '<div class="sec-head"><h2>Mon profil</h2></div>' +
       '<div class="pbox pbox--grid">' + FIELDS.map(function (f) {
-        return '<div class="pfield"><label for="f-' + f[0] + '">' + f[1] + '</label><input id="f-' + f[0] + '" data-field="' + f[0] + '" type="' + f[2] + '" value="' + esc(profile[f[0]]) + '"></div>';
+        return '<div class="pfield fld"><label for="f-' + f[0] + '">' + f[1] + (f[4] ? ' *' : '') + '</label><input id="f-' + f[0] + '" data-field="' + f[0] + '" data-v="' + f[3] + '" type="' + f[2] + '"' + (f[4] ? ' required' : '') + ' value="' + esc(profile[f[0]] || '') + '"></div>';
       }).join('') + '</div>' +
+      '<p class="pbox__lead" style="margin:-4px 0 16px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
       '<div class="pbox" style="margin-bottom:20px"><div class="pbox__title">Préférences bien-être</div><p class="pbox__lead">Ces choix orientent les praticiens qui vous sont recommandés.</p><div class="chipset">' +
       PREF_OPTS.map(function (o) { var on = prefs.indexOf(o) !== -1; return '<button class="chipbtn chipbtn--s' + (on ? ' is-on' : '') + '" type="button" data-act="pref" data-v="' + esc(o) + '" aria-pressed="' + on + '">' + o + '</button>'; }).join('') + '</div></div>' +
-      '<button class="btn-dark2 btn-dark2--l" type="button" data-act="save-profile">ENREGISTRER MON PROFIL</button>';
+      '<button class="btn-dark2 btn-dark2--l" type="button" data-act="save-profile"' + (savingProfile ? ' disabled' : '') + '>ENREGISTRER MON PROFIL</button>';
   }
 
   /* ----- Fenêtres modales ----- */
@@ -339,6 +361,7 @@
     var content = { dash: secDash, rdv: secRdv, avis: secAvis, favoris: secFavoris, cocktail: secCocktail, messages: secMessages, notifs: secNotifs, profil: secProfil }[section](d);
     root.innerHTML = sidebar(d) + '<div class="espace__main">' + banner(d) + content + '</div>' + aside(d) + modalHtml();
     M.afterRender();
+    if (window.HOL_VALID) root.querySelectorAll('[data-v]').forEach(function (i) { HOL_VALID.bind(i); });
   }
 
   /* ----- Actions ----- */
@@ -387,7 +410,33 @@
     save: function () { HOL.toast('Cocktail sauvegardé sur votre profil explorateur.'); },
     share: function () { HOL.toast('Lien de partage copié : holisanna.fr/cocktail/sarah-n'); },
     pref: function (el) { var v = el.dataset.v, i = prefs.indexOf(v); if (i > -1) prefs.splice(i, 1); else prefs.push(v); render(); },
-    'save-profile': function () { var s = st(); s.explProfile = Object.assign({}, profile); s.explPrefs = prefs.slice(); save(s); HOL.toast('Profil enregistré.'); }
+    'save-profile': function () {
+      var bad = null; root.querySelectorAll('[data-v]').forEach(function (i) { if (HOL_VALID.checkInput(i, true) && !bad) bad = i; });
+      if (bad) { bad.focus(); HOL.toast('Merci de corriger les champs signalés.'); return; }
+      var c = HOL.sb(), p = rd.prof; if (!c || !p) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
+      var piliers = [], modes = [];
+      prefs.forEach(function (o) { if (PIL_DB[o]) piliers.push(PIL_DB[o]); else if (MODE_DB[o]) modes.push(MODE_DB[o]); });
+      var budget = prefs.indexOf('Budget ≤ 90 €') !== -1 ? 90 : (p.budget === 90 ? null : p.budget);
+      savingProfile = true; render();
+      Promise.all([
+        c.from('utilisateurs').update({ nom_complet: profile.nom.trim(), telephone: profile.tel.trim() }).eq('id', p.uid),
+        c.from('profils_explorateur').update({ ville: (profile.ville || '').trim() || null, date_naissance: profile.naissance || null, piliers_prefs: piliers, modes_prefs: modes, budget_max: budget }).eq('utilisateur_id', p.uid)
+      ]).then(function (r) {
+        var err = r[0].error || r[1].error; if (err) throw err;
+        rd.prof = Object.assign({}, p, { nom: profile.nom.trim(), tel: profile.tel.trim(), naissance: profile.naissance, ville: (profile.ville || '').trim(), piliers: piliers, modes: modes, budget: budget });
+        var ses = HOL.Session.get(); ses.name = rd.prof.nom; HOL.Session.set(ses);
+        var mail = profile.email.trim();
+        if (mail.toLowerCase() === p.email.toLowerCase()) return null;
+        return c.auth.updateUser({ email: mail }, { emailRedirectTo: location.origin + '/connexion.html?confirme=1' }).then(function (u) { if (u.error) throw u.error; return mail; });
+      }).then(function (mail) {
+        savingProfile = false; render();
+        HOL.toast(mail ? 'Profil enregistré. Un lien de confirmation a été envoyé à ' + mail + ' : votre identifiant changera après un clic dessus.' : 'Profil enregistré.');
+      }).catch(function (e) {
+        savingProfile = false; render();
+        var m = (e && e.message || '').toLowerCase();
+        HOL.toast(e && e.code === '23514' ? 'Une information n’est pas valide. Vérifiez la ville, le téléphone et la date de naissance.' : /already|registered|exists/.test(m) ? 'Cette adresse est déjà utilisée par un autre compte.' : 'Enregistrement impossible pour le moment. Réessayez dans un instant.');
+      });
+    }
   };
 
   document.addEventListener('DOMContentLoaded', function () {
