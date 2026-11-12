@@ -510,7 +510,7 @@
       '<div class="fcard"><div class="fcard__title">Identité et connexion</div><div class="fgrid fgrid--200">' +
       '<div class="ffield fld"><label for="a-nom">Prénom et nom (état civil)</label><input id="a-nom" data-a="nom" data-v="name" required value="' + esc(acct.nom) + '"></div>' +
       '<div class="ffield fld"><label for="a-email">E-mail de connexion</label><input id="a-email" type="email" data-a="email" data-v="email" required value="' + esc(acct.email) + '"></div></div>' +
-      '<p class="fcard__lead">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
+      '<p class="fcard__lead" style="margin:16px 0 18px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
       '<div class="fbtns"><button class="btn-dark2" type="button" data-act="save-acct"' + (busyAcct ? ' disabled' : '') + '>ENREGISTRER MON COMPTE</button></div></div>' +
       '<div class="fcard"><div class="fcard__title">Mot de passe</div><div class="fgrid fgrid--200">' +
       '<div class="ffield fld"><label for="p-a">Nouveau mot de passe</label><input id="p-a" type="password" autocomplete="new-password" data-pw="a" value="' + esc(pw.a) + '"></div>' +
