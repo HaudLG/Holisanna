@@ -114,20 +114,20 @@
     if (params.get('confirme')) HOL.toast('Adresse confirmée. Vous pouvez vous connecter.');
     $('login-form').addEventListener('submit', function (e) {
       e.preventDefault();
-      var c = sb(), form = e.target;
+      var c = sb(), form = e.target, restored = false, BACK = 'Votre demande de suppression est annulée. Bon retour parmi nous.';
       if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
       busy(form, true);
       c.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pwd').value }).then(function (r) {
         if (r.error) { busy(form, false); HOL.toast(errMsg(r.error)); return; }
-        return HOL.Session.refresh().then(function (info) {
+        return HOL.account.cancelDelete().then(function (was) { restored = was; return HOL.Session.refresh(); }).then(function (info) {
           if (!info.loggedIn) { busy(form, false); HOL.toast('Connexion impossible. Réessayez.'); return; }
           HOL.Session.login(info);
           var next = nextUrl();
-          if (info.role === 'praticien') return go(next || 'espace-praticien.html', 'Bon retour. Votre semaine vous attend.');
+          if (info.role === 'praticien') return go(next || 'espace-praticien.html', restored ? BACK : 'Bon retour. Votre semaine vous attend.');
           /* Premier passage d'un explorateur : on lui propose le questionnaire de départ */
           return c.from('profils_explorateur').select('piliers_prefs').eq('utilisateur_id', r.data.user.id).maybeSingle().then(function (q) {
             var first = q.data && q.data.piliers_prefs === null;
-            go(first ? 'onboarding.html' : (next || 'espace.html'), first ? 'Bienvenue. Trois questions pour amorcer votre cocktail.' : 'Bon retour. Votre cocktail bien-être vous attend.');
+            go(first ? 'onboarding.html' : (next || 'espace.html'), first ? 'Bienvenue. Trois questions pour amorcer votre cocktail.' : restored ? BACK : 'Bon retour. Votre cocktail bien-être vous attend.');
           });
         });
       }).catch(function (err) { busy(form, false); HOL.toast(errMsg(err)); });

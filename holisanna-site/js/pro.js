@@ -399,7 +399,7 @@
   var LANGS_UI = { fr: 'Français', en: 'Anglais', es: 'Espagnol', it: 'Italien', lsf: 'LSF' };
   function invert(o) { var r = {}; Object.keys(o).forEach(function (k) { r[o[k]] = k; }); return r; }
   var discById = {}, discByName = {}, ficheErr = false, ficheDb = false;
-  var acct = null, pw = { a: '', b: '' }, busyAcct = false;
+  var acct = null, pw = { a: '', b: '' }, busyAcct = false, delStep = 0, delText = '';
 
   /* Charge la fiche depuis Supabase (repli : données locales si la base est injoignable) */
   function loadFiche() {
@@ -497,6 +497,13 @@
       '<label class="toggle-row' + (f.rcOk ? ' is-on' : '') + '" style="margin-top:14px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.6"><input type="checkbox" data-fc="rcOk"' + (f.rcOk ? ' checked' : '') + ' style="margin-top:4px"><span>Je certifie sur l’honneur être couvert(e) par une assurance responsabilité civile professionnelle en cours de validité pour l’exercice de mon activité.</span></label></div>';
   }
   function rulesHtml(v) { return HOL_VALID.pwdRules(v).concat([['Les deux saisies correspondent', !!v && v === pw.b]]).map(function (r) { return '<div class="rule' + (r[1] ? ' is-ok' : '') + '"><span>' + (r[1] ? '✓' : '○') + '</span><span>' + r[0] + '</span></div>'; }).join(''); }
+  function deleteBox() {
+    return '<div class="fcard"><div class="fcard__title">Supprimer mon compte</div>' +
+      '<p class="fcard__lead" style="margin-top:0">Votre fiche est retirée de la recherche, vos rendez-vous à venir sont annulés (les explorateurs en sont informés) et votre abonnement est résilié. Vous avez <strong>14 jours pour changer d’avis</strong> : il suffit de vous reconnecter. Passé ce délai, vos données sont effacées ; seules les pièces comptables sont conservées dix ans, comme la loi l’exige.</p>' +
+      (delStep ? '<div class="ffield fld" style="max-width:320px;margin-bottom:14px"><label for="del-ok">Pour confirmer, tapez SUPPRIMER</label><input id="del-ok" data-del="1" autocomplete="off" value="' + esc(delText) + '"></div>' +
+        '<div class="fbtns"><button class="btn-dark2" type="button" id="del-go" data-act="del-confirm"' + (delText.trim().toUpperCase() === 'SUPPRIMER' ? '' : ' disabled') + '>CONFIRMER LA SUPPRESSION</button><button class="btn-ghost2" type="button" data-act="del-cancel">ANNULER</button></div>'
+        : '<div class="fbtns"><button class="btn-ghost2" type="button" data-act="del-start">SUPPRIMER MON COMPTE</button></div>') + '</div>';
+  }
   function accountCards() {
     if (!acct) return '';
     return '<div class="sec-head" style="margin-top:36px"><h2>Mon compte</h2></div>' +
@@ -509,7 +516,7 @@
       '<div class="ffield fld"><label for="p-a">Nouveau mot de passe</label><input id="p-a" type="password" autocomplete="new-password" data-pw="a" value="' + esc(pw.a) + '"></div>' +
       '<div class="ffield fld"><label for="p-b">Confirmer le mot de passe</label><input id="p-b" type="password" autocomplete="new-password" data-pw="b" value="' + esc(pw.b) + '"></div></div>' +
       '<div class="rules" id="pw-rules" style="margin-top:14px">' + rulesHtml(pw.a) + '</div>' +
-      '<div class="fbtns" style="margin-top:14px"><button class="btn-dark2" type="button" data-act="save-pwd"' + (busyAcct ? ' disabled' : '') + '>CHANGER MON MOT DE PASSE</button></div></div>';
+      '<div class="fbtns" style="margin-top:14px"><button class="btn-dark2" type="button" data-act="save-pwd"' + (busyAcct ? ' disabled' : '') + '>CHANGER MON MOT DE PASSE</button></div></div>' + deleteBox();
   }
   function secFiche(d) {
     if (!fiche) {
@@ -729,6 +736,14 @@
     },
     'photo-del': function (el) { removePhoto(el.dataset.k); },
     'save-fiche': saveFiche,
+    'del-start': function () { delStep = 1; delText = ''; render(); },
+    'del-cancel': function () { delStep = 0; delText = ''; render(); },
+    'del-confirm': function () {
+      if (delText.trim().toUpperCase() !== 'SUPPRIMER') return;
+      HOL.account.requestDelete().then(function (r) {
+        return HOL.Session.logout().then(function () { HOL.flash('Suppression programmée : votre compte sera effacé le ' + HOL.account.dateFr(r.date) + '. Reconnectez-vous avant cette date pour l’annuler.'); location.href = 'index.html'; });
+      }).catch(function () { HOL.toast('Suppression impossible pour le moment. Réessayez dans un instant.'); });
+    },
     'save-acct': function () {
       if (!validateRoot()) return;
       var c = HOL.sb(); if (!c || !acct) return;
@@ -788,6 +803,7 @@
       if (M.onInput(e)) return;
       if (t.dataset.of) { offerForm[t.dataset.of] = t.value; return; }
       if (t.dataset.a) { acct[t.dataset.a] = t.value; return; }
+      if (t.dataset.del) { delText = t.value; var g = document.getElementById('del-go'); if (g) g.disabled = delText.trim().toUpperCase() !== 'SUPPRIMER'; return; }
       if (t.dataset.pw) { pw[t.dataset.pw] = t.value; var rr = document.getElementById('pw-rules'); if (rr) rr.innerHTML = rulesHtml(pw.a); return; }
       if (!t.dataset.f) return;
       fiche[t.dataset.f] = t.value;

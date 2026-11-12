@@ -206,5 +206,21 @@
     renderHeader(); renderFooter(); syncSession();
     try { var f = sessionStorage.getItem('holisanna.flash'); if (f) { sessionStorage.removeItem('holisanna.flash'); toast(f); } } catch (e) {}
   });
-  window.HOL = { Session: Session, Store: Store, toast: toast, flash: flash, who: who, esc: esc, sb: sb };
+  /* Suppression de compte : délai de réflexion de 14 jours (voir la fonction compte-suppression) */
+  var account = {
+    requestDelete: function () {
+      var c = sb(); if (!c) return Promise.reject(new Error('no client'));
+      return c.functions.invoke('compte-suppression', { body: { action: 'demander' } }).then(function (r) {
+        if (r.error || !r.data || !r.data.ok) throw (r.error || new Error('delete'));
+        return r.data;
+      });
+    },
+    /* Appelée à la connexion : annule une suppression en attente. Ne bloque jamais la connexion. */
+    cancelDelete: function () {
+      var c = sb(); if (!c) return Promise.resolve(false);
+      return c.functions.invoke('compte-suppression', { body: { action: 'annuler' } }).then(function (r) { return !!(r.data && r.data.annulee); }, function () { return false; });
+    },
+    dateFr: function (iso) { return new Date(iso).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  };
+  window.HOL = { account: account, Session: Session, Store: Store, toast: toast, flash: flash, who: who, esc: esc, sb: sb };
 })();

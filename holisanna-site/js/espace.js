@@ -302,7 +302,7 @@
   function secNotifs() { return M.notifsHtml(); }
 
   /* ----- Mon profil ----- */
-  var profile = null, prefs = null, savingProfile = false;
+  var profile = null, prefs = null, savingProfile = false, delStep = 0, delText = '';
   var FIELDS = [['nom', 'Nom complet', 'text', 'name', 1], ['email', 'E-mail de connexion', 'email', 'email', 1], ['tel', 'Téléphone', 'tel', 'tel', 1], ['naissance', 'Date de naissance', 'date', 'date18', 1], ['ville', 'Ville', 'text', 'city', 0]];
   var PREF_OPTS = ['Corps', 'Âme', 'Esprit', 'Séances en cabinet', 'Séances en visio', 'À domicile', 'Budget ≤ 90 €'];
   var PIL_DB = { 'Corps': 'corps', 'Âme': 'ame', 'Esprit': 'esprit' }, MODE_DB = { 'Séances en cabinet': 'presentiel', 'Séances en visio': 'distanciel', 'À domicile': 'domicile' };
@@ -323,7 +323,14 @@
       '<p class="pbox__lead" style="margin:-4px 0 16px">Votre adresse e-mail est aussi votre identifiant de connexion. Si vous la changez, un lien de confirmation est envoyé à la nouvelle adresse : elle ne sera active qu’après un clic sur ce lien.</p>' +
       '<div class="pbox" style="margin-bottom:20px"><div class="pbox__title">Préférences bien-être</div><p class="pbox__lead">Ces choix orientent les praticiens qui vous sont recommandés.</p><div class="chipset">' +
       PREF_OPTS.map(function (o) { var on = prefs.indexOf(o) !== -1; return '<button class="chipbtn chipbtn--s' + (on ? ' is-on' : '') + '" type="button" data-act="pref" data-v="' + esc(o) + '" aria-pressed="' + on + '">' + o + '</button>'; }).join('') + '</div></div>' +
-      '<button class="btn-dark2 btn-dark2--l" type="button" data-act="save-profile"' + (savingProfile ? ' disabled' : '') + '>ENREGISTRER MON PROFIL</button>';
+      '<button class="btn-dark2 btn-dark2--l" type="button" data-act="save-profile"' + (savingProfile ? ' disabled' : '') + '>ENREGISTRER MON PROFIL</button>' + deleteBox();
+  }
+  function deleteBox() {
+    return '<div class="pbox" style="margin-top:36px"><div class="pbox__title">Supprimer mon compte</div>' +
+      '<p class="pbox__lead">Votre compte est désactivé tout de suite et vos rendez-vous à venir sont annulés (les praticiens en sont informés). Vous avez <strong>14 jours pour changer d’avis</strong> : il suffit de vous reconnecter. Passé ce délai, vos données personnelles sont effacées et vos avis sont rendus anonymes.</p>' +
+      (delStep ? '<div class="pfield fld" style="max-width:320px;margin-bottom:14px"><label for="del-ok">Pour confirmer, tapez SUPPRIMER</label><input id="del-ok" data-del="1" autocomplete="off" value="' + esc(delText) + '"></div>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-dark2" type="button" id="del-go" data-act="del-confirm"' + (delText.trim().toUpperCase() === 'SUPPRIMER' ? '' : ' disabled') + '>CONFIRMER LA SUPPRESSION</button><button class="btn-ghost2" type="button" data-act="del-cancel">ANNULER</button></div>'
+        : '<button class="btn-ghost2" type="button" data-act="del-start">SUPPRIMER MON COMPTE</button>') + '</div>';
   }
 
   /* ----- Fenêtres modales ----- */
@@ -410,6 +417,14 @@
     save: function () { HOL.toast('Cocktail sauvegardé sur votre profil explorateur.'); },
     share: function () { HOL.toast('Lien de partage copié : holisanna.fr/cocktail/sarah-n'); },
     pref: function (el) { var v = el.dataset.v, i = prefs.indexOf(v); if (i > -1) prefs.splice(i, 1); else prefs.push(v); render(); },
+    'del-start': function () { delStep = 1; delText = ''; render(); },
+    'del-cancel': function () { delStep = 0; delText = ''; render(); },
+    'del-confirm': function () {
+      if (delText.trim().toUpperCase() !== 'SUPPRIMER') return;
+      HOL.account.requestDelete().then(function (r) {
+        return HOL.Session.logout().then(function () { HOL.flash('Suppression programmée : votre compte sera effacé le ' + HOL.account.dateFr(r.date) + '. Reconnectez-vous avant cette date pour l’annuler.'); location.href = 'index.html'; });
+      }).catch(function () { HOL.toast('Suppression impossible pour le moment. Réessayez dans un instant.'); });
+    },
     'save-profile': function () {
       var bad = null; root.querySelectorAll('[data-v]').forEach(function (i) { if (HOL_VALID.checkInput(i, true) && !bad) bad = i; });
       if (bad) { bad.focus(); HOL.toast('Merci de corriger les champs signalés.'); return; }
@@ -450,6 +465,7 @@
     root.addEventListener('input', function (e) {
       if (M.onInput(e)) return;
       if (e.target.dataset.field) profile[e.target.dataset.field] = e.target.value;
+      if (e.target.dataset.del) { delText = e.target.value; var g = document.getElementById('del-go'); if (g) g.disabled = delText.trim().toUpperCase() !== 'SUPPRIMER'; }
     });
     root.addEventListener('keydown', function (e) {
       M.onKey(e);
