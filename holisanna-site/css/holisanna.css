@@ -338,7 +338,9 @@ input[type="range"] { width: 100%; accent-color: var(--olive); }
 .choice-head h1 { font-family: var(--font-serif); font-weight: 300; font-size: 42px; color: var(--slate); margin-bottom: 12px; }
 .choice-head p { font-size: 13px; font-weight: 300; line-height: 1.7; }
 .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 680px; width: 100%; margin-bottom: 36px; }
-.choice { border: .5px solid var(--border); background: var(--white); padding: 40px 32px; text-align: center; color: inherit; display: block; }
+.choice { border: .5px solid var(--border); background: var(--white); padding: 40px 32px; text-align: center; color: inherit; display: flex; flex-direction: column; align-items: center; }
+.choice p { flex: 1; }
+input::-ms-reveal, input::-ms-clear { display: none; }
 .choice:hover { color: inherit; }
 .choice--expl:hover { border-color: var(--olive); background: var(--olive-bg); }
 .choice--prat:hover { border-color: var(--rose); background: var(--rose-bg); }

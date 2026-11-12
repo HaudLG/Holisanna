@@ -129,7 +129,7 @@
     return '<div class="banner banner--rose"><img src="assets/logo-dreamcatcher-ivory.png" alt="">' +
       '<div class="banner__text"><div class="banner__date">' + (db.week ? 'Semaine du ' + weekLabel() : '') + '</div>' +
       '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>' + (d.empty && db.ready ? 'ouvrez vos premiers créneaux.' : 'votre semaine est ouverte.') + '</em></h1>' +
-      '<p>' + (db.ready ? d.confirmed + ' séance' + (d.confirmed > 1 ? 's' : '') + ' réservée' + (d.confirmed > 1 ? 's' : '') + ' cette semaine · ' + d.free + ' créneau' + (d.free > 1 ? 'x' : '') + ' encore libre' + (d.free > 1 ? 's' : '') + '.' : '&nbsp;') + '</p></div>' +
+      '<p>' + (db.ready ? d.confirmed + ' séance' + (d.confirmed > 1 ? 's' : '') + ' réservée' + (d.confirmed > 1 ? 's' : '') + ' cette semaine · ' + d.free + ' créneau' + (d.free > 1 ? 'x' : '') + ' encore libre' + (d.free > 1 ? 's' : '') + ' cette semaine.' : '&nbsp;') + '</p></div>' +
       '<div class="banner__btns"><button class="btn-line-light" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' +
       '<a class="btn-dark2" href="' + pubUrl() + '">VOIR MA FICHE PUBLIQUE</a></div></div>';
   }
@@ -137,7 +137,7 @@
   /* ----- Blocs ----- */
   function stats(d) {
     var items = [
-      [d.confirmed, 'réservations cette semaine', 'var(--olive)'], [d.free, 'créneaux encore libres', 'var(--slate)'],
+      [d.confirmed, 'réservations cette semaine', 'var(--olive)'], [d.free, 'créneaux encore libres cette semaine', 'var(--slate)'],
       (db.avis.length ? [String(avg()).replace('.', ','), 'note moyenne · ' + db.avis.length + ' avis', 'var(--gold)'] : ['—', 'note moyenne · pas encore d’avis', 'var(--gold)']), [db.vues || 0, 'vues de votre fiche ce mois-ci', 'var(--rose)']
     ];
     return '<div class="pstats">' + items.map(function (i) {
@@ -213,7 +213,7 @@
       '<div class="rside__block"><div class="rside__row" style="margin-bottom:10px"><span class="rside__label">Complétude de ma fiche</span><span style="font-size:11px;color:var(--gold)">' + pct + '%</span></div>' +
       '<div class="compl__bar"><div style="width:' + pct + '%"></div></div>' +
       compl.map(function (c) { return '<div class="compl__item"><span style="color:' + (c[1] ? 'var(--olive)' : 'var(--slate-lt)') + '">' + (c[1] ? '✓' : '○') + '</span><span style="color:' + (c[1] ? 'var(--slate-md)' : 'var(--slate-lt)') + '">' + c[0] + '</span></div>'; }).join('') +
-      '<a class="btn-dark2" href="pro-fiche.html" style="margin-top:12px">Compléter ma fiche →</a></div>' +
+      '<a class="btn-dark2" href="pro-fiche.html" style="margin-top:12px">' + (pct >= 100 ? 'Modifier' : 'Compléter') + ' ma fiche →</a></div>' +
       M.asideHtml('pro-notifications.html') + '</aside>';
   }
 
