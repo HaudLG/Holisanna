@@ -151,10 +151,18 @@
     });
   }
 
+  /* Une vue par visiteur et par jour : un identifiant aléatoire anonyme, gardé dans le navigateur. Les fiches non publiées et les visites du praticien ne comptent pas (côté base). */
+  function countView(p) {
+    if (!p || !p.published || !window.HOL_SB || !HOL_SB.client) return;
+    var id = ''; try { id = localStorage.getItem('holisanna.visiteur'); if (!id) { id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + String(Date.now()); localStorage.setItem('holisanna.visiteur', id); } } catch (e) {}
+    if (!id) id = 'v' + String(Date.now()) + String(Math.random()).slice(2);
+    HOL_SB.client.rpc('enregistrer_vue_fiche', { p_slug: slug, p_visiteur: id }).then(function () {}, function () {});
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     if (!slug) { prat ? render(prat) : notFound(); return; }
     loading();
-    (window.HOL_FAV ? HOL_FAV.load() : Promise.resolve()).then(function () { return HOL_DIR.one(slug); }).then(function (p) { if (!p) return notFound(); render(p, !p.published); })
+    (window.HOL_FAV ? HOL_FAV.load() : Promise.resolve()).then(function () { return HOL_DIR.one(slug); }).then(function (p) { if (!p) return notFound(); render(p, !p.published); countView(p); })
       .catch(function () { host.innerHTML = '<div class="empty"><h3>Fiche momentanément indisponible</h3><p>Réessayez dans un instant.</p><a class="btn btn-outline" href="recherche.html">Voir tous les praticiens</a></div>'; });
   });
 })();

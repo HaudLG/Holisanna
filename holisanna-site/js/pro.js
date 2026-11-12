@@ -138,7 +138,7 @@
   function stats(d) {
     var items = [
       [d.confirmed, 'réservations cette semaine', 'var(--olive)'], [d.free, 'créneaux encore libres cette semaine', 'var(--slate)'],
-      (db.avis.length ? [String(avg()).replace('.', ','), 'note moyenne · ' + db.avis.length + ' avis', 'var(--gold)'] : ['—', 'note moyenne · pas encore d’avis', 'var(--gold)']), [db.vues || 0, 'vues de votre fiche ce mois-ci', 'var(--rose)']
+      (db.avis.length ? [String(avg()).replace('.', ','), 'note moyenne · ' + db.avis.length + ' avis', 'var(--gold)'] : ['—', 'note moyenne · pas encore d’avis', 'var(--gold)']), [db.vues || 0, 'vues de votre fiche · 30 derniers jours', 'var(--rose)']
     ];
     return '<div class="pstats">' + items.map(function (i) {
       return '<div class="pstat"><div class="pstat__n" style="color:' + i[2] + '">' + i[0] + '</div><div class="pstat__label">' + i[1] + '</div></div>';
@@ -155,16 +155,17 @@
         var x = map[day + ' ' + t], c, attr = '';
         var rs = x && x.statut === 'reserve' ? db.resas.filter(function (q) { return q.creneau_id === x.id; })[0] : null;
         if (x && x.statut === 'reserve') { c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: rs ? esc(rs.client_nom) : 'Réservé', b: rs ? esc(rs.prestation_nom) : '' }; if (rs) attr = ' data-act="open-resa" data-id="' + rs.id + '"'; }
-        else if (x && x.statut === 'bloque') c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Bloqué', b: '·' };
+        else if (x && x.statut === 'bloque') { c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Bloqué', b: '·' }; if (x.debut > nowIso) { c.b = 'Rouvrir +'; c.c2 = 'var(--olive)'; attr = ' data-act="reopen-slot" data-id="' + x.id + '"'; } }
         else if (x) { c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'var(--slate-lt)', a: 'Libre', b: 'Fermer ×' }; attr = ' data-act="close-slot" data-id="' + x.id + '"'; }
+        else if (toIso(day, t) > nowIso) { c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'var(--olive)', a: 'Fermé', b: 'Ouvrir +' }; attr = ' data-act="open-slot" data-day="' + day + '" data-t="' + t + '"'; }
         else c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: '—', b: '·' };
         var st2 = attr + ' style="background:' + c.bg + ';border-color:' + c.bd + '"';
         var tag = attr ? 'button type="button"' : 'div';
-        var closeLbl = x && x.statut === 'libre';
-        return '<' + tag + ' class="acell"' + st2 + (attr ? ' aria-label="' + (closeLbl ? 'Fermer' : 'Voir') + ' le créneau du ' + dayLabel(day) + ' à ' + t + '"' : '') + '><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></' + (attr ? 'button' : 'div') + '>';
+        var verb = !x ? 'Ouvrir' : x.statut === 'libre' ? 'Fermer' : x.statut === 'bloque' ? 'Rouvrir' : 'Voir';
+        return '<' + tag + ' class="acell"' + st2 + (attr ? ' aria-label="' + verb + ' le créneau du ' + dayLabel(day) + ' à ' + t + '"' : '') + '><div class="acell__a" style="color:' + c.c1 + '">' + c.a + '</div><div class="acell__b" style="color:' + c.c2 + '">' + c.b + '</div></' + (attr ? 'button' : 'div') + '>';
       }).join('') + '</div>';
     }).join('');
-    var legend = [['Réservé', 'var(--olive-bg)', 'var(--olive)'], ['Libre', 'var(--white)', 'var(--border)'], ['Fermé', 'var(--ivory-2)', 'var(--ivory-2)']];
+    var legend = [['Réservé', 'var(--olive-bg)', 'var(--olive)'], ['Libre : cliquez pour fermer', 'var(--white)', 'var(--border)'], ['Fermé : cliquez pour ouvrir', 'var(--ivory-2)', 'var(--ivory-2)']];
     return '<div class="card-pro card-pro--scroll"><div class="card-pro__head"><div class="card-pro__title">Agenda</div>' +
       '<div style="display:flex;gap:6px;align-items:center;margin-right:auto;margin-left:14px"><button class="chipbtn chipbtn--s" type="button" data-act="week-prev" aria-label="Semaine précédente">‹</button><button class="chipbtn chipbtn--s" type="button" data-act="week-today">Cette semaine</button><button class="chipbtn chipbtn--s" type="button" data-act="week-next" aria-label="Semaine suivante">›</button></div>' +
       (d.empty ? '<button class="btn-rose btn-rose--s" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' : '') +
@@ -603,6 +604,18 @@
       HOL.sb().from('creneaux').delete().eq('id', el.dataset.id).eq('statut', 'libre').then(function (r) {
         if (r.error) throw r.error; return loadWeek();
       }).then(function () { render(); HOL.toast('Créneau fermé.'); }).catch(function () { HOL.toast('Impossible de fermer ce créneau.'); });
+    },
+    'open-slot': function (el) {
+      var start = toIso(el.dataset.day, el.dataset.t), end = new Date(new Date(start).getTime() + SLOT_MIN * 60000).toISOString();
+      if (new Date(start).getTime() <= Date.now()) { HOL.toast('Cet horaire est déjà passé.'); return; }
+      HOL.sb().from('creneaux').upsert([{ praticien_id: db.uid, debut: start, fin: end }], { onConflict: 'praticien_id,debut', ignoreDuplicates: true }).then(function (r) {
+        if (r.error) throw r.error; return loadWeek();
+      }).then(function () { render(); HOL.toast('Créneau ouvert à la réservation.'); }).catch(function () { HOL.toast('Impossible d’ouvrir ce créneau (chevauchement ou connexion).'); });
+    },
+    'reopen-slot': function (el) {
+      HOL.sb().rpc('rouvrir_creneau', { p_id: el.dataset.id }).then(function (r) {
+        if (r.error) throw r.error; return loadWeek();
+      }).then(function () { render(); HOL.toast('Créneau rouvert : il est de nouveau réservable.'); }).catch(function (e) { HOL.toast(e && e.code === 'P0001' ? e.message : 'Impossible de rouvrir ce créneau.'); });
     },
     'week-prev': function () { db.week = addDays(db.week, -7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
     'week-next': function () { db.week = addDays(db.week, 7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
