@@ -501,7 +501,7 @@
     return '<div class="fcard"><div class="fcard__title">Supprimer mon compte</div>' +
       '<p class="fcard__lead" style="margin-top:0">Votre fiche est retirée de la recherche, vos rendez-vous à venir sont annulés (les explorateurs en sont informés) et votre abonnement est résilié. Vous avez <strong>14 jours pour changer d’avis</strong> : il suffit de vous reconnecter. Passé ce délai, vos données sont effacées ; seules les pièces comptables sont conservées dix ans, comme la loi l’exige.</p>' +
       (delStep ? '<div class="ffield fld" style="max-width:320px;margin-bottom:14px"><label for="del-ok">Pour confirmer, tapez SUPPRIMER</label><input id="del-ok" data-del="1" autocomplete="off" value="' + esc(delText) + '"></div>' +
-        '<div class="fbtns"><button class="btn-dark2" type="button" id="del-go" data-act="del-confirm"' + (delText.trim().toUpperCase() === 'SUPPRIMER' ? '' : ' disabled') + '>CONFIRMER LA SUPPRESSION</button><button class="btn-ghost2" type="button" data-act="del-cancel">ANNULER</button></div>'
+        '<div class="fbtns"><button class="btn-dark2" type="button" id="del-go" data-act="del-confirm"' + '>CONFIRMER LA SUPPRESSION</button><button class="btn-ghost2" type="button" data-act="del-cancel">ANNULER</button></div>'
         : '<div class="fbtns"><button class="btn-ghost2" type="button" data-act="del-start">SUPPRIMER MON COMPTE</button></div>') + '</div>';
   }
   function accountCards() {
@@ -739,10 +739,12 @@
     'del-start': function () { delStep = 1; delText = ''; render(); },
     'del-cancel': function () { delStep = 0; delText = ''; render(); },
     'del-confirm': function () {
-      if (delText.trim().toUpperCase() !== 'SUPPRIMER') return;
+      var inp = document.getElementById('del-ok'); if (inp) delText = inp.value;
+      if (delText.trim().toUpperCase() !== 'SUPPRIMER') { HOL.toast('Tapez le mot SUPPRIMER dans le champ pour confirmer.'); if (inp) inp.focus(); return; }
+      var go = document.getElementById('del-go'); if (go) { go.disabled = true; go.textContent = 'SUPPRESSION EN COURS…'; }
       HOL.account.requestDelete().then(function (r) {
         return HOL.Session.logout().then(function () { HOL.flash('Suppression programmée : votre compte sera effacé le ' + HOL.account.dateFr(r.date) + '. Reconnectez-vous avant cette date pour l’annuler.'); location.href = 'index.html'; });
-      }).catch(function () { HOL.toast('Suppression impossible pour le moment. Réessayez dans un instant.'); });
+      }).catch(function () { if (go) { go.disabled = false; go.textContent = 'CONFIRMER LA SUPPRESSION'; } HOL.toast('Suppression impossible pour le moment. Réessayez dans un instant.'); });
     },
     'save-acct': function () {
       if (!validateRoot()) return;

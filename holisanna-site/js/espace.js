@@ -329,7 +329,7 @@
     return '<div class="pbox" style="margin-top:36px"><div class="pbox__title">Supprimer mon compte</div>' +
       '<p class="pbox__lead">Votre compte est désactivé tout de suite et vos rendez-vous à venir sont annulés (les praticiens en sont informés). Vous avez <strong>14 jours pour changer d’avis</strong> : il suffit de vous reconnecter. Passé ce délai, vos données personnelles sont effacées et vos avis sont rendus anonymes.</p>' +
       (delStep ? '<div class="pfield fld" style="max-width:320px;margin-bottom:14px"><label for="del-ok">Pour confirmer, tapez SUPPRIMER</label><input id="del-ok" data-del="1" autocomplete="off" value="' + esc(delText) + '"></div>' +
-        '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-dark2" type="button" id="del-go" data-act="del-confirm"' + (delText.trim().toUpperCase() === 'SUPPRIMER' ? '' : ' disabled') + '>CONFIRMER LA SUPPRESSION</button><button class="btn-ghost2" type="button" data-act="del-cancel">ANNULER</button></div>'
+        '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-dark2" type="button" id="del-go" data-act="del-confirm"' + '>CONFIRMER LA SUPPRESSION</button><button class="btn-ghost2" type="button" data-act="del-cancel">ANNULER</button></div>'
         : '<button class="btn-ghost2" type="button" data-act="del-start">SUPPRIMER MON COMPTE</button>') + '</div>';
   }
 
@@ -420,10 +420,12 @@
     'del-start': function () { delStep = 1; delText = ''; render(); },
     'del-cancel': function () { delStep = 0; delText = ''; render(); },
     'del-confirm': function () {
-      if (delText.trim().toUpperCase() !== 'SUPPRIMER') return;
+      var inp = document.getElementById('del-ok'); if (inp) delText = inp.value;   /* on relit la saisie au moment du clic */
+      if (delText.trim().toUpperCase() !== 'SUPPRIMER') { HOL.toast('Tapez le mot SUPPRIMER dans le champ pour confirmer.'); if (inp) inp.focus(); return; }
+      var go = document.getElementById('del-go'); if (go) { go.disabled = true; go.textContent = 'SUPPRESSION EN COURS…'; }
       HOL.account.requestDelete().then(function (r) {
         return HOL.Session.logout().then(function () { HOL.flash('Suppression programmée : votre compte sera effacé le ' + HOL.account.dateFr(r.date) + '. Reconnectez-vous avant cette date pour l’annuler.'); location.href = 'index.html'; });
-      }).catch(function () { HOL.toast('Suppression impossible pour le moment. Réessayez dans un instant.'); });
+      }).catch(function () { if (go) { go.disabled = false; go.textContent = 'CONFIRMER LA SUPPRESSION'; } HOL.toast('Suppression impossible pour le moment. Réessayez dans un instant.'); });
     },
     'save-profile': function () {
       var bad = null; root.querySelectorAll('[data-v]').forEach(function (i) { if (HOL_VALID.checkInput(i, true) && !bad) bad = i; });
@@ -465,7 +467,7 @@
     root.addEventListener('input', function (e) {
       if (M.onInput(e)) return;
       if (e.target.dataset.field) profile[e.target.dataset.field] = e.target.value;
-      if (e.target.dataset.del) { delText = e.target.value; var g = document.getElementById('del-go'); if (g) g.disabled = delText.trim().toUpperCase() !== 'SUPPRIMER'; }
+      if (e.target.dataset.del) { delText = e.target.value; }
     });
     root.addEventListener('keydown', function (e) {
       M.onKey(e);
