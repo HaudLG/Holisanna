@@ -11,7 +11,7 @@
   /* Accès réservé aux explorateurs connectés */
   var sess = HOL.Session.get();
   if (!sess.loggedIn) { location.replace('connexion.html'); return; }
-  if (sess.role === 'praticien') { location.replace('espace-praticien.html'); return; }
+  if (sess.role === 'praticien') { location.replace('connexion.html?role=explorateur'); return; }
 
   /* Le mode « exemple rempli » ne dure que le temps de la page : il n'est jamais conservé d'une visite à l'autre */
   (function () { var s0 = HOL.Store.get(); if (s0.demoCocktail) { s0.demoCocktail = false; HOL.Store.set(s0); } })();

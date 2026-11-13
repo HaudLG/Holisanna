@@ -153,7 +153,7 @@
       '<nav class="site-nav" aria-label="Navigation principale">' +
       item('accueil', 'Accueil', 'index.html') +
       item('recherche', 'Rechercher', 'recherche.html') +
-      item('espace', 'Mon espace', s.loggedIn ? (pro ? 'espace-praticien.html' : 'espace.html') : 'connexion.html') +
+      item('espace', 'Mon espace', s.loggedIn ? 'espace.html' : 'connexion.html') +
       item('pro', 'Espace praticien', 'espace-praticien.html') +
       '</nav>' + user + '</div></header>';
     var out = document.getElementById('logout');

@@ -112,6 +112,9 @@
   /* ===== Connexion ===== */
   function pageConnexion() {
     if (params.get('confirme')) HOL.toast('Adresse confirmée. Vous pouvez vous connecter.');
+    var wanted = params.get('role'), sub = document.querySelector('.auth-sub');
+    if (sub && wanted === 'explorateur') sub.textContent = 'Cet espace est réservé aux comptes explorateur·rice. Connectez-vous avec un compte explorateur·rice.';
+    if (sub && wanted === 'praticien') sub.textContent = 'Cet espace est réservé aux comptes praticien. Connectez-vous avec un compte praticien.';
     $('login-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var c = sb(), form = e.target, restored = false, BACK = 'Votre demande de suppression est annulée. Bon retour parmi nous.';
