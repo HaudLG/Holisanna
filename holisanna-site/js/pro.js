@@ -805,7 +805,7 @@
       if (M.onInput(e)) return;
       if (t.dataset.of) { offerForm[t.dataset.of] = t.value; return; }
       if (t.dataset.a) { acct[t.dataset.a] = t.value; return; }
-      if (t.dataset.del) { delText = t.value; var g = document.getElementById('del-go'); if (g) g.disabled = delText.trim().toUpperCase() !== 'SUPPRIMER'; return; }
+      if (t.dataset.del) { delText = t.value; return; }
       if (t.dataset.pw) { pw[t.dataset.pw] = t.value; var rr = document.getElementById('pw-rules'); if (rr) rr.innerHTML = rulesHtml(pw.a); return; }
       if (!t.dataset.f) return;
       fiche[t.dataset.f] = t.value;
