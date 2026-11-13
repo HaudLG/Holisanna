@@ -88,7 +88,7 @@
       {
         "id": "c1",
         "q": "Comment supprimer mon compte ?",
-        "a": "Depuis Mon profil, à tout moment. Les données de compte sont conservées trois mois puis effacées ; les pièces comptables le sont dix ans, comme la loi l'exige."
+        "a": "Depuis Mon profil (explorateurs) ou Mon compte (praticiens), à tout moment. Votre compte est désactivé tout de suite et vous avez 14 jours pour changer d'avis : il suffit de vous reconnecter. Passé ce délai, vos données personnelles sont effacées et vos avis rendus anonymes ; les pièces comptables sont conservées dix ans, comme la loi l'exige."
       },
       {
         "id": "c2",
