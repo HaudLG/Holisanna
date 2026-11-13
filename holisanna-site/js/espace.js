@@ -398,7 +398,7 @@
     review: function (el) {
       var idx = Number(el.dataset.idx), s = st(), h = SESS[idx];
       if (!s.demoCocktail) {
-        if (s.reviewed.indexOf(idx) !== -1) { HOL.toast('Votre avis sur ' + h.prat + ' est déjà en ligne.'); return; }
+        if (avisOf(h.rid)) { HOL.toast('Votre avis sur cette séance avec ' + h.prat + ' est déjà en ligne.'); return; }   /* compte réel : l'avis se vérifie dans la base, pas dans l'état local */
         rv = { idx: idx, note: 0, text: '', busy: false }; modal = 'review'; render(); return;
       }
       if (s.reviewed.indexOf(idx) !== -1) { HOL.toast('Votre avis sur ' + h.prat + ' est déjà en ligne.'); return; }
