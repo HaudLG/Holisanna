@@ -122,7 +122,7 @@
   function card(p) {
     var pl = P[p.pillar], m = M(p), rt = Math.round(Number(p.rating || 0));
     var distance = p.real ? (p.format === 'visio' ? 'En visio' : '') : p.format === 'visio' ? 'En visio' : (1 + (p.id % 9)) + ',' + (p.id % 10) + ' km';
-    var avail = !m.first ? ['○ Agenda complet', 'var(--slate-lt)'] : m.dayIdx === 0 ? ['● Disponible', 'var(--olive)'] : m.dayIdx > 0 ? ['◐ Cette semaine', 'var(--rose)'] : ['○ Agenda complet', 'var(--slate-lt)'];
+    var avail = !m.first ? [p.real ? '○ Agenda à venir' : '○ Agenda complet', 'var(--slate-lt)'] : m.dayIdx === 0 ? ['● Disponible', 'var(--olive)'] : m.dayIdx > 0 ? ['◐ Cette semaine', 'var(--rose)'] : ['○ Agenda complet', 'var(--slate-lt)'];
     var next = m.first ? m.day + ' · ' + m.first : (p.real ? 'Pas de créneau ouvert' : 'Agenda complet');
     var profile = p.real ? 'praticien.html?p=' + encodeURIComponent(p.id) : 'praticien.html?id=' + p.id;
     var book = profile + (m.first ? (p.real ? '&jour=' + encodeURIComponent(m.firstDay) : '&date=' + encodeURIComponent(m.day)) + '&heure=' + encodeURIComponent(m.first) : '');
