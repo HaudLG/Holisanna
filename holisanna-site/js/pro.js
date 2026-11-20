@@ -542,7 +542,7 @@
     }
     ['comp', 'modes', 'langs'].forEach(function (k) { if (!fiche[k]) fiche[k] = []; });
     var f = fiche, done = [f.nom, f.disc, f.pres, f.parcours, f.adresse, f.ville, f.tel, f.site].filter(function (v) { return v && v.trim(); }).length;
-    return '<div class="sec-head" style="flex-wrap:wrap"><h2>Modifier ma fiche</h2><div class="card-pro__count" id="fcount">' + done + ' / 8 champs renseignés</div></div>' +
+    return '<div class="sec-head" style="flex-wrap:wrap"><h2>Modifier ma fiche</h2></div>' +
       pubCard() + '<div class="fcard"><div class="fcard__title">Identité</div><div class="fgrid">' + field('nom', 'Nom affiché') +
       '<div class="ffield"><label for="f-disc">Discipline principale</label><select id="f-disc" data-f="disc">' + MAIN_SPECS.map(function (o) { return '<option' + (o === f.disc ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div></div>' +
       '<div class="fblock"><span class="flabel">Disciplines complémentaires</span>' + chips('comp', COMP_SPECS) + '</div></div>' +
