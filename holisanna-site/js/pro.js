@@ -206,8 +206,7 @@
   /* ----- Colonne de droite (toutes les pages de l'espace praticien) ----- */
   function aside(d) {
     var todayR = db.allResas.filter(function (b) { return b.statut === 'confirmee' && fromIso(b.debut).day === todayYmd(); }).reverse();
-    var f = fiche || {}, on = db.prestations.filter(function (o) { return !o.masquee; }).length;
-    var ph = f.photos || {}, compl = [['Photo de profil', ph.principale ? 1 : 0], ['Présentation et parcours', f.pres && f.parcours ? 1 : 0], ['Adresse du cabinet', f.adresse && f.ville ? 1 : 0], ['Au moins une prestation', on ? 1 : 0], ['Photos du lieu', ph.cabinet || ph.seance ? 1 : 0], ['SIRET et assurance RC Pro', f.siret && f.rcAss && f.rcOk ? 1 : 0]];
+    var compl = reqs().map(function (r) { return [r[0], r[2] ? 1 : 0]; });
     var done = compl.filter(function (c) { return c[1]; }).length, pct = Math.round(done / compl.length * 100);
     return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd\'hui</div>' +
       (todayR.length ? todayR.map(function (b) { return '<div class="today"><span class="today__t">' + fromIso(b.debut).hm.replace(':', 'h') + '</span><div style="min-width:0"><div class="today__c">' + esc(b.client_nom) + '</div><div class="today__o" style="color:var(--olive)">' + esc(b.prestation_nom) + ' · ' + esc(b.duree_minutes) + ' min</div></div></div>'; }).join('')
@@ -478,18 +477,21 @@
     });
   }
   function pubUrl() { return db.slug ? 'praticien.html?p=' + encodeURIComponent(db.slug) + '&from=pro' : 'pro-fiche.html'; }
-  function manque() {
-    var f = fiche || {}, m = [];
-    if (!f.nom || !String(f.nom).trim()) m.push('le nom affiché');
-    if (!db.discOk) m.push('la discipline principale');
-    if (!f.pres || !String(f.pres).trim()) m.push('la présentation');
-    if (!f.ville || !String(f.ville).trim()) m.push('la ville');
-    if (!f.modes || !f.modes.length) m.push('au moins un mode de séance');
-    if (!db.prestations.some(function (o) { return !o.masquee; })) m.push('au moins une prestation visible');
-    if (!f.siret) m.push('le numéro de SIRET');
-    if (!f.rcAss || !f.rcEch || !f.rcOk || String(f.rcEch) < todayYmd()) m.push('l’assurance RC Pro (assureur, échéance à venir, attestation)');
-    return m;
+  /* Conditions de publication (les mêmes que le contrôle fait par la base) : [libellé court, phrase « il manque », ok] */
+  function reqs() {
+    var f = fiche || {};
+    return [
+      ['Nom affiché', 'le nom affiché', !!(f.nom && String(f.nom).trim())],
+      ['Discipline principale', 'la discipline principale', !!db.discOk],
+      ['Présentation', 'la présentation', !!(f.pres && String(f.pres).trim())],
+      ['Ville', 'la ville', !!(f.ville && String(f.ville).trim())],
+      ['Mode de séance', 'au moins un mode de séance', !!(f.modes && f.modes.length)],
+      ['Au moins une prestation', 'au moins une prestation visible', db.prestations.some(function (o) { return !o.masquee; })],
+      ['SIRET', 'le numéro de SIRET', !!f.siret],
+      ['Assurance RC Pro', 'l’assurance RC Pro (assureur, échéance à venir, attestation)', !!(f.rcAss && f.rcEch && f.rcOk && String(f.rcEch) >= todayYmd())]
+    ];
   }
+  function manque() { return reqs().filter(function (r) { return !r[2]; }).map(function (r) { return r[1]; }); }
   function pubCard() {
     var on = db.statut === 'en_ligne', mq = on ? [] : manque();
     return '<div class="fcard"><div class="fcard__title">Publication</div>' +
