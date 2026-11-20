@@ -126,11 +126,12 @@
 
   /* ----- Bandeau ----- */
   function banner(d) {
+    var draft = db.statut === 'brouillon' && ficheDb;
     return '<div class="banner banner--rose"><img src="assets/logo-dreamcatcher-ivory.png" alt="">' +
       '<div class="banner__text"><div class="banner__date">' + (db.week ? 'Semaine du ' + weekLabel() : '') + '</div>' +
-      '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>' + (d.empty && db.ready ? 'ouvrez vos premiers créneaux.' : 'votre semaine est ouverte.') + '</em></h1>' +
-      '<p>' + (db.ready ? d.confirmed + ' séance' + (d.confirmed > 1 ? 's' : '') + ' réservée' + (d.confirmed > 1 ? 's' : '') + ' cette semaine · ' + d.free + ' créneau' + (d.free > 1 ? 'x' : '') + ' encore libre' + (d.free > 1 ? 's' : '') + ' cette semaine.' : '&nbsp;') + '</p></div>' +
-      '<div class="banner__btns"><button class="btn-line-light" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' +
+      '<h1>Bonjour ' + HOL.esc(HOL.who().first) + ',<br><em>' + (draft ? 'complétons votre fiche pour la publier.' : d.empty && db.ready ? 'ouvrez vos premiers créneaux.' : 'votre semaine est ouverte.') + '</em></h1>' +
+      '<p>' + (draft ? 'Votre fiche est un brouillon : elle sera visible dans la recherche dès sa publication.' : db.ready ? d.confirmed + ' séance' + (d.confirmed > 1 ? 's' : '') + ' réservée' + (d.confirmed > 1 ? 's' : '') + ' cette semaine · ' + d.free + ' créneau' + (d.free > 1 ? 'x' : '') + ' encore libre' + (d.free > 1 ? 's' : '') + ' cette semaine.' : '&nbsp;') + '</p></div>' +
+      '<div class="banner__btns">' + (draft ? '<a class="btn-line-light" href="pro-fiche.html">COMPLÉTER MA FICHE</a>' : '<button class="btn-line-light" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>') +
       '<a class="btn-dark2" href="' + pubUrl() + '">VOIR MA FICHE PUBLIQUE</a></div></div>';
   }
 
@@ -430,7 +431,7 @@
         photos: (p.photos && typeof p.photos === 'object') ? p.photos : {}
       };
       acct.nom = u.nom_complet || '';
-      db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
+      db.discOk = !!p.discipline_principale_id; db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
     }).catch(function () { ficheErr = true; });
   }
   /* Enregistre la fiche en base ; renvoie une promesse (rejetée si l'enregistrement échoue) */
@@ -465,7 +466,7 @@
     if (!validateRoot()) return;
     if (!ficheDb || !HOL.sb()) { var s = st(); s.fiche = JSON.parse(JSON.stringify(fiche)); save(s); HOL.toast('Base injoignable : fiche enregistrée sur cet appareil seulement.'); return; }
     persistFiche().then(function () {
-      syncVille(); render();
+      db.discOk = !!discByName[fiche.disc]; syncVille(); render();
       HOL.toast(db.statut === 'en_ligne' ? 'Fiche enregistrée. Les modifications sont en ligne.' : 'Fiche enregistrée. Elle sera visible dans la recherche dès sa publication.');
     }).catch(function () { HOL.toast('Enregistrement impossible pour le moment. Réessayez dans un instant.'); });
   }
@@ -477,11 +478,24 @@
     });
   }
   function pubUrl() { return db.slug ? 'praticien.html?p=' + encodeURIComponent(db.slug) + '&from=pro' : 'pro-fiche.html'; }
+  function manque() {
+    var f = fiche || {}, m = [];
+    if (!f.nom || !String(f.nom).trim()) m.push('le nom affiché');
+    if (!db.discOk) m.push('la discipline principale');
+    if (!f.pres || !String(f.pres).trim()) m.push('la présentation');
+    if (!f.ville || !String(f.ville).trim()) m.push('la ville');
+    if (!f.modes || !f.modes.length) m.push('au moins un mode de séance');
+    if (!db.prestations.some(function (o) { return !o.masquee; })) m.push('au moins une prestation visible');
+    if (!f.siret) m.push('le numéro de SIRET');
+    if (!f.rcAss || !f.rcEch || !f.rcOk || String(f.rcEch) < todayYmd()) m.push('l’assurance RC Pro (assureur, échéance à venir, attestation)');
+    return m;
+  }
   function pubCard() {
-    var on = db.statut === 'en_ligne';
+    var on = db.statut === 'en_ligne', mq = on ? [] : manque();
     return '<div class="fcard"><div class="fcard__title">Publication</div>' +
       '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
         : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
+      (!on && ficheDb ? (mq.length ? '<p class="fcard__lead" style="margin:10px 0 0"><strong>Il vous manque encore :</strong> ' + mq.join(', ') + '.</p>' : '<p class="fcard__lead" style="margin:10px 0 0;color:var(--olive)"><strong>Tout est prêt : vous pouvez publier votre fiche.</strong></p>') : '') +
       '<div class="fbtns" style="margin-top:14px">' + (on
         ? '<button class="btn-ghost2" type="button" data-act="unpublish">RETIRER MA FICHE DE LA RECHERCHE</button>'
         : '<button class="btn-dark2 btn-dark2--l" type="button" data-act="publish">PUBLIER MA FICHE</button>') +
