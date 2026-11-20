@@ -487,6 +487,7 @@
       ['Ville', 'la ville', !!(f.ville && String(f.ville).trim())],
       ['Mode de séance', 'au moins un mode de séance', !!(f.modes && f.modes.length)],
       ['Au moins une prestation', 'au moins une prestation visible', db.prestations.some(function (o) { return !o.masquee; })],
+      ['Photo de profil', 'une photo de profil', !!((fiche && fiche.photos && fiche.photos.principale) || '')],
       ['SIRET', 'le numéro de SIRET', !!f.siret],
       ['Assurance RC Pro', 'l’assurance RC Pro (assureur, échéance à venir, attestation)', !!(f.rcAss && f.rcEch && f.rcOk && String(f.rcEch) >= todayYmd())]
     ];
@@ -496,7 +497,7 @@
     var on = db.statut === 'en_ligne', mq = on ? [] : manque();
     return '<div class="fcard"><div class="fcard__title">Publication</div>' +
       '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
-        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
+        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, une photo de profil, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
       (!on && ficheDb ? (mq.length ? '<p class="fcard__lead" style="margin:10px 0 0"><strong>Il vous manque encore :</strong> ' + mq.join(', ') + '.</p>' : '<p class="fcard__lead" style="margin:10px 0 0;color:var(--olive)"><strong>Tout est prêt : vous pouvez publier votre fiche.</strong></p>') : '') +
       '<div class="fbtns" style="margin-top:14px">' + (on
         ? '<button class="btn-ghost2" type="button" data-act="unpublish">RETIRER MA FICHE DE LA RECHERCHE</button>'
