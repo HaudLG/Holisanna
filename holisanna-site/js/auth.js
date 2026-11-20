@@ -152,7 +152,7 @@
 
   /* ===== Inscription praticien ===== */
   function pagePraticien() {
-    var MAIN = ['Naturopathie', 'Sophrologie', 'Kinésiologie', 'Ostéopathie', 'Hypnothérapie', 'Massage bien-être', 'Reiki', 'EFT', 'PNL', 'Yoga', 'Réflexologie', 'Autre'];
+    var MAIN = ['Naturopathie', 'Sophrologie', 'Kinésiologie', 'Hypnothérapie', 'Massage bien-être', 'Reiki', 'EFT', 'PNL', 'Yoga', 'Réflexologie', 'Autre'];
     var COMP = ['Phytothérapie', 'Iridologie', 'Breathwork', 'Janzu / Watsu', 'Aromathérapie', 'Nutrition', 'Coaching mental', 'Astrologie', 'Chamanisme'];
     var st = { main: [], comp: [], plan: 'Fil Libre', pay: 'card' };
 
@@ -209,6 +209,7 @@
         nom_complet: ($('prenom').value.trim() + ' ' + $('nom').value.trim()).trim(),
         telephone: $('tel').value.trim(),
         adresse: $('adresse').value.trim(), code_postal: $('cp').value.trim(), ville: $('ville').value.trim(),
+        disciplines_principales: st.main.join('|'), disciplines_complementaires: st.comp.join('|'),
         charte_version: (window.HOL_SB && window.HOL_SB.CHARTE_VERSION) || '1.0'
       }, function () {
         var s = HOL.Store.get(); s.plan = st.plan; s.payMethod = st.pay; HOL.Store.set(s);

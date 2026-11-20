@@ -377,7 +377,7 @@
     savePhotos(next).then(function () { HOL.sb().storage.from('photos').remove([old]); render(); HOL.toast('Photo retirée.'); })
       .catch(function () { HOL.toast('Suppression impossible pour le moment.'); });
   }
-  var MAIN_SPECS = ['Naturopathie', 'Sophrologie', 'Kinésiologie', 'Ostéopathie', 'Hypnothérapie', 'Massage bien-être', 'Reiki', 'EFT', 'PNL', 'Yoga', 'Réflexologie', 'Autre'];
+  var MAIN_SPECS = ['Naturopathie', 'Sophrologie', 'Kinésiologie', 'Hypnothérapie', 'Massage bien-être', 'Reiki', 'EFT', 'PNL', 'Yoga', 'Réflexologie', 'Autre'];
   var COMP_SPECS = ['Phytothérapie', 'Iridologie', 'Breathwork', 'Janzu / Watsu', 'Aromathérapie', 'Nutrition', 'Coaching mental', 'Astrologie', 'Chamanisme'];
   function chips(key, options) {
     return '<div class="chipset">' + options.map(function (o) {
@@ -534,7 +534,7 @@
       '<div class="fcard"><div class="fcard__title">Lieu et modalités</div><div class="fgrid fgrid--200" style="margin-bottom:20px">' + field('adresse', 'Adresse du cabinet') + field('ville', 'Ville', 'city') + '</div>' +
       '<div style="margin-bottom:20px"><span class="flabel">Modes de séance</span>' + chips('modes', ['Cabinet', 'Visio', 'À domicile']) + '</div>' +
       '<div><span class="flabel">Langues parlées</span>' + chips('langs', ['Français', 'Anglais', 'Espagnol', 'Italien', 'LSF']) + '</div></div>' +
-      '<div class="fcard"><div class="fcard__title" style="margin-bottom:6px">Photos</div><p class="fcard__lead" style="margin-top:0">Trois images suffisent : vous, le lieu, une séance. Format paysage, lumière naturelle. JPEG, PNG ou WebP : l’image est automatiquement allégée.</p>' +
+      '<div class="fcard"><div class="fcard__title" style="margin-bottom:6px">Photos</div><p class="fcard__lead" style="margin-top:0">Trois images suffisent : vous, le lieu, une séance. Format paysage, lumière naturelle. JPEG, PNG ou WebP : l’image est automatiquement allégée. Sur votre fiche, les photos sont recadrées (portrait, galerie) : placez le sujet au centre.</p>' +
       photosHtml() + '</div>' +
       '<div class="fcard fcard--last"><div class="fcard__title">Contact et liens</div><div class="fgrid fgrid--200">' + field('tel', 'Téléphone', 'tel', 'tel') + field('site', 'Site web') + field('insta', 'Instagram') + '</div></div>' +
       proCard() +
