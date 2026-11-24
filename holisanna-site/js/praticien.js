@@ -37,8 +37,9 @@
   /* Jours proposés dans l'agenda : démo = semaine fixe ; réel = prochains jours ayant des créneaux */
   function agendaDays(p) {
     if (!p.real) { var sl = HOL.Store.slots()[p.id]; return D.DATES.map(function (d) { return { key: d, label: d, times: sl[d] || [] }; }); }
-    var map = {}, ids = {}, out = [];
-    p.slots.forEach(function (s) { if (s.di <= 28) { (map[s.day] = map[s.day] || []).push(s.hm); ids[s.day + ' ' + s.hm] = s.id; } });
+    var map = {}, ids = {}, out = [], o = offerOf(p);
+    var usable = o ? HOL_DIR.fit(p.slots, o.duree) : p.slots;
+    usable.forEach(function (s) { if (s.di <= 28) { (map[s.day] = map[s.day] || []).push(s.hm); ids[s.day + ' ' + s.hm] = s.id; } });
     Object.keys(map).sort().slice(0, 8).forEach(function (d) { out.push({ key: d, label: HOL_DIR.dayLabel(d), times: map[d], ids: ids }); });
     return out;
   }
@@ -142,7 +143,7 @@
       if (p.real && !offerOf(p)) { e.preventDefault(); HOL.toast('Ce praticien n’a pas encore de prestation réservable.'); }
     });
     var off = document.getElementById('offer');
-    if (off) off.addEventListener('change', function () { sel.offer = off.value; updateFoot(p, days); });
+    if (off) off.addEventListener('change', function () { sel.offer = off.value; render(p, !p.published); });
     var ask = document.getElementById('ask');
     if (ask) ask.addEventListener('click', function () { HOL.toast('Demande envoyée. ' + pr.firstName + ' vous répondra par message.'); });
     /* « Retour aux résultats » conserve les filtres si l'on arrive de la recherche */

@@ -17,7 +17,7 @@
   function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* ----- Données réelles (Supabase) ----- */
-  var TZ = 'Europe/Paris', SLOT_MIN = 90, WEEKS_AHEAD = 8, DAYS_N = 6;
+  var TZ = 'Europe/Paris', SLOT_MIN = 60, HOURS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'], WEEKS_AHEAD = 8, DAYS_N = 6;
   var DAY_LBL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   var MODE_LBL = { cabinet: 'Au cabinet', visio: 'Visio', domicile: 'À domicile' }, MODE_COL = { cabinet: 'var(--olive)', visio: 'var(--gold)', domicile: 'var(--rose)' };
   var db = { uid: null, ready: false, err: false, prestations: [], slots: [], week: null, resas: [], allResas: [], avis: [], abo: null };
@@ -151,10 +151,11 @@
     var map = {};
     db.slots.forEach(function (x) { var p = fromIso(x.debut); map[p.day + ' ' + p.hm] = x; });
     var cols = 'grid-template-columns:64px repeat(' + DAYS_N + ',1fr)';
-    var rows = D.POOL.map(function (t) {
+    var extra = []; db.slots.forEach(function (x) { var hm = fromIso(x.debut).hm; if (HOURS.indexOf(hm) === -1 && extra.indexOf(hm) === -1) extra.push(hm); });
+    var rows = HOURS.concat(extra).sort().map(function (t) {
       return '<div class="agenda-row" style="' + cols + '"><div class="agenda-row__t">' + t + '</div>' + days.map(function (day) {
         var x = map[day + ' ' + t], c, attr = '';
-        var rs = x && x.statut === 'reserve' ? db.resas.filter(function (q) { return q.creneau_id === x.id; })[0] : null;
+        var rs = x && x.statut === 'reserve' ? db.resas.filter(function (q) { return q.creneau_id === x.id || (q.creneaux_lies || []).indexOf(x.id) !== -1; })[0] : null;
         if (x && x.statut === 'reserve') { c = { bg: 'var(--olive-bg)', bd: 'var(--olive)', c1: 'var(--olive)', c2: 'var(--olive)', a: rs ? esc(rs.client_nom) : 'Réservé', b: rs ? esc(rs.prestation_nom) : '' }; if (rs) attr = ' data-act="open-resa" data-id="' + rs.id + '"'; }
         else if (x && x.statut === 'bloque') { c = { bg: 'var(--ivory-2)', bd: 'var(--ivory-2)', c1: 'var(--slate-lt)', c2: 'transparent', a: 'Bloqué', b: '·' }; if (x.debut > nowIso) { c.b = 'Rouvrir +'; c.c2 = 'var(--olive)'; attr = ' data-act="reopen-slot" data-id="' + x.id + '"'; } }
         else if (x) { c = { bg: 'var(--white)', bd: 'var(--border)', c1: 'var(--slate-lt)', c2: 'var(--slate-lt)', a: 'Libre', b: 'Fermer ×' }; attr = ' data-act="close-slot" data-id="' + x.id + '"'; }
@@ -273,6 +274,7 @@
       '<div class="ffield" style="margin-bottom:16px"><label for="o-nom">Nom de la prestation</label><input id="o-nom" data-of="nom" maxlength="120" value="' + esc(f.nom) + '" placeholder="Massage bien-être"></div>' +
       '<div class="fgrid fgrid--200" style="margin-bottom:16px"><div class="ffield"><label for="o-duree">Durée (minutes)</label><input id="o-duree" data-of="duree" inputmode="numeric" value="' + esc(f.duree) + '" placeholder="60"></div>' +
       '<div class="ffield"><label for="o-prix">Tarif (€)</label><input id="o-prix" data-of="prix" inputmode="numeric" value="' + esc(f.prix) + '" placeholder="70"></div></div>' +
+      '<p class="fcard__lead" style="margin:-6px 0 16px;font-size:12px">Vos créneaux durent 1 h. Une séance de 30 min ou 1 h occupe un créneau ; au-delà (1 h 30, 2 h…), elle réserve automatiquement les créneaux consécutifs nécessaires.</p>' +
       '<div class="ffield" style="margin-bottom:22px"><label for="o-mode">Où a lieu la séance</label><select id="o-mode" data-of="mode">' + Object.keys(MODE_LBL).map(function (k) { return '<option value="' + k + '"' + (f.mode === k ? ' selected' : '') + '>' + MODE_LBL[k] + '</option>'; }).join('') + '</select></div>' +
       '<div class="modal__btns--pro"><button class="btn-dark2" type="button" data-act="save-offer">ENREGISTRER</button><button class="modal__close" type="button" data-act="close">Annuler</button></div></div></div>';
   }
@@ -584,7 +586,7 @@
         var past = x < todayYmd();
         return '<button class="slotchip slotchip--day' + (slotDays.indexOf(x) !== -1 ? ' is-on' : '') + '" type="button" data-act="day" data-v="' + x + '"' + (past ? ' disabled style="opacity:.4;cursor:default"' : '') + ' aria-pressed="' + (slotDays.indexOf(x) !== -1) + '">' + dayLabel(x) + '</button>';
       }).join('') + '</div></div>' +
-      '<div class="modal__group"><div class="modal__label">Heures</div><div class="chipset chipset--tight">' + D.POOL.map(function (x) {
+      '<div class="modal__group"><div class="modal__label">Heures de début (créneaux d’1 h)</div><div class="chipset chipset--tight">' + HOURS.map(function (x) {
         return '<button class="slotchip slotchip--time' + (slotTimes.indexOf(x) !== -1 ? ' is-on' : '') + '" type="button" data-act="time" data-v="' + x + '" aria-pressed="' + (slotTimes.indexOf(x) !== -1) + '">' + x + '</button>';
       }).join('') + '</div></div>' +
       '<button class="toggle-row' + (slotRepeat ? ' is-on' : '') + '" type="button" data-act="repeat" role="switch" aria-checked="' + slotRepeat + '"><span class="toggle"></span><span><div class="toggle-row__t">Répéter chaque semaine</div><div class="toggle-row__s">Ces horaires sont aussi ouverts les ' + WEEKS_AHEAD + ' semaines suivantes.</div></span></button>' +

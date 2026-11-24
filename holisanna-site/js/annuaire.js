@@ -28,6 +28,22 @@
 
   var PILLAR_LABEL = { corps: 'Corps', ame: 'Âme', esprit: 'Esprit' };
 
+  /* Créneaux de départ possibles pour une séance de `minutes` : le créneau doit durer assez longtemps,
+     ou être suivi de créneaux libres consécutifs qui, ensemble, couvrent la séance. */
+  function fit(slots, minutes) {
+    var need = (minutes || 0) * 60000, sorted = slots.slice().sort(function (x, y) { return x.t0 - y.t0; });
+    return sorted.filter(function (s, i) {
+      var end = s.t1, j = i;
+      while (end - s.t0 < need) {
+        var nx = sorted[j + 1];
+        while (nx && nx.t0 < end) { j++; nx = sorted[j + 1]; }
+        if (!nx || nx.t0 !== end) return false;
+        j++; end = nx.t1;
+      }
+      return true;
+    });
+  }
+
   /* Fabrique le praticien « normalisé » à partir des lignes de la base */
   function build(row, disc, offers, slots, avis) {
     var d = disc.byId[row.discipline_principale_id] || null;
@@ -36,7 +52,7 @@
     var prix = offers.map(function (o) { return o.prix_euros; });
     var first = offers[0];
     var text = (row.presentation || '').trim();
-    var mine = slots.map(function (s) { var p = fromIso(s.debut); return { id: s.id, day: p.day, hm: p.hm, di: dayIndex(p.day) }; }).filter(function (s) { return s.di >= 0; });
+    var mine = slots.map(function (s) { var p = fromIso(s.debut); return { id: s.id, day: p.day, hm: p.hm, di: dayIndex(p.day), t0: Date.parse(s.debut), t1: Date.parse(s.fin) }; }).filter(function (s) { return s.di >= 0; });
     var langs = (row.langues || []).map(function (l) { return LANG_LBL[l]; }).filter(Boolean);
     var r = {
       real: true, id: row.slug, uid: row.utilisateur_id, name: row.nom_affiche || 'Praticien',
@@ -58,7 +74,8 @@
       gallery: [['cabinet', 'Le cabinet'], ['seance', 'En séance']].map(function (k) { return { url: photoUrl((row.photos || {})[k[0]]), label: k[1] }; }).filter(function (g) { return g.url; }),
       published: row.statut_publication === 'en_ligne', slots: mine
     };
-    var f = mine[0];
+    var shortest = offers.length ? Math.min.apply(null, offers.map(function (o) { return o.duree_minutes; })) : 0;
+    var f = (shortest ? fit(mine, shortest) : mine)[0];
     r.meta = { dayIdx: f ? f.di : -1, day: f ? dayLabel(f.day) : null, first: f ? f.hm : null, firstDay: f ? f.day : null, modes: r.modes, langs: r.langs };
     return r;
   }
@@ -71,7 +88,7 @@
     return Promise.all([
       c.from('disciplines').select('id,nom,pilier'),
       c.from('prestations').select('id,praticien_id,nom,duree_minutes,prix_euros,mode,masquee,ordre,cree_le').in('praticien_id', ids).eq('masquee', false).is('deleted_at', null).order('ordre').order('cree_le'),
-      c.from('creneaux').select('id,praticien_id,debut').in('praticien_id', ids).eq('statut', 'libre').gt('debut', new Date().toISOString()).order('debut').limit(2000),
+      c.from('creneaux').select('id,praticien_id,debut,fin').in('praticien_id', ids).eq('statut', 'libre').gt('debut', new Date().toISOString()).order('debut').limit(2000),
       c.from('avis').select('praticien_id,note,commentaire,auteur_nom,discipline_nom,reponse,cree_le').in('praticien_id', ids).is('deleted_at', null).order('cree_le', { ascending: false }).limit(2000)
     ]).then(function (rs) {
       rs.slice(0, 3).forEach(function (r) { if (r.error) throw r.error; });
@@ -132,7 +149,7 @@
   };
 
   window.HOL_DIR = {
-    photoUrl: photoUrl, byUids: function (uids) {
+    fit: fit, photoUrl: photoUrl, byUids: function (uids) {
       var c = sb(); if (!c || !uids.length) return Promise.resolve([]);
       return c.from('profils_praticien').select(COLS).in('utilisateur_id', uids).eq('statut_publication', 'en_ligne').then(function (r) { if (r.error) throw r.error; return fetchAll(r.data || []); });
     }, dayLabel: dayLabel, todayYmd: todayYmd, dayIndex: dayIndex,
