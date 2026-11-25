@@ -44,7 +44,12 @@
     if (!c) { HOL.toast('Service momentanément indisponible. Réessayez plus tard.'); return; }
     var email = $('email').value.trim(), pwd = $('pwd').value;
     if (!HOL_VALID.pwdOk(pwd)) { HOL.toast('Votre mot de passe ne remplit pas encore toutes les conditions.'); return; }
-    var data = Object.assign({ role: role, cgu_acceptees: 'true' }, fields);
+    /* Acceptation explicite : cases à cocher obligatoires (CGU + confidentialité ; charte éthique pour les praticiens) */
+    var cgu = $('acc-cgu'), charte = $('acc-charte');
+    [['acc-cgu', cgu], ['acc-charte', charte]].forEach(function (x) { var l = $(x[0] + '-l'); if (l) l.classList.toggle('is-bad', !!(x[1] && !x[1].checked)); });
+    if (!cgu || !cgu.checked) { HOL.toast('Merci d’accepter les CGU et la politique de confidentialité pour créer votre compte.'); if (cgu) cgu.focus(); return; }
+    if (role === 'praticien' && (!charte || !charte.checked)) { HOL.toast('Merci de vous engager à respecter la charte éthique pour créer votre compte.'); if (charte) charte.focus(); return; }
+    var data = Object.assign({ role: role, cgu_acceptees: 'true' }, role === 'praticien' ? { charte_acceptee: 'true' } : {}, fields);
     busy(form, true);
     c.auth.signUp({
       email: email, password: pwd,

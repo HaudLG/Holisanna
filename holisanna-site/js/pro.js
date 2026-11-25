@@ -432,7 +432,7 @@
         photos: (p.photos && typeof p.photos === 'object') ? p.photos : {}
       };
       acct.nom = u.nom_complet || '';
-      db.discOk = !!p.discipline_principale_id; db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
+      db.discOk = !!p.discipline_principale_id; db.charteOk = !!p.charte_signee_le; db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
     }).catch(function () { ficheErr = true; });
   }
   /* Enregistre la fiche en base ; renvoie une promesse (rejetée si l'enregistrement échoue) */
@@ -490,6 +490,7 @@
       ['Mode de séance', 'au moins un mode de séance', !!(f.modes && f.modes.length)],
       ['Au moins une prestation', 'au moins une prestation visible', db.prestations.some(function (o) { return !o.masquee; })],
       ['Photo de profil', 'une photo de profil', !!((fiche && fiche.photos && fiche.photos.principale) || '')],
+      ['Charte éthique', 'la charte éthique', db.charteOk !== false],
       ['SIRET', 'le numéro de SIRET', !!f.siret],
       ['Assurance RC Pro', 'l’assurance RC Pro (assureur, échéance à venir, attestation)', !!(f.rcAss && f.rcEch && f.rcOk && String(f.rcEch) >= todayYmd())]
     ];
@@ -501,6 +502,7 @@
       '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
         : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, une photo de profil, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
       (!on && ficheDb ? (mq.length ? '<p class="fcard__lead" style="margin:10px 0 0"><strong>Il vous manque encore :</strong> ' + mq.join(', ') + '.</p>' : '<p class="fcard__lead" style="margin:10px 0 0;color:var(--olive)"><strong>Tout est prêt : vous pouvez publier votre fiche.</strong></p>') : '') +
+      (!on && ficheDb && db.charteOk === false ? '<label class="accept" style="margin:14px 0 0"><input type="checkbox" id="sign-charte"><span>Je m’engage à respecter la <a href="charte.html" target="_blank" rel="noopener">charte éthique</a> d’Holisanna. *</span></label>' : '') +
       '<div class="fbtns" style="margin-top:14px">' + (on
         ? '<button class="btn-ghost2" type="button" data-act="unpublish">RETIRER MA FICHE DE LA RECHERCHE</button>'
         : '<button class="btn-dark2 btn-dark2--l" type="button" data-act="publish">PUBLIER MA FICHE</button>') +
@@ -802,7 +804,12 @@
     },
     publish: function () {
       if (!validateRoot()) return;
-      persistFiche().then(function () { return setStatut('en_ligne', 'Votre fiche est en ligne. Les explorateurs peuvent maintenant la trouver.'); })
+      var sc = document.getElementById('sign-charte'), signe = Promise.resolve();
+      if (db.charteOk === false) {
+        if (!sc || !sc.checked) { HOL.toast('Merci de vous engager à respecter la charte éthique pour publier votre fiche.'); if (sc) sc.focus(); return; }
+        signe = HOL.sb().rpc('signer_charte', { p_version: (window.HOL_SB && window.HOL_SB.CHARTE_VERSION) || '1.0' }).then(function (r) { if (r.error) throw r.error; db.charteOk = true; });
+      }
+      signe.then(function () { return persistFiche(); }).then(function () { return setStatut('en_ligne', 'Votre fiche est en ligne. Les explorateurs peuvent maintenant la trouver.'); })
         .catch(function (e) { HOL.toast(e && e.pub ? e.message : 'Publication impossible pour le moment. Réessayez dans un instant.'); });
     },
     unpublish: function () {
