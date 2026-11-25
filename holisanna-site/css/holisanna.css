@@ -1116,3 +1116,7 @@ button.rrow { border-bottom: .5px solid var(--border); }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .prose p { line-height: 26px; }
 .prose li { line-height: 26px; }
+
+/* FAQ — cadre complet autour de chaque question (le bord gauche était invisible) ; barre dorée quand ouverte */
+.faq-item { border-left: .5px solid var(--border); }
+.faq-item.is-open { border-left-color: var(--border); box-shadow: inset 2px 0 0 var(--gold); }
