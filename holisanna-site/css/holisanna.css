@@ -1098,3 +1098,16 @@ button.rrow { border-bottom: .5px solid var(--border); }
   /* Prestations : liens plus faciles à toucher */
   .offer-row .sec-link, .offer-row .state-btn { display: inline-flex; align-items: center; min-height: 42px; padding: 0 12px; }
 }
+
+/* ONBOARDING — mobile : bandeau compact (la 1re question reste visible), « Passer » plus lisible */
+.skip { color: var(--slate-md); }
+@media (max-width: 700px) {
+  .ob__side { max-width: none; flex: 1 1 100%; padding: 22px 24px 20px; }
+  .ob__side img { width: 52px; height: 52px; margin-bottom: 12px; }
+  .ob__step { margin-bottom: 8px; }
+  .ob__side h2 { font-size: 26px; margin-bottom: 10px; }
+  .ob__side p { font-size: 12px; line-height: 1.65; margin-bottom: 16px; max-width: none; }
+  .ob__main { padding: 28px 24px 36px; }
+  .ob__main h1 { font-size: 28px; }
+  .ob__actions .skip { padding: 12px 10px; font-size: 12.5px; }
+}

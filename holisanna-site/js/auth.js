@@ -282,7 +282,7 @@
   /* ===== Questionnaire de départ (3 étapes) ===== */
   function pageOnboarding() {
     var st = { step: 1, pillars: [], discs: [], modes: [], rhythm: '' };
-    var TITLES = ['Qu’avez-vous envie de travailler ?', 'Quelles pratiques vous attirent ?', 'Comment aimez-vous être accompagnée ?'];
+    var TITLES = ['Qu’avez-vous envie de travailler ?', 'Quelles pratiques vous attirent ?', 'Comment aimez-vous être accompagné·e ?'];
     var LEADS = [
       'Choisissez un ou plusieurs piliers. Rien n’est définitif : votre cocktail se réajuste à chaque séance.',
       'Une sélection large vaut mieux qu’un choix trop sûr — vous verrez ce qui prend.',
