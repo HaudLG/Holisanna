@@ -1111,3 +1111,8 @@ button.rrow { border-bottom: .5px solid var(--border); }
   .ob__main h1 { font-size: 28px; }
   .ob__actions .skip { padding: 12px 10px; font-size: 12.5px; }
 }
+
+/* PAGES LÉGALES — interligne régulier (certains navigateurs mobiles l'élargissaient sur quelques lignes) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.prose p { line-height: 26px; }
+.prose li { line-height: 26px; }
