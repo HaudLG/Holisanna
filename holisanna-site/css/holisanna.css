@@ -1134,3 +1134,6 @@ html { font-variant-numeric: lining-nums; }
   .offer-row .sec-link[data-act="edit-offer"] { padding-left: 0; }
   .offer-row .state-btn { margin-left: auto; padding: 0 16px; }
 }
+
+/* MESSAGES — rond des initiales visible sur la conversation sélectionnée */
+.conv.is-on .conv__avatar, .conv:hover .conv__avatar { background: var(--white); border: .5px solid var(--border); }
