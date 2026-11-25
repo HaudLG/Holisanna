@@ -1123,3 +1123,14 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* Chiffres « droits » partout (la police Cormorant a des chiffres anciens : « 1 » ressemble à « I ») */
 html { font-variant-numeric: lining-nums; }
+
+/* PRESTATIONS — état « En ligne / Masquée » en interrupteur lisible, actions alignées */
+.state-btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; }
+.state-btn::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--olive); flex: none; }
+.state-btn.is-off::before { background: var(--slate-lt); }
+@media (max-width: 700px) {
+  .offer-row { align-items: center; row-gap: 6px; }
+  .offer-row .sec-link, .offer-row .state-btn { min-height: 42px; }
+  .offer-row .sec-link[data-act="edit-offer"] { padding-left: 0; }
+  .offer-row .state-btn { margin-left: auto; padding: 0 16px; }
+}
