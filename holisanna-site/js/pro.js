@@ -41,6 +41,17 @@
   function fromIso(iso) { var p = parisParts(new Date(iso).getTime()); return { day: p.year + '-' + p.month + '-' + p.day, hm: p.hour + ':' + p.minute }; }
   function todayYmd() { var p = parisParts(Date.now()); return p.year + '-' + p.month + '-' + p.day; }
   function dayLabel(s) { var d = new Date(s + 'T12:00:00Z'); return DAY_LBL[(d.getUTCDay() + 6) % 7] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
+  function isMobile() { return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches); }
+  function nextOpenDay(ymd) { return new Date(ymd + 'T12:00:00Z').getUTCDay() === 0 ? addDays(ymd, 1) : ymd; }
+  var lastMobile = isMobile();
+  window.addEventListener('resize', function () { var m = isMobile(); if (m !== lastMobile) { lastMobile = m; if (db.ready && typeof render === 'function') render(); } });
+  function gotoDay(step) {
+    var d = addDays(db.day || db.week, step);
+    if (new Date(d + 'T12:00:00Z').getUTCDay() === 0) d = addDays(d, step);
+    db.day = d;
+    var w = mondayOf(d);
+    if (w !== db.week) { db.week = w; loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); } else render();
+  }
   function weekDays() { return [0, 1, 2, 3, 4, 5].map(function (i) { return addDays(db.week, i); }); }
   function weekLabel() { var d = new Date(db.week + 'T12:00:00Z'); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
 
@@ -71,7 +82,7 @@
   }
   function loadAll() {
     var c = HOL.sb(); if (!c) { db.err = true; return Promise.resolve(); }
-    db.week = mondayOf(todayYmd());
+    db.week = mondayOf(todayYmd()); db.day = nextOpenDay(todayYmd());
     return c.auth.getUser().then(function (r) {
       if (!r.data || !r.data.user) throw new Error('no user');
       db.uid = r.data.user.id;
@@ -148,9 +159,11 @@
   function agenda(d) {
     if (!db.ready) return '<div class="card-pro"><div class="card-pro__head"><div class="card-pro__title">Agenda</div></div>' + pending('votre agenda') + '</div>';
     var days = weekDays(), today = todayYmd(), nowIso = new Date().toISOString();
+    var mob = isMobile();
+    if (mob) { if (!db.day || days.indexOf(db.day) === -1) db.day = days[0]; days = [db.day]; }
     var map = {};
     db.slots.forEach(function (x) { var p = fromIso(x.debut); map[p.day + ' ' + p.hm] = x; });
-    var cols = 'grid-template-columns:64px repeat(' + DAYS_N + ',1fr)';
+    var cols = 'grid-template-columns:' + (mob ? '56px 1fr' : '64px repeat(' + DAYS_N + ',1fr)');
     var extra = []; db.slots.forEach(function (x) { var hm = fromIso(x.debut).hm; if (HOURS.indexOf(hm) === -1 && extra.indexOf(hm) === -1) extra.push(hm); });
     var rows = HOURS.concat(extra).sort().map(function (t) {
       return '<div class="agenda-row" style="' + cols + '"><div class="agenda-row__t">' + t + '</div>' + days.map(function (day) {
@@ -169,7 +182,7 @@
     }).join('');
     var legend = [['Réservé', 'var(--olive-bg)', 'var(--olive)'], ['Libre : cliquez pour fermer', 'var(--white)', 'var(--border)'], ['Fermé : cliquez pour ouvrir', 'var(--ivory-2)', 'var(--ivory-2)']];
     return '<div class="card-pro card-pro--scroll"><div class="card-pro__head"><div class="card-pro__title">Agenda</div>' +
-      '<div style="display:flex;gap:6px;align-items:center;margin-right:auto;margin-left:14px"><button class="chipbtn chipbtn--s" type="button" data-act="week-prev" aria-label="Semaine précédente">‹</button><button class="chipbtn chipbtn--s" type="button" data-act="week-today">Cette semaine</button><button class="chipbtn chipbtn--s" type="button" data-act="week-next" aria-label="Semaine suivante">›</button></div>' +
+      (mob ? '<div class="agenda-nav"><button class="chipbtn chipbtn--s" type="button" data-act="day-prev" aria-label="Jour précédent">‹</button><button class="chipbtn chipbtn--s" type="button" data-act="day-today">Aujourd’hui</button><button class="chipbtn chipbtn--s" type="button" data-act="day-next" aria-label="Jour suivant">›</button></div>' : '<div style="display:flex;gap:6px;align-items:center;margin-right:auto;margin-left:14px"><button class="chipbtn chipbtn--s" type="button" data-act="week-prev" aria-label="Semaine précédente">‹</button><button class="chipbtn chipbtn--s" type="button" data-act="week-today">Cette semaine</button><button class="chipbtn chipbtn--s" type="button" data-act="week-next" aria-label="Semaine suivante">›</button></div>') +
       (d.empty ? '<button class="btn-rose btn-rose--s" type="button" data-act="open-slots">OUVRIR DES CRÉNEAUX</button>' : '') +
       '<div class="legend">' + legend.map(function (g) { return '<span><i style="background:' + g[1] + ';border-color:' + g[2] + '"></i>' + g[0] + '</span>'; }).join('') + '</div></div>' +
       '<div class="agenda-grid"><div class="agenda-row" style="' + cols + '"><div></div>' + days.map(function (x) { return '<div class="agenda-row__h"' + (x === today ? ' style="color:var(--rose)"' : '') + '>' + dayLabel(x) + '</div>'; }).join('') + '</div>' + rows + '</div></div>';
@@ -682,9 +695,12 @@
         if (r.error) throw r.error; return loadWeek();
       }).then(function () { render(); HOL.toast('Créneau rouvert : il est de nouveau réservable.'); }).catch(function (e) { HOL.toast(e && e.code === 'P0001' ? e.message : 'Impossible de rouvrir ce créneau.'); });
     },
-    'week-prev': function () { db.week = addDays(db.week, -7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
-    'week-next': function () { db.week = addDays(db.week, 7); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
-    'week-today': function () { db.week = mondayOf(todayYmd()); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
+    'day-prev': function () { gotoDay(-1); },
+    'day-next': function () { gotoDay(1); },
+    'day-today': function () { var t = nextOpenDay(todayYmd()); db.day = t; var w = mondayOf(t); if (w !== db.week) { db.week = w; loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); } else render(); },
+    'week-prev': function () { db.week = addDays(db.week, -7); db.day = db.week; loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
+    'week-next': function () { db.week = addDays(db.week, 7); db.day = db.week; loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
+    'week-today': function () { db.week = mondayOf(todayYmd()); db.day = nextOpenDay(todayYmd()); loadWeek().then(render).catch(function () { HOL.toast('Agenda indisponible pour le moment.'); }); },
     'open-reply': function (el) { replySel = el.dataset.id; replyText = ''; modal = 'reply'; render(); },
     'send-reply': function () {
       var t = document.getElementById('reply-text'), w = document.getElementById('reply-warn'); replyText = t ? t.value : replyText;

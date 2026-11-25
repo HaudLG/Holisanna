@@ -81,6 +81,8 @@
       }
       return l;
     }
+    function isOpen() { return S.open != null ? S.open : !!(S.toId || /[?&]c=/.test(location.search)); }
+    function narrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches); }
     function activeConv(l) {
       var a = null;
       if (isExpl && S.toId) a = l.filter(function (c) { return c.praticien_id === S.toId; })[0];
@@ -113,8 +115,8 @@
           return '<div class="bubble-m bubble-m--' + (mine ? 'me' : 'them') + '"><div class="bubble-m__t" style="white-space:pre-wrap;overflow-wrap:anywhere">' + esc(m.texte) + '</div><div class="bubble-m__time">' + esc(longWhen(m.envoye_le)) + (mine && m.lu_le ? ' · lu' : '') + '</div></div>';
         }).join('');
       }
-      return '<div class="sec-head"><h2>Messages</h2></div><div class="msgs"><div class="msgs__list">' + rows + '</div>' +
-        '<div class="msgs__thread"><div class="msgs__head"><div class="conv__avatar conv__avatar--on">' + esc(initials(otherName(act))) + '</div><div style="min-width:0"><div class="msgs__name">' + esc(otherName(act)) + '</div><div class="msgs__meta">' + (isExpl ? 'Praticien' : 'Explorateur') + '</div></div></div>' +
+      return '<div class="sec-head"><h2>Messages</h2></div><div class="msgs' + (isOpen() ? ' msgs--open' : '') + '"><div class="msgs__list">' + rows + '</div>' +
+        '<div class="msgs__thread"><div class="msgs__head"><button class="msgs__back" type="button" data-act="conv-back" aria-label="Retour aux conversations">←</button><div class="conv__avatar conv__avatar--on">' + esc(initials(otherName(act))) + '</div><div style="min-width:0"><div class="msgs__name">' + esc(otherName(act)) + '</div><div class="msgs__meta">' + (isExpl ? 'Praticien' : 'Explorateur') + '</div></div></div>' +
         '<div class="msgs__body" id="thread">' + thread + '</div>' +
         '<div class="msgs__compose"><input id="draft" value="' + esc(S.draft) + '" placeholder="Écrire un message…" maxlength="2000" autocomplete="off"><button class="btn-dark2 btn-dark2--s" type="button" data-act="send"' + (S.sending ? ' disabled' : '') + '>ENVOYER</button></div></div></div>';
     }
@@ -152,6 +154,7 @@
     }
     function markRead() {
       if (S.marking || !S.ready || cfg.section !== 'messages') return;
+      if (narrow() && !isOpen()) return;
       var act = activeConv(list()); if (!act || !act.id || !unreadOf(act)) return;
       var c = HOL.sb(); if (!c) return;
       S.marking = true;
@@ -176,10 +179,11 @@
     }
     function handle(name, el) {
       if (name === 'conv') {
-        S.active = el.dataset.id || null; if (isExpl) S.toId = el.dataset.id ? null : (el.dataset.other || null); S.draft = '';
+        S.open = true; S.active = el.dataset.id || null; if (isExpl) S.toId = el.dataset.id ? null : (el.dataset.other || null); S.draft = '';
         try { history.replaceState(null, '', location.pathname + (el.dataset.id ? '?c=' + el.dataset.id : '')); } catch (e) {}
         rerender(); return true;
       }
+      if (name === 'conv-back') { S.open = false; rerender(); return true; }
       if (name === 'send') { send(); return true; }
       if (name === 'filter') { S.filter = el.dataset.f; rerender(); return true; }
       if (name === 'read-all') { markNotifs(null).then(function () { rerender(); HOL.toast('Toutes vos notifications sont marquées comme lues.'); }); return true; }

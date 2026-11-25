@@ -1009,3 +1009,91 @@ button.rrow:hover { background: var(--ivory-2); }
 .accept span { font-size: 12.5px; line-height: 1.5; color: var(--slate-md); }
 .accept a { color: var(--slate); text-decoration: underline; }
 .accept.is-bad span { color: var(--rose); }
+
+
+/* =====================  MOBILE (retours de test du 25 nov.)  ===================== */
+button.rrow { border-bottom: .5px solid var(--border); }
+.plan-row__state { display: inline-block; margin-top: 12px; padding: 9px 16px; border: .5px solid var(--olive); }
+.plan-row.is-on .plan-row__state { background: var(--olive); color: #fff; }
+.agenda-nav { display: flex; gap: 6px; align-items: center; margin-right: auto; margin-left: 14px; }
+.nav-burger, .msgs__back, .filters-toggle { display: none; }
+
+@media (max-width: 900px) {
+  .sidenav { width: 100%; max-width: none; flex: 1 1 100%; border-right: none; border-bottom: .5px solid var(--border); padding: 8px 12px; min-height: 0; flex-direction: row; align-items: center; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sidenav__group { flex-direction: row; margin: 0; gap: 4px; flex: none; }
+  .sidenav__title, .sidenav__user { display: none; }
+  .sidenav__item { width: auto; flex: none; white-space: nowrap; padding: 11px 14px; }
+  .filters { padding: 10px 18px; }
+  .filters-toggle { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 13px 14px; background: var(--white); border: .5px solid var(--border); font-family: var(--font-sans); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--slate); cursor: pointer; }
+  .filters > *:not(.filters-toggle) { display: none; }
+  .filters.is-open > *:not(.filters-toggle) { display: block; }
+  .filters.is-open > .filters__title { display: none; }
+  .filters.is-open > .filters-toggle { margin-bottom: 18px; }
+}
+
+@media (max-width: 700px) {
+  /* En-tête compact + menu */
+  .site-header__inner { padding: 10px 16px; gap: 8px; }
+  .brand img { width: 34px; height: 34px; }
+  .brand__name { font-size: 16px; }
+  .brand__tag { font-size: 10px; }
+  .nav-burger { display: flex; flex-direction: column; justify-content: center; gap: 5px; margin-left: auto; width: 44px; height: 44px; padding: 0 11px; background: none; border: .5px solid var(--border); cursor: pointer; }
+  .nav-burger span { display: block; height: 1.5px; background: var(--slate); transition: transform .2s, opacity .2s; }
+  .site-header.is-open .nav-burger span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .site-header.is-open .nav-burger span:nth-child(2) { opacity: 0; }
+  .site-header.is-open .nav-burger span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+  .site-nav, .site-user { display: none; width: 100%; }
+  .site-header.is-open .site-nav { display: flex; flex-direction: column; align-items: stretch; gap: 0; margin: 0; }
+  .site-nav a { padding: 14px 2px; border-top: .5px solid var(--border); font-size: 12.5px; }
+  .site-header.is-open .site-user { display: flex; padding: 12px 0 4px; border-top: .5px solid var(--border); }
+  .site-user .btn { width: 100%; justify-content: center; text-align: center; }
+
+  /* Barre de recherche sur deux lignes */
+  .searchbar { height: auto; flex-wrap: wrap; padding: 0 0 0 14px; }
+  .searchbar input { height: 44px; }
+  .searchbar input#s-q { flex: 1 1 60%; }
+  .searchbar input.searchbar__city { flex: 1 1 30%; width: auto; min-width: 110px; }
+  .searchbar button { flex: 1 1 100%; height: 44px; margin-left: -14px; }
+
+  /* Connexion / inscription : bandeau réduit */
+  .auth-side { padding: 18px 22px; min-height: 0; }
+  .auth-side h2 { font-size: 24px; margin: 0; }
+  .auth-side img, .auth-side__lead, .auth-features { display: none; }
+
+  /* Saisie : 16 px évite le zoom automatique sur iPhone */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px; }
+
+  /* Agenda praticien : un jour à la fois */
+  .agenda-grid { min-width: 0; }
+  .agenda-nav { margin-left: 0; width: 100%; order: 5; }
+  .agenda-nav .chipbtn { min-height: 42px; padding: 0 16px; }
+  .agenda-nav .chipbtn:nth-child(2) { flex: 1; }
+
+  /* Messages : liste puis conversation */
+  .msgs { min-height: 0; }
+  .msgs__list { max-width: none; width: 100%; flex: 1 1 100%; border-right: none; }
+  .msgs--open .msgs__list { display: none; }
+  .msgs:not(.msgs--open) .msgs__thread { display: none; }
+  .msgs__back { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: none; background: none; border: none; font-size: 22px; color: var(--slate); cursor: pointer; margin-left: -8px; }
+  .msgs__body { max-height: 58vh; padding: 16px 14px; }
+  .msgs__head, .msgs__compose { padding: 12px 14px; }
+  .msgs__compose .btn-dark2 { flex: none; }
+  .msgs__compose input { min-width: 0; flex: 1; }
+
+  /* Composition du cocktail */
+  .compo { flex-wrap: nowrap; gap: 12px; }
+  .compo__body { min-width: 0; }
+  .compo__price { flex: none; min-width: 48px; }
+
+  /* Fiche praticien : photo centrée */
+  .panel--identity { justify-content: center; }
+  .panel--identity .photo { width: 170px; height: 206px; margin: 0 auto; }
+  .panel--identity .identity { flex-basis: 100%; }
+
+  /* Abonnement */
+  .plan-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .plan-row__desc { line-height: 1.65; }
+
+  /* Prestations : liens plus faciles à toucher */
+  .offer-row .sec-link, .offer-row .state-btn { display: inline-flex; align-items: center; min-height: 42px; padding: 0 12px; }
+}

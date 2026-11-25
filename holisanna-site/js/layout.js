@@ -145,17 +145,20 @@
     var user = s.loggedIn
       ? '<div class="site-user"><div class="site-user__avatar">' + esc(who().initials) + '</div><div class="site-user__name">' + esc(who().short) + '</div>' +
         '<button class="site-user__out" type="button" id="logout">Sortir</button></div>'
-      : '<a class="btn btn-outline" href="connexion.html">Se connecter</a>';
+      : '<div class="site-user"><a class="btn btn-outline" href="connexion.html">Se connecter</a></div>';
     host.innerHTML =
       '<header class="site-header"><div class="site-header__inner">' +
       '<a class="brand" href="index.html"><img src="assets/logo-holisanna-mark.png" alt="">' +
       '<div><div class="brand__name">HOLISANNA</div><div class="brand__tag">Fil Web to Feel Well</div></div></a>' +
+      '<button class="nav-burger" type="button" id="nav-burger" aria-label="Ouvrir le menu" aria-expanded="false"><span></span><span></span><span></span></button>' +
       '<nav class="site-nav" aria-label="Navigation principale">' +
       item('accueil', 'Accueil', 'index.html') +
       item('recherche', 'Rechercher', 'recherche.html') +
       item('espace', 'Mon espace', s.loggedIn ? 'espace.html' : 'connexion.html') +
       item('pro', 'Espace praticien', 'espace-praticien.html') +
       '</nav>' + user + '</div></header>';
+    var bg = document.getElementById('nav-burger'), hd = host.querySelector('.site-header');
+    if (bg && hd) bg.addEventListener('click', function () { var o = hd.classList.toggle('is-open'); bg.setAttribute('aria-expanded', o ? 'true' : 'false'); bg.setAttribute('aria-label', o ? 'Fermer le menu' : 'Ouvrir le menu'); });
     var out = document.getElementById('logout');
     if (out) out.addEventListener('click', function () { Session.logout().then(function () { location.href = 'index.html'; }); });
   }

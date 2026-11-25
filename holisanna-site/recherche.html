@@ -15,6 +15,7 @@
 <main class="search-layout">
   <!-- Filtres -->
   <aside class="filters" aria-label="Filtres de recherche">
+    <button class="filters-toggle" type="button" id="filters-toggle" aria-expanded="false" aria-controls="f-pillars"><span>Filtres</span><span aria-hidden="true">▾</span></button>
     <div class="filters__title">Affiner les résultats</div>
 
     <div class="fgroup"><div class="fgroup__title">Pilier</div><div class="fgroup__col" id="f-pillars"></div></div>
@@ -75,5 +76,9 @@
 <script src="js/layout.js"></script>
 <script src="js/annuaire.js"></script>
 <script src="js/recherche.js"></script>
+<script>
+(function () { var b = document.getElementById('filters-toggle'), f = document.querySelector('.filters');
+  if (b && f) b.addEventListener('click', function () { var o = f.classList.toggle('is-open'); b.setAttribute('aria-expanded', o ? 'true' : 'false'); b.lastElementChild.textContent = o ? '▴' : '▾'; }); })();
+</script>
 </body>
 </html>
