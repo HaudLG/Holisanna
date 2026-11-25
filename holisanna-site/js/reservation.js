@@ -10,7 +10,7 @@
   var step = params.get('etape') === '3' ? 3 : 2;
 
   function steps() {
-    var labels = ['Créneau choisi', 'Récapitulatif & règlement', 'Confirmation'];
+    var labels = ['Créneau choisi', 'Récapitulatif', 'Confirmation'];
     return '<div class="bsteps">' + labels.map(function (l, i) {
       var n = i + 1, cls = n < step || n === 1 ? 'is-done' : n === step ? 'is-current' : '';
       if (n === step && n !== 1) cls = 'is-current';
@@ -29,7 +29,7 @@
       ['Lieu', prat.format === 'visio' ? 'Visioconférence' : prat.place],
       ['Durée', prat.duration]
     ];
-    host.innerHTML = steps() + '<section class="bpanel"><h1>Confirmer et régler</h1>' +
+    host.innerHTML = steps() + '<section class="bpanel"><h1>Confirmer votre réservation</h1>' +
       (stillFree ? '' : '<div class="warn">Ce créneau n’est plus disponible. <a href="' + 'praticien.html?id=' + prat.id + '">Choisir un autre horaire</a></div>') +
       '<div class="bgrid"><div><div class="label-s" style="margin-bottom:14px">Votre séance</div><div class="recap">' +
       rows.map(function (r) { return '<div class="recap__row"><span class="recap__k">' + r[0] + '</span><span class="recap__v">' + r[1] + '</span></div>'; }).join('') +
@@ -102,7 +102,7 @@
         ['Créneau', esc(HOL_DIR.dayLabel(slot.day)) + ' à ' + slot.hm], ['Lieu', esc(lieu)], ['Durée', esc(offer.detail)]
       ] : [];
       document.title = 'Confirmer la réservation — Holisanna';
-      host.innerHTML = steps() + '<section class="bpanel"><h1>Confirmer et régler</h1>' +
+      host.innerHTML = steps() + '<section class="bpanel"><h1>Confirmer votre réservation</h1>' +
         '<div class="warn" id="warn"' + (ok ? ' hidden' : '') + '>Ce créneau n’est plus disponible. <a href="' + back + '">Choisir un autre horaire</a></div>' +
         '<div class="bgrid"><div><div class="label-s" style="margin-bottom:14px">Votre séance</div><div class="recap">' +
         rows.map(function (r) { return '<div class="recap__row"><span class="recap__k">' + r[0] + '</span><span class="recap__v">' + r[1] + '</span></div>'; }).join('') +
