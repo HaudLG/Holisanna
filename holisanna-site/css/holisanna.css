@@ -1020,6 +1020,7 @@ button.rrow { border-bottom: .5px solid var(--border); }
 
 @media (max-width: 900px) {
   .sidenav { width: 100%; max-width: none; flex: 1 1 100%; border-right: none; border-bottom: .5px solid var(--border); padding: 8px 12px; min-height: 0; flex-direction: row; align-items: center; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sidenav { background: linear-gradient(to right, var(--ivory) 30%, transparent) left center / 36px 100% no-repeat local, linear-gradient(to left, var(--ivory) 30%, transparent) right center / 36px 100% no-repeat local, linear-gradient(to right, rgba(61,56,48,.14), transparent) left center / 14px 100% no-repeat scroll, linear-gradient(to left, rgba(61,56,48,.14), transparent) right center / 14px 100% no-repeat scroll; background-color: var(--ivory); }
   .sidenav__group { flex-direction: row; margin: 0; gap: 4px; flex: none; }
   .sidenav__title, .sidenav__user { display: none; }
   .sidenav__item { width: auto; flex: none; white-space: nowrap; padding: 11px 14px; }
