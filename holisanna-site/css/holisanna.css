@@ -1120,3 +1120,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* FAQ — cadre complet autour de chaque question (le bord gauche était invisible) ; barre dorée quand ouverte */
 .faq-item { border-left: .5px solid var(--border); }
 .faq-item.is-open { border-left-color: var(--border); box-shadow: inset 2px 0 0 var(--gold); }
+
+/* Chiffres « droits » partout (la police Cormorant a des chiffres anciens : « 1 » ressemble à « I ») */
+html { font-variant-numeric: lining-nums; }
