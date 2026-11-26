@@ -24,7 +24,7 @@
   }
   /* Adresse de retour après login : relative, même site uniquement */
   function nextUrl() { var n = params.get('next'); return n && /^[a-z0-9._-]+\.html(\?[^#]*)?$/i.test(n) ? n : ''; }
-  /* Écran « consultez votre boîte mail » après une inscription qui demande confirmation */
+  /* Écran « consultez votre boîte mail » après une inscription qui demande confirmation */
   function showCheckMail(form, email) {
     form.style.display = 'none';   /* l'attribut hidden est écrasé par le display:flex des formulaires */
     /* le message remplace tout le haut de la page : titre, boutons Google/Apple, séparateur, mentions */
@@ -71,7 +71,7 @@
     });
   }
 
-  /* ----- Bouton « œil » : afficher / masquer ce qu'on tape dans un champ mot de passe ----- */
+  /* ----- Bouton « œil » : afficher / masquer ce qu'on tape dans un champ mot de passe ----- */
   var EYE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12s3.8-7 10.5-7 10.5 7 10.5 7-3.8 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
   var EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.7 0 10.5 7 10.5 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6A17.4 17.4 0 0 0 1.5 12S5.3 19 12 19c1.7 0 3.2-.4 4.5-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
   function initPwdToggle() {
@@ -255,7 +255,7 @@
       }).join('');
     }
     a.addEventListener('input', paint); b.addEventListener('input', paint); paint();
-    /* Un lien refusé par Supabase arrive avec « error_code » dans l'adresse : on l'explique tout de suite */
+    /* Un lien refusé par Supabase arrive avec « error_code » dans l'adresse : on l'explique tout de suite */
     var h = (window.HOL_SB && window.HOL_SB.hashAtLoad) || '', note = '';
     if (/otp_expired|expired/i.test(h)) note = 'Ce lien a expiré ou a déjà été utilisé. Certaines messageries ouvrent les liens à l’avance, ce qui les invalide : demandez-en un nouveau et cliquez dessus une seule fois.';
     else if (/error=|error_code=/i.test(h)) note = 'Ce lien a été refusé (' + (/error_code=([a-z_]+)/i.exec(h) || [0, 'erreur inconnue'])[1] + '). Demandez-en un nouveau.';
@@ -348,7 +348,7 @@
       c.auth.getSession().then(function (r) {
         var ses = r.data.session;
         if (!ses) { go('connexion.html', 'Connectez-vous pour continuer.'); return; }
-        /* « Passer » enregistre des listes vides : le questionnaire ne sera plus imposé à chaque connexion */
+        /* « Passer » enregistre des listes vides : le questionnaire ne sera plus imposé à chaque connexion */
         var row = save ? {
           piliers_prefs: st.pillars.map(function (x) { return PILLAR_DB[x]; }).filter(Boolean),
           modes_prefs: st.modes.map(function (x) { return MODE_DB[x]; }).filter(function (x, i, a) { return x && a.indexOf(x) === i; }),

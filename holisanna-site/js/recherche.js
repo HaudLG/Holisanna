@@ -154,7 +154,7 @@
 
     $('s-q').value = s.q; $('s-city').value = s.city; $('sort').value = s.sort;
     $('count').textContent = !loaded ? 'Chargement…' : list.length + ' praticien' + (list.length > 1 ? 's' : '');
-    $('query').textContent = (s.q.trim() ? 'pour « ' + s.q.trim() + ' »' : 'toutes disciplines') + ' · ' + (s.city.trim() || 'partout en France');
+    $('query').textContent = (s.q.trim() ? 'pour « ' + s.q.trim() + ' »' : 'toutes disciplines') + ' · ' + (s.city.trim() || 'partout en France');
     $('cards').innerHTML = list.slice((s.page - 1) * PER, s.page * PER).map(card).join('');
     $('empty').hidden = !loaded || list.length !== 0;
 

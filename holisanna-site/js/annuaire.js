@@ -1,5 +1,5 @@
 /* Holisanna — annuaire des praticiens (lecture publique dans Supabase).
-   Fournit à la recherche et à la fiche publique des praticiens « normalisés » :
+   Fournit à la recherche et à la fiche publique des praticiens « normalisés » :
    uniquement les fiches en ligne (sauf la sienne, que le praticien peut prévisualiser).
    Les créneaux sont lus en heure de Paris. */
 (function () {
@@ -44,7 +44,7 @@
     });
   }
 
-  /* Fabrique le praticien « normalisé » à partir des lignes de la base */
+  /* Fabrique le praticien « normalisé » à partir des lignes de la base */
   function build(row, disc, offers, slots, avis) {
     var d = disc.byId[row.discipline_principale_id] || null;
     var pillar = (d && d.pilier) || 'corps';

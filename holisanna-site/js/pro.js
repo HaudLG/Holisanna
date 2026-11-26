@@ -211,7 +211,7 @@
       '<div class="recap__row"><span class="recap__k">Statut</span><span class="recap__v">' + esc((RSTAT[b.statut] || RSTAT.confirmee)[1]) + '</span></div></div>' +
       (ok ? '<div class="ffield" style="margin-bottom:16px"><label for="motif">Message pour l’explorateur (facultatif)</label><textarea id="motif" rows="2" data-motif placeholder="Un imprévu de ma part…"></textarea></div>' +
         '<div class="modal__btns--pro"><button class="btn-ghost2" type="button" data-act="cancel-resa" data-id="' + b.id + '">ANNULER CETTE SÉANCE</button><button class="modal__close" type="button" data-act="close">Fermer</button></div>' +
-        '<p class="modal__lead" style="margin:14px 0 0">Annuler libère l’explorateur de sa réservation ; le créneau passe en « bloqué » dans votre agenda.</p>'
+        '<p class="modal__lead" style="margin:14px 0 0">Annuler libère l’explorateur de sa réservation ; le créneau passe en « bloqué » dans votre agenda.</p>'
         : '<div class="modal__btns--pro"><button class="modal__close" type="button" data-act="close">Fermer</button></div>') +
       '</div></div>';
   }
@@ -270,7 +270,7 @@
   function secOffres() {
     var head = '<div class="sec-head" style="align-items:baseline"><h2>Mes prestations</h2><button class="sec-link" type="button" data-act="add-offer">Ajouter une prestation →</button></div>';
     if (!db.ready) return head + pending('vos prestations');
-    if (!db.prestations.length) return head + '<div class="empty-note">Vous n’avez pas encore de prestation. Ajoutez par exemple « Massage bien-être · 60 min » avec son tarif : c’est ce que les explorateurs réserveront.</div>';
+    if (!db.prestations.length) return head + '<div class="empty-note">Vous n’avez pas encore de prestation. Ajoutez par exemple « Massage bien-être · 60 min » avec son tarif : c’est ce que les explorateurs réserveront.</div>';
     return head + '<div class="hlist">' + db.prestations.map(function (o) {
       return '<div class="offer-row"><span class="offer-row__bar" style="background:' + (MODE_COL[o.mode] || 'var(--olive)') + '"></span><div class="offer-row__body"><div class="offer-row__name">' + esc(o.nom) + '</div><div class="offer-row__meta">' + o.duree_minutes + ' min · ' + MODE_LBL[o.mode] + '</div></div>' +
         '<div class="offer-row__price">' + o.prix_euros + ' €</div>' +
@@ -300,9 +300,9 @@
     if (!a) return '<div class="empty-note">Impossible de charger votre abonnement pour le moment. Rechargez la page dans un instant.</div>';
     var left = a.essai_fin ? Math.max(0, Math.ceil((new Date(a.essai_fin) - Date.now()) / 86400000)) : 0, t, c;
     if (a.statut === 'avant_essai') { t = 'Votre mois d’essai gratuit démarrera à la publication de votre fiche.'; c = 'var(--slate-md)'; }
-    else if (a.statut === 'essai') { t = 'Mois d’essai gratuit en cours, jusqu’au ' + dateFr(a.essai_fin) + ' (' + left + ' jour' + (left > 1 ? 's' : '') + ' restant' + (left > 1 ? 's' : '') + ').' + (a.stripe_subscription_id ? (a.annule_fin_periode ? ' Votre abonnement est résilié : aucun prélèvement n’aura lieu et votre fiche sera mise hors ligne à la fin de l’essai. Vous pouvez le reprendre avec « Gérer mon abonnement ».' : ' Votre formule est enregistrée : le premier prélèvement aura lieu à la fin de l’essai.') : ' Aucun prélèvement.'); c = 'var(--olive)'; }
+    else if (a.statut === 'essai') { t = 'Mois d’essai gratuit en cours, jusqu’au ' + dateFr(a.essai_fin) + ' (' + left + ' jour' + (left > 1 ? 's' : '') + ' restant' + (left > 1 ? 's' : '') + ').' + (a.stripe_subscription_id ? (a.annule_fin_periode ? ' Votre abonnement est résilié : aucun prélèvement n’aura lieu et votre fiche sera mise hors ligne à la fin de l’essai. Vous pouvez le reprendre avec « Gérer mon abonnement ».' : ' Votre formule est enregistrée : le premier prélèvement aura lieu à la fin de l’essai.') : ' Aucun prélèvement.'); c = 'var(--olive)'; }
     else if (a.statut === 'expire') { t = 'Votre mois d’essai est terminé : votre fiche est hors ligne. Elle sera remise en ligne dès l’activation de votre formule.'; c = 'var(--rose)'; }
-    else if (a.statut === 'impaye') { t = 'Le dernier prélèvement a échoué. Mettez à jour votre carte avec « Gérer mon abonnement » pour garder votre fiche en ligne.'; c = 'var(--rose)'; }
+    else if (a.statut === 'impaye') { t = 'Le dernier prélèvement a échoué. Mettez à jour votre carte avec « Gérer mon abonnement » pour garder votre fiche en ligne.'; c = 'var(--rose)'; }
     else if (a.annule_fin_periode) { t = 'Abonnement résilié : il reste actif jusqu’au ' + (a.periode_fin ? dateFr(a.periode_fin) : 'terme de la période') + ', puis votre fiche sera mise hors ligne.'; c = 'var(--slate-md)'; }
     else { t = 'Abonnement actif' + (a.periode_fin ? ' · prochain prélèvement le ' + dateFr(a.periode_fin) : '') + '.'; c = 'var(--olive)'; }
     return '<div class="pay-card" style="margin-bottom:16px"><div><div class="pay-card__t" style="color:' + c + '">' + t + '</div></div></div>';
@@ -492,7 +492,7 @@
     });
   }
   function pubUrl() { return db.slug ? 'praticien.html?p=' + encodeURIComponent(db.slug) + '&from=pro' : 'pro-fiche.html'; }
-  /* Conditions de publication (les mêmes que le contrôle fait par la base) : [libellé court, phrase « il manque », ok] */
+  /* Conditions de publication (les mêmes que le contrôle fait par la base) : [libellé court, phrase « il manque », ok] */
   function reqs() {
     var f = fiche || {};
     return [
@@ -513,7 +513,7 @@
     var on = db.statut === 'en_ligne', mq = on ? [] : manque();
     return '<div class="fcard"><div class="fcard__title">Publication</div>' +
       '<p class="fcard__lead" style="margin-top:0">' + (on ? 'Votre fiche est <strong>en ligne</strong> : les explorateurs la trouvent dans la recherche et peuvent voir vos prestations et vos créneaux libres.'
-        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, une photo de profil, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
+        : 'Votre fiche est un <strong>brouillon</strong> : seule vous la voyez. Pour la publier, il faut un nom, une discipline principale, une présentation, une ville, un mode de séance, au moins une prestation visible, une photo de profil, votre numéro de SIRET et votre assurance RC Pro.' + (db.abo && db.abo.statut === 'avant_essai' ? ' <strong>La première publication démarre votre mois d’essai gratuit</strong> (puis Fil Continu 9,99 € ou Fil Libre 11,99 € par mois).' : '') + (db.abo && db.abo.statut === 'expire' ? ' Votre mois d’essai est terminé : choisissez une formule dans « Abonnement &amp; factures » pour la remettre en ligne.' : '')) + '</p>' +
       (!on && ficheDb ? (mq.length ? '<p class="fcard__lead" style="margin:10px 0 0"><strong>Il vous manque encore :</strong> ' + mq.join(', ') + '.</p>' : '<p class="fcard__lead" style="margin:10px 0 0;color:var(--olive)"><strong>Tout est prêt : vous pouvez publier votre fiche.</strong></p>') : '') +
       (!on && ficheDb && db.charteOk === false ? '<label class="accept" style="margin:14px 0 0"><input type="checkbox" id="sign-charte"><span>Je m’engage à respecter la <a href="charte.html" target="_blank" rel="noopener">charte éthique</a> d’Holisanna. *</span></label>' : '') +
       '<div class="fbtns" style="margin-top:14px">' + (on
@@ -579,7 +579,7 @@
   function secMessages() { return M.messagesHtml(); }
   function secNotifs() { return M.notifsHtml(); }
 
-  /* ----- Modale « Ouvrir des créneaux » ----- */
+  /* ----- Modale « Ouvrir des créneaux » ----- */
   function modalHtml() {
     if (!modal) return '';
     if (modal === 'offer') return offerModal();
@@ -588,7 +588,7 @@
       var av = db.avis.filter(function (x) { return x.id === replySel; })[0]; if (!av) return '';
       return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
         '<div class="modal__k" style="color:var(--gold)">Avis de ' + esc(av.auteur_nom) + '</div><h3>Répondre</h3>' +
-        '<p class="modal__lead" style="margin-bottom:10px">« ' + esc(av.commentaire) + ' »<br>Votre réponse sera publique et ne pourra plus être modifiée.</p>' +
+        '<p class="modal__lead" style="margin-bottom:10px">« ' + esc(av.commentaire) + ' »<br>Votre réponse sera publique et ne pourra plus être modifiée.</p>' +
         '<textarea id="reply-text" rows="4" maxlength="1200" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--border);font:inherit;margin-bottom:6px">' + esc(replyText) + '</textarea>' +
         '<div id="reply-warn" class="modal__lead" style="color:var(--rose);min-height:18px;margin:0 0 8px"></div>' +
         '<div class="modal__btns"><button class="btn-dark2" type="button" data-act="send-reply">PUBLIER MA RÉPONSE</button><button class="btn-ghost2" type="button" data-act="close">ANNULER</button></div></div></div>';
@@ -730,7 +730,7 @@
     },
     'del-offer': function (el) {
       var o = db.prestations.filter(function (x) { return x.id === el.dataset.id; })[0]; if (!o) return;
-      if (!window.confirm('Supprimer « ' + o.nom + ' » ? Les séances déjà réservées ne sont pas modifiées.')) return;
+      if (!window.confirm('Supprimer « ' + o.nom + ' » ? Les séances déjà réservées ne sont pas modifiées.')) return;
       HOL.sb().from('prestations').update({ deleted_at: new Date().toISOString() }).eq('id', o.id).then(function (r) {
         if (r.error) throw r.error; return loadOffers();
       }).then(function () { render(); HOL.toast('Prestation supprimée.'); }).catch(function () { HOL.toast('Suppression impossible pour le moment.'); });

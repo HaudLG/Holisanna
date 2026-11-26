@@ -1,7 +1,7 @@
-/* Holisanna — client Supabase (projet « Holisanna », région UE).
-   La clé « publishable » est faite pour le navigateur : elle n'ouvre rien toute seule.
+/* Holisanna — client Supabase (projet « Holisanna », région UE).
+   La clé « publishable » est faite pour le navigateur : elle n'ouvre rien toute seule.
    L'accès aux données est protégé par les règles RLS côté base (jamais par ce fichier).
-   ⚠ Ne jamais mettre ici de clé « secret » ni « service_role ». */
+   ⚠ Ne jamais mettre ici de clé « secret » ni « service_role ». */
 (function () {
   'use strict';
   var URL = 'https://xvromzlzceqnhalyurcv.supabase.co';

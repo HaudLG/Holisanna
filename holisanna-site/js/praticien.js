@@ -44,7 +44,7 @@
     return out;
   }
 
-  /* Bouton « Écrire à… » (praticiens réels et publiés, pas pour un compte praticien) */
+  /* Bouton « Écrire à… » (praticiens réels et publiés, pas pour un compte praticien) */
   function writeBtn(p, pr) {
     if (!p.real || !p.published) return '';
     var se = HOL.Session.get(); if (se.loggedIn && se.role === 'praticien') return '';
@@ -74,7 +74,7 @@
       : '<span>★ ' + p.rating + ' · ' + p.reviews + '</span><span>' + p.experience + '</span><span>' + pr.formatLabel + '</span>';
 
     host.innerHTML =
-      (preview ? '<div class="no-slots" style="margin-bottom:18px"><h3>Aperçu de votre fiche</h3><p>Elle n’est pas encore publiée : seule vous pouvez la voir. Publiez-la depuis « Modifier ma fiche » pour qu’elle apparaisse dans la recherche.</p></div>' : '') +
+      (preview ? '<div class="no-slots" style="margin-bottom:18px"><h3>Aperçu de votre fiche</h3><p>Elle n’est pas encore publiée : seule vous pouvez la voir. Publiez-la depuis « Modifier ma fiche » pour qu’elle apparaisse dans la recherche.</p></div>' : '') +
       '<a class="back" id="back" href="' + (fromPro ? 'pro-fiche.html' : 'recherche.html') + '">' + (fromPro ? '← Retour à ma fiche' : '← Retour aux résultats') + '</a>' +
       '<div class="profile__cols"><div class="profile__main">' +
 
@@ -146,7 +146,7 @@
     if (off) off.addEventListener('change', function () { sel.offer = off.value; render(p, !p.published); });
     var ask = document.getElementById('ask');
     if (ask) ask.addEventListener('click', function () { HOL.toast('Demande envoyée. ' + pr.firstName + ' vous répondra par message.'); });
-    /* « Retour aux résultats » conserve les filtres si l'on arrive de la recherche */
+    /* « Retour aux résultats » conserve les filtres si l'on arrive de la recherche */
     document.getElementById('back').addEventListener('click', function (e) {
       if (params.get('from') !== 'pro' && document.referrer && /recherche\.html/.test(document.referrer) && history.length > 1) { e.preventDefault(); history.back(); }
     });

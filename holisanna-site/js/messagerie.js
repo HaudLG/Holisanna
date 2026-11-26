@@ -73,7 +73,7 @@
       }).catch(function () { if (!S.ready) S.err = true; });
     }
 
-    /* Liste des conversations, avec une conversation « à créer » si on arrive depuis une fiche */
+    /* Liste des conversations, avec une conversation « à créer » si on arrive depuis une fiche */
     function list() {
       var l = S.convs.slice();
       if (isExpl && S.toId && S.toName && !l.some(function (c) { return c.praticien_id === S.toId; })) {
@@ -97,7 +97,7 @@
       var l = list();
       if (!l.length) {
         return '<div class="sec-head"><h2>Messages</h2></div><div class="empty-note">Aucun message pour le moment. ' +
-          (isExpl ? 'Pour écrire à un praticien, ouvrez sa fiche et cliquez sur « Écrire à… ».' : 'Les explorateurs peuvent vous écrire depuis votre fiche publique : leurs messages apparaîtront ici.') + '</div>';
+          (isExpl ? 'Pour écrire à un praticien, ouvrez sa fiche et cliquez sur « Écrire à… ».' : 'Les explorateurs peuvent vous écrire depuis votre fiche publique : leurs messages apparaîtront ici.') + '</div>';
       }
       var act = activeConv(l);
       var rows = l.map(function (c) {

@@ -375,7 +375,7 @@
   function proNotifs(plan) {
     return [
       { id: 'p1', day: "Aujourd'hui", type: 'resa', title: 'Nouvelle réservation', text: 'Sarah Nguyen — mercredi 9 septembre à 14h, massage bien-être 60 min.', time: 'Il y a 1 h', go: 'pro-reservations.html' },
-      { id: 'p2', day: "Aujourd'hui", type: 'msg', title: 'Question d’un explorateur', text: 'Marc Bellanger : « Le cabinet est-il accessible en fauteuil ? »', time: 'Il y a 3 h', go: 'pro-messages.html' },
+      { id: 'p2', day: "Aujourd'hui", type: 'msg', title: 'Question d’un explorateur', text: 'Marc Bellanger : « Le cabinet est-il accessible en fauteuil ? »', time: 'Il y a 3 h', go: 'pro-messages.html' },
       { id: 'p3', day: 'Hier', type: 'avis', title: 'Nouvel avis reçu', text: 'Marc B. vous a laissé 5 étoiles sur Massage dos & nuque.', time: 'Hier, 20:05', go: 'pro-avis.html' },
       { id: 'p4', day: 'Hier', type: 'resa', title: 'Annulation', text: 'Sonia Rahal a annulé le créneau du mercredi 2 septembre à 09h00.', time: 'Hier, 11:30', go: 'pro-agenda.html' },
       { id: 'p5', day: 'Cette semaine', type: 'fact', title: 'Prélèvement effectué', text: 'Formule ' + (plan || 'Fil Libre') + ' — 11,99 € le 1er septembre. Facture disponible.', time: '1 septembre', go: 'pro-abonnement.html' },

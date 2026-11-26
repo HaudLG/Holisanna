@@ -103,7 +103,7 @@
       {
         "id": "c4",
         "q": "Que faire en cas de problème avec un praticien ?",
-        "a": "Écrivez à contact@holisanna.fr avec l'objet « Signalement », le nom du praticien et la date de la séance. Le signalement est instruit sous sept jours, reste confidentiel, et peut mener au retrait de la fiche."
+        "a": "Écrivez à contact@holisanna.fr avec l'objet « Signalement », le nom du praticien et la date de la séance. Le signalement est instruit sous sept jours, reste confidentiel, et peut mener au retrait de la fiche."
       }
     ]
   }

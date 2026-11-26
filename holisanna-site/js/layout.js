@@ -55,10 +55,10 @@
     }
   };
 
-  /* Identité affichable : « Léna Ferreira » → { full, first, short: « Léna F. », initials: « LF » } */
+  /* Identité affichable : « Léna Ferreira » → { full, first, short: « Léna F. », initials: « LF » } */
   function who() {
     var s = Session.get(), full = (s.name || '').trim() || (s.email || '').split('@')[0] || 'Mon compte';
-    var parts = full.split(/\s+/), first = parts[0], last = parts.slice(1).join(' ');   /* « Le Gouadec » → L. */
+    var parts = full.split(/\s+/), first = parts[0], last = parts.slice(1).join(' ');   /* « Le Gouadec » → L. */
     return {
       full: full, first: first,
       short: last ? first + ' ' + last.charAt(0).toUpperCase() + '.' : first,
@@ -119,7 +119,7 @@
 
   function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  /* ----- Message « flash » : affiché au chargement de la page suivante ----- */
+  /* ----- Message « flash » : affiché au chargement de la page suivante ----- */
   function flash(msg) { try { sessionStorage.setItem('holisanna.flash', msg); } catch (e) {} }
 
   /* ----- Toast ----- */

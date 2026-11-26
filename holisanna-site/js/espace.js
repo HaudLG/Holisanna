@@ -13,7 +13,7 @@
   if (!sess.loggedIn) { location.replace('connexion.html'); return; }
   if (sess.role === 'praticien') { location.replace('connexion.html?role=explorateur'); return; }
 
-  /* Le mode « exemple rempli » ne dure que le temps de la page : il n'est jamais conservé d'une visite à l'autre */
+  /* Le mode « exemple rempli » ne dure que le temps de la page : il n'est jamais conservé d'une visite à l'autre */
   (function () { var s0 = HOL.Store.get(); if (s0.demoCocktail) { s0.demoCocktail = false; HOL.Store.set(s0); } })();
 
   /* ----- Données réelles (Supabase) : réservations et praticiens recommandés ----- */
@@ -27,7 +27,7 @@
   function whenLong(iso) { var p = paris(iso); return cap(p.weekday) + ' ' + p.day + ' ' + p.month + ' · ' + p.hour + 'h' + p.minute; }
   function upcoming() { var n = Date.now(); return rd.list.filter(function (r) { return r.statut === 'confirmee' && new Date(r.debut).getTime() > n; }).sort(function (a, b) { return new Date(a.debut) - new Date(b.debut); }); }
   function pastList() { var n = Date.now(); return rd.list.filter(function (r) { return !(r.statut === 'confirmee' && new Date(r.debut).getTime() > n); }); }
-  /* Séances réalisées = réservations confirmées dont l'heure de fin est passée (ou marquées « honorée ») */
+  /* Séances réalisées = réservations confirmées dont l'heure de fin est passée (ou marquées « honorée ») */
   var SESS = [];   /* séances affichées (réelles ou démo), recalculées à chaque rendu */
   function avisOf(rid) { return rd.avis.filter(function (a) { return a.reservation_id === rid; })[0] || null; }
   function realSessions() {
@@ -70,7 +70,7 @@
   /* ----- Données dérivées ----- */
   function derive() {
     var s = st(), counts = { corps: 0, ame: 0, esprit: 0 };
-    if (!s.demoCocktail) { s.sessions = realSessions(); s.reviewed = []; s.sessions.forEach(function (x, i) { if (avisOf(x.rid)) s.reviewed.push(i); }); }   /* compte réel : séances réellement passées (sauf « exemple rempli ») */
+    if (!s.demoCocktail) { s.sessions = realSessions(); s.reviewed = []; s.sessions.forEach(function (x, i) { if (avisOf(x.rid)) s.reviewed.push(i); }); }   /* compte réel : séances réellement passées (sauf « exemple rempli ») */
     SESS = s.sessions;
     s.sessions.forEach(function (x) { counts[x.pillar]++; });
     var hist = s.sessions.slice().reverse().map(function (x, i) {
