@@ -1137,3 +1137,9 @@ html { font-variant-numeric: lining-nums; }
 
 /* MESSAGES — rond des initiales visible sur la conversation sélectionnée */
 .conv.is-on .conv__avatar, .conv:hover .conv__avatar { background: var(--white); border: .5px solid var(--border); }
+
+/* ERREURS — boutons de même largeur sur mobile */
+@media (max-width: 700px) {
+  .err__actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; }
+  .err__btn { display: block; text-align: center; padding: 15px 20px; }
+}
