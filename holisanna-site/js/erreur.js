@@ -8,8 +8,6 @@
   var espace = s.loggedIn ? (s.role === 'praticien' ? 'espace-praticien.html' : 'espace.html') : 'connexion.html';
   var cocktail = s.loggedIn && s.role !== 'praticien' ? 'cocktail.html' : 'connexion.html';
 
-  function setPay(method, msg) { var st = HOL.Store.get(); st.payMethod = method; HOL.Store.set(st); HOL.flash(msg); }
-
   var ERRORS = {
     '404': {
       accent: 'var(--rose)', code: 'Erreur 404', title: 'Ce chemin', em: "n'existe pas.",
@@ -37,14 +35,10 @@
     },
     paiement: {
       accent: 'var(--gold)', code: 'Paiement non abouti', title: 'Votre paiement', em: "n'a pas pu être traité.",
-      sub: "Votre banque a refusé le prélèvement de l'abonnement. Votre fiche reste en ligne pendant sept jours : le temps de régler cela sans précipitation.",
+      sub: "Le dernier prélèvement de votre abonnement a échoué. Mettez à jour votre carte depuis « Abonnement & factures » pour garder votre fiche en ligne.",
       actions: [
-        { label: 'Réessayer le paiement', cls: 'rose', act: 'retry' },
-        { label: 'Changer de moyen', cls: 'dark', href: 'pro-abonnement.html' },
+        { label: 'Gérer mon abonnement', cls: 'rose', href: 'pro-abonnement.html' },
         { label: 'Questions fréquentes', cls: 'out', href: 'faq.html' }
-      ],
-      chips: [
-        { label: 'Utiliser une autre carte', act: 'card' }, { label: 'Passer au prélèvement SEPA', act: 'sepa' }, { label: 'Vérifier mes factures', href: 'pro-abonnement.html' }
       ],
       foot: 'Le prélèvement échoue toujours ? Écrivez-nous à'
     },
@@ -80,9 +74,6 @@
 
   var ACTIONS = {
     reload: function () { location.reload(); },
-    retry: function () { HOL.flash('Nouvelle tentative de prélèvement lancée.'); location.href = 'pro-abonnement.html'; },
-    card: function () { setPay('card', 'Renseignez votre nouvelle carte dans Abonnement & factures.'); location.href = 'pro-abonnement.html'; },
-    sepa: function () { setPay('sepa', 'Moyen de prélèvement : prélèvement SEPA.'); location.href = 'pro-abonnement.html'; },
     relogin: function () { HOL.Session.logout().then(function () { location.href = 'connexion.html'; }); }
   };
 
