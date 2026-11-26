@@ -44,7 +44,7 @@
     },
     session: {
       accent: 'var(--gold)', code: 'Session expirée', title: 'Votre session', em: "s'est refermée.",
-      sub: "Après une heure sans activité, nous vous déconnectons pour protéger vos données. Vos réservations et votre cocktail sont intacts : reconnectez-vous et vous reprenez où vous en étiez.",
+      sub: "Votre session a pris fin. Reconnectez-vous pour reprendre là où vous en étiez : vos réservations et votre cocktail sont intacts.",
       actions: [
         { label: 'Se reconnecter', cls: 'dark', act: 'relogin' },
         { label: "Retour à l'accueil", cls: 'out', href: 'index.html' }
