@@ -170,7 +170,7 @@
     var cols = [
       { title: 'Holisanna', links: [['L’histoire', 'histoire.html'], ['La philosophie', 'philosophie.html'], ['La charte éthique', 'charte.html']] },
       { title: 'Informations légales', links: [['Mentions légales', 'mentions.html'], ['Confidentialité', 'confidentialite.html'], ['CGU', 'cgu.html'], ['CGV', 'cgv.html']] },
-      { title: 'Contact', links: [['Questions fréquentes', 'faq.html'], ['contact@holisanna.fr', 'contact.html'], ['Nous écrire', 'contact.html'], ['Devenir praticien', 'devenir.html']] }
+      { title: 'Contact', links: [['Questions fréquentes', 'faq.html'], ['contact@holisanna.fr', 'mailto:contact@holisanna.fr'], ['Nous écrire', 'contact.html'], ['Devenir praticien', 'devenir.html']] }
     ];
     host.innerHTML =
       '<footer class="site-footer"><div class="site-footer__grid">' +
