@@ -35,7 +35,7 @@
     },
     paiement: {
       accent: 'var(--gold)', code: 'Paiement non abouti', title: 'Votre paiement', em: "n'a pas pu être traité.",
-      sub: "Le dernier prélèvement de votre abonnement a échoué. Mettez à jour votre carte depuis « Abonnement & factures » pour garder votre fiche en ligne.",
+      sub: "Le dernier prélèvement de votre abonnement a échoué. Mettez à jour votre carte depuis « Abonnement & factures » pour garder votre fiche en ligne.",
       actions: [
         { label: 'Gérer mon abonnement', cls: 'rose', href: 'pro-abonnement.html' },
         { label: 'Questions fréquentes', cls: 'out', href: 'faq.html' }
