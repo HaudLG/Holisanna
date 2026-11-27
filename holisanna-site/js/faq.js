@@ -46,6 +46,11 @@
         "a": "Un abonnement, sans commission sur vos séances. Fil Continu : 9,99 € par mois avec engagement de 12 mois, ou 109,89 € en une fois pour l’année (un mois offert). Fil Libre : 11,99 € par mois, sans engagement. Le premier mois est gratuit ; le prélèvement a lieu à la fin de l’essai, puis à la même date chaque mois. Factures disponibles dans votre espace."
       },
       {
+        "id": "p2",
+        "q": "Holisanna prend-il une commission ?",
+        "a": "Non, aucune. Les séances sont réglées directement par l’explorateur le jour du rendez-vous. Holisanna ne touche pas aux paiements de séance."
+      },
+      {
         "id": "p1a",
         "q": "Comment fonctionne le mois d’essai gratuit ?",
         "a": "Il démarre à la première publication de votre fiche, pas à l’inscription. Rien n’est prélevé pendant ce mois. Vous choisissez votre formule et ajoutez votre carte depuis « Abonnement & factures » ; le premier prélèvement n’a lieu qu’à la fin de l’essai. Sans formule active à cette date, votre fiche est mise hors ligne."
@@ -53,17 +58,17 @@
       {
         "id": "p1b",
         "q": "Comment résilier mon abonnement ?",
-        "a": "Depuis « Abonnement & factures », avec « Gérer mon abonnement ». Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d’engagement (ou à l’échéance annuelle si vous avez payé l’année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois."
-      },
-      {
-        "id": "p2",
-        "q": "Holisanna prend-il une commission ?",
-        "a": "Non, aucune. Les séances sont réglées directement par l’explorateur le jour du rendez-vous. Holisanna ne touche pas aux paiements de séance."
+        "a": "Depuis « Abonnement & factures », avec « Gérer mon abonnement ». Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d’engagement (ou à l’échéance annuelle si vous avez payé l’année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois. Sans résiliation, l’abonnement se renouvelle automatiquement."
       },
       {
         "id": "p3",
         "q": "Combien de temps pour être en ligne ?",
         "a": "Comptez une trentaine de minutes : créer votre compte, compléter votre fiche (numéro de SIRET et assurance RC Pro compris), la publier, puis ouvrir vos créneaux. La fiche apparaît dans la recherche dès sa publication."
+      },
+      {
+        "id": "p3a",
+        "q": "Quels documents faut-il fournir pour s’inscrire ?",
+        "a": "Aucun document à envoyer pour l’instant. Vous déclarez, depuis « Modifier ma fiche », votre numéro de SIRET et votre assurance RC Pro (assureur et échéance), et vous signez la charte éthique. Pour publier : un nom, une discipline principale, une présentation, une ville, un mode de séance, une prestation et une photo de profil. Holisanna ne vérifie pas encore les justificatifs."
       },
       {
         "id": "p4",
@@ -73,7 +78,7 @@
       {
         "id": "p5",
         "q": "Puis-je masquer une prestation ou mettre ma fiche en pause ?",
-        "a": "Une prestation se masque en un clic depuis « Mes prestations », sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n’est plus réservable."
+        "a": "Une prestation se masque en un clic depuis « Mes prestations », sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n’est plus réservable. Attention : votre abonnement, lui, continue d’être prélevé tant que vous ne l’avez pas résilié (voir « Comment résilier mon abonnement ? »)."
       },
       {
         "id": "p6",
