@@ -99,7 +99,8 @@
       var ok = !!(slot && offer);
       var rows = ok ? [
         ['Praticien', esc(p.name)], ['Discipline', esc(p.discipline) + ' · ' + esc(p.pillarLabel)], ['Prestation', esc(offer.name)],
-        ['Créneau', esc(HOL_DIR.dayLabel(slot.day)) + ' à ' + slot.hm], ['Lieu', esc(lieu)], ['Durée', esc(offer.detail)]
+        ['Créneau', esc(HOL_DIR.dayLabel(slot.day)) + ' à ' + slot.hm], ['Lieu', esc(lieu)], ['Durée', esc(offer.detail)],
+        ['Annulation', esc(p.conditions || 'Annulation gratuite jusqu’à 24 heures avant la séance. Au-delà, rapprochez-vous directement du praticien.')]
       ] : [];
       document.title = 'Confirmer la réservation — Holisanna';
       host.innerHTML = steps() + '<section class="bpanel"><h1>Confirmer votre réservation</h1>' +
@@ -108,7 +109,7 @@
         rows.map(function (r) { return '<div class="recap__row"><span class="recap__k">' + r[0] + '</span><span class="recap__v">' + r[1] + '</span></div>'; }).join('') +
         '</div><div class="note-olive">Séance confirmée = une couche ajoutée à votre cocktail bien-être.</div></div>' +
         '<div><div class="label-s" style="margin-bottom:14px">Règlement</div>' +
-        '<div class="pay-box"><strong>Règlement sur place</strong><span>Vous réglez directement le praticien le jour de la séance. Rien à payer maintenant, annulation gratuite jusqu’à 24 h avant.</span></div>' +
+        '<div class="pay-box"><strong>Règlement sur place</strong><span>Vous réglez directement le praticien le jour de la séance. Rien à payer maintenant.</span></div>' +
         '<div class="pay-total"><span>À régler le jour de la séance</span><span>' + (offer ? esc(offer.prix) : '') + ' €</span></div>' +
         '<div class="btn-row"><button class="btn btn-cta' + (ok ? '' : ' is-disabled') + '" type="button" id="confirm">Confirmer la réservation</button>' +
         '<a class="btn btn-outline" href="' + back + '">Modifier</a></div></div></div></section>';

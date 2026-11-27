@@ -1158,3 +1158,7 @@ html { font-variant-numeric: lining-nums; }
   .faq-tabs{gap:4px}
   .faq-tab{padding:9px 7px;font-size:10.5px;letter-spacing:.01em}
 }
+
+/* Conditions d'annulation (fiche publique) */
+.offers__cancel { margin-top: 22px; padding-top: 18px; border-top: .5px solid var(--border); }
+.offers__cancel .bio { margin: 6px 0 0; }

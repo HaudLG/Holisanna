@@ -94,7 +94,8 @@
       '<section class="panel"><h2 class="panel__title" style="margin-bottom:20px">Informations pratiques</h2><div class="info-grid">' + addr +
         '<div><div class="label-s">Langues parlées</div><div class="bubbles">' + pr.langs.map(function (l) { return '<span class="bubble bubble--lang">' + esc(l) + '</span>'; }).join('') + '</div></div></div>' + socials + '</section>' +
 
-      '<section class="panel"><div class="offers__head"><h2 class="panel__title">Séances &amp; tarifs</h2><div class="offers__note">Règlement le jour de la séance</div></div>' + offersHtml + '</section>' +
+      '<section class="panel"><div class="offers__head"><h2 class="panel__title">Séances &amp; tarifs</h2><div class="offers__note">Règlement le jour de la séance</div></div>' + offersHtml +
+        (p.real ? '<div class="offers__cancel"><div class="label-s">Conditions d’annulation</div><p class="bio">' + esc(p.conditions || 'Annulation gratuite jusqu’à 24 heures avant la séance. Au-delà, rapprochez-vous directement du praticien.') + '</p></div>' : '') + '</section>' +
 
       '<section class="panel"><h2 class="panel__title" style="margin-bottom:18px">Ce que disent les explorateurs</h2><div class="reviews">' + reviewsHtml + '</div></section>' +
       '</div>' +

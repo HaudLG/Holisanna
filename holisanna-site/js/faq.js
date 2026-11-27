@@ -76,6 +76,11 @@
         "a": "Oui. Une discipline principale, qui sert au classement dans la recherche, et autant de disciplines complémentaires que vous pratiquez réellement. Elles se règlent depuis « Modifier ma fiche »."
       },
       {
+        "id": "p4a",
+        "q": "Comment définir mes conditions d’annulation ?",
+        "a": "Depuis « Modifier ma fiche », rubrique « Lieu et modalités » : un texte court (300 caractères) que vos clients voient sur votre fiche et au moment de réserver. Un texte est proposé par défaut : adaptez-le à votre pratique. Côté site, l’explorateur peut toujours annuler en ligne jusqu’à 24 heures avant le créneau ; au-delà, vos conditions s’appliquent."
+      },
+      {
         "id": "p5",
         "q": "Puis-je masquer une prestation ou mettre ma fiche en pause ?",
         "a": "Une prestation se masque en un clic depuis « Mes prestations », sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n’est plus réservable. Attention : votre abonnement, lui, continue d’être prélevé tant que vous ne l’avez pas résilié (voir « Comment résilier mon abonnement ? »)."

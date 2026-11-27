@@ -442,13 +442,15 @@
         langs: (p.langues || []).map(function (l) { return LANGS_UI[l]; }).filter(Boolean),
         site: p.site_web || '', insta: p.instagram || '', cp: p.code_postal || '',
         siret: p.siret || '', rcAss: p.rc_pro_assureur || '', rcEch: p.rc_pro_echeance || '', rcOk: !!p.rc_pro_declaree_le, rcDate: p.rc_pro_declaree_le || null,
-        photos: (p.photos && typeof p.photos === 'object') ? p.photos : {}
+        photos: (p.photos && typeof p.photos === 'object') ? p.photos : {},
+        cond: p.conditions_annulation || COND_DEFAUT
       };
       acct.nom = u.nom_complet || '';
       db.discOk = !!p.discipline_principale_id; db.charteOk = !!p.charte_signee_le; db.vues = p.vues_fiche_30j; db.slug = p.slug; db.statut = p.statut_publication; ficheDb = true;
     }).catch(function () { ficheErr = true; });
   }
   /* Enregistre la fiche en base ; renvoie une promesse (rejetée si l'enregistrement échoue) */
+  var COND_DEFAUT = 'Annulation gratuite jusqu’à 24 heures avant la séance. Au-delà, la séance peut être due.';
   function persistFiche() {
     var c = HOL.sb(), f = fiche;
     var mi = invert(MODES_UI), li = invert(LANGS_UI);
@@ -466,6 +468,7 @@
           langues: f.langs.map(function (l) { return li[l]; }),
           site_web: f.site.trim() || null, instagram: f.insta.trim() || null,
           siret: (f.siret || '').replace(/\s/g, '') || null, rc_pro_assureur: (f.rcAss || '').trim() || null, rc_pro_echeance: f.rcEch || null,
+          conditions_annulation: (f.cond || '').slice(0, 300).trim() || null,
           rc_pro_declaree_le: f.rcOk ? (f.rcDate || (f.rcDate = new Date().toISOString())) : (f.rcDate = null)
         }).eq('utilisateur_id', id)
       ]);
@@ -567,7 +570,8 @@
       '<div class="ffield"><label for="f-parcours">Parcours et formation</label><textarea id="f-parcours" data-f="parcours" rows="3">' + esc(f.parcours) + '</textarea></div></div>' +
       '<div class="fcard"><div class="fcard__title">Lieu et modalités</div><div class="fgrid fgrid--200" style="margin-bottom:20px">' + field('adresse', 'Adresse du cabinet') + field('ville', 'Ville', 'city') + '</div>' +
       '<div style="margin-bottom:20px"><span class="flabel">Modes de séance</span>' + chips('modes', ['Cabinet', 'Visio', 'À domicile']) + '</div>' +
-      '<div><span class="flabel">Langues parlées</span>' + chips('langs', ['Français', 'Anglais', 'Espagnol', 'Italien', 'LSF']) + '</div></div>' +
+      '<div style="margin-bottom:20px"><span class="flabel">Langues parlées</span>' + chips('langs', ['Français', 'Anglais', 'Espagnol', 'Italien', 'LSF']) + '</div>' +
+      '<div class="ffield"><label for="f-cond">Conditions d’annulation</label><textarea id="f-cond" data-f="cond" rows="3" maxlength="300">' + esc(f.cond == null ? '' : f.cond) + '</textarea><div class="ffield__count" id="ccount">' + (f.cond || '').length + ' / 300 caractères · affiché sur votre fiche et au moment de la réservation</div></div></div>' +
       '<div class="fcard"><div class="fcard__title" style="margin-bottom:6px">Photos</div><p class="fcard__lead" style="margin-top:0">Trois images suffisent : vous, le lieu, une séance. Format paysage, lumière naturelle. JPEG, PNG ou WebP : l’image est automatiquement allégée. Sur votre fiche, les photos sont recadrées (portrait, galerie) : placez le sujet au centre.</p>' +
       photosHtml() + '</div>' +
       '<div class="fcard fcard--last"><div class="fcard__title">Contact et liens</div><div class="fgrid fgrid--200">' + field('tel', 'Téléphone', 'tel', 'tel') + field('site', 'Site web') + field('insta', 'Instagram') + '</div></div>' +
@@ -854,6 +858,7 @@
       var done = [fiche.nom, fiche.disc, fiche.pres, fiche.parcours, fiche.adresse, fiche.ville, fiche.tel, fiche.site].filter(function (v) { return v && v.trim(); }).length;
       var c = document.getElementById('fcount'); if (c) c.textContent = done + ' / 8 champs renseignés';
       var p = document.getElementById('pcount'); if (p) p.textContent = fiche.pres.length + ' / 600 caractères';
+      var cc = document.getElementById('ccount'); if (cc) cc.textContent = (fiche.cond || '').length + ' / 300 caractères · affiché sur votre fiche et au moment de la réservation';
     });
     root.addEventListener('change', function (e) { if (e.target.dataset.fc) { fiche[e.target.dataset.fc] = e.target.checked; return; } if (e.target.dataset.of) offerForm[e.target.dataset.of] = e.target.value; if (e.target.dataset.f === 'disc') fiche.disc = e.target.value; });
     root.addEventListener('keydown', function (e) { M.onKey(e); });

@@ -65,7 +65,7 @@
       reviewList: avis.map(function (a) { return { stars: '★★★★★'.slice(0, a.note) + '☆☆☆☆☆'.slice(0, 5 - a.note), text: a.commentaire, author: a.auteur_nom + (a.discipline_nom ? ' · ' + a.discipline_nom : ''), reponse: a.reponse || '' }; }),
       format: modes.length === 1 && modes[0] === 'visio' ? 'visio' : 'cabinet',
       teaser: text.length > 150 ? text.slice(0, 147).replace(/\s+\S*$/, '') + '…' : text,
-      bio: text, parcours: (row.parcours || '').trim(),
+      bio: text, parcours: (row.parcours || '').trim(), conditions: (row.conditions_annulation || '').trim(),
       offers: offers.map(function (o) { return { id: o.id, name: o.nom, detail: o.duree_minutes + ' min · ' + MODE_LONG[o.mode], price: o.prix_euros + ' €', prix: o.prix_euros, duree: o.duree_minutes, mode: o.mode }; }),
       modes: modes.map(function (m) { return MODE_LBL[m]; }),
       langs: langs.length ? langs : ['Français'],
@@ -80,7 +80,7 @@
     return r;
   }
 
-  var COLS = 'utilisateur_id,slug,nom_affiche,discipline_principale_id,disciplines_complementaires,presentation,parcours,adresse,ville,code_postal,langues,modes_seance,site_web,instagram,statut_publication,photos';
+  var COLS = 'utilisateur_id,slug,nom_affiche,discipline_principale_id,disciplines_complementaires,presentation,parcours,adresse,ville,code_postal,langues,modes_seance,site_web,instagram,statut_publication,photos,conditions_annulation';
 
   function fetchAll(rows) {
     var c = sb(), ids = rows.map(function (r) { return r.utilisateur_id; });
