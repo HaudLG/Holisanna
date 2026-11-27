@@ -63,7 +63,7 @@
       {
         "id": "p3",
         "q": "Combien de temps pour être en ligne ?",
-        "a": "Comptez une trentaine de minutes : créer votre compte, compléter votre fiche, ouvrir vos premiers créneaux. La fiche apparaît dans la recherche dès que des créneaux sont ouverts."
+        "a": "Comptez une trentaine de minutes : créer votre compte, compléter votre fiche (numéro de SIRET et assurance RC Pro compris), la publier, puis ouvrir vos créneaux. La fiche apparaît dans la recherche dès sa publication."
       },
       {
         "id": "p4",
