@@ -103,7 +103,7 @@
       {
         "id": "c3",
         "q": "Recevrai-je des e-mails promotionnels ?",
-        "a": "Uniquement avec votre accord. Les notifications de réservation, d’avis et de facturation, elles, font partie du service."
+        "a": "Uniquement avec votre accord. En revanche, les notifications de réservation, d’avis et de facturation font partie du service."
       },
       {
         "id": "c4",
