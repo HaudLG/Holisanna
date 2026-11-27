@@ -1143,3 +1143,12 @@ html { font-variant-numeric: lining-nums; }
   .err__actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; }
   .err__btn { display: block; text-align: center; padding: 15px 20px; }
 }
+
+/* FAQ — texte plus lisible en plein soleil ; onglets compacts sur mobile */
+.faq-a { color: #5A564E; }
+.faq-item:not(.is-open) .faq-q span:first-child { color: #5A564E; }
+.faq-tab { white-space: nowrap; }
+@media (max-width: 700px) {
+  .faq-tabs { gap: 6px; }
+  .faq-tab { padding: 9px 11px; font-size: 11px; letter-spacing: .02em; }
+}

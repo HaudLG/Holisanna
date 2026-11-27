@@ -8,27 +8,27 @@
       {
         "id": "q1",
         "q": "Comment se passe le règlement d’une séance ?",
-        "a": "Vous ne payez rien sur Holisanna. Le montant affiché est réglé directement au praticien le jour du rendez-vous, selon les moyens de paiement qu'il accepte. La facture de la séance est émise par le praticien."
+        "a": "Vous ne payez rien sur Holisanna. Le montant affiché est réglé directement au praticien le jour du rendez-vous, selon les moyens de paiement qu’il accepte. La facture de la séance est émise par le praticien."
       },
       {
         "id": "q2",
         "q": "Puis-je annuler un rendez-vous ?",
-        "a": "Oui, librement et gratuitement jusqu'à 24 heures avant le créneau, depuis Mes rendez-vous. En deçà de 24 heures, les conditions du praticien s'appliquent : elles sont indiquées sur sa fiche."
+        "a": "Oui, librement et gratuitement jusqu’à 24 heures avant le créneau, depuis Mes rendez-vous. Moins de 24 heures avant le créneau, les conditions du praticien s’appliquent : elles sont indiquées sur sa fiche."
       },
       {
         "id": "q3",
         "q": "Qu’est-ce que le cocktail bien-être ?",
-        "a": "La représentation des pratiques que vous suivez, organisée selon les trois piliers Corps, Âme et Esprit. Il se remplit par couches, séance après séance. Il n'y a rien à compléter à tout prix : un cocktail à une seule couche est un cocktail valable."
+        "a": "La représentation des pratiques que vous suivez, organisée selon les trois piliers Corps, Âme et Esprit. Il se remplit par couches, séance après séance. Il n’y a rien à compléter à tout prix : un cocktail à une seule couche est un cocktail valable."
       },
       {
         "id": "q4",
         "q": "Les praticiens sont-ils vérifiés ?",
-        "a": "Chaque praticien signe la charte éthique et déclare sa formation, ses années de pratique et son assurance responsabilité civile professionnelle. Holisanna ne délivre pas de diplôme et ne garantit pas de résultat : la charte engage le praticien, et tout manquement peut être signalé."
+        "a": "Pas de contrôle de diplôme, ni des justificatifs pour l’instant. Chaque praticien signe la charte éthique et déclare sa formation, son SIRET et son assurance RC Pro ; nous comptons sur vos signalements pour retirer toute fiche qui manque à la charte."
       },
       {
         "id": "q5",
         "q": "Comment écrire un avis ?",
-        "a": "Après une séance passée, l'avis vous est proposé depuis Mes avis. Il porte sur une séance réellement suivie, est publié tel que vous l'écrivez, et le praticien dispose d'un droit de réponse."
+        "a": "Après une séance passée, l’avis vous est proposé depuis Mes avis. Il porte sur une séance réellement suivie, est publié tel que vous l’écrivez, et le praticien dispose d’un droit de réponse."
       },
       {
         "id": "q6",
@@ -43,22 +43,22 @@
       {
         "id": "p1",
         "q": "Combien coûte le référencement ?",
-        "a": "Un abonnement, sans commission sur vos séances. Fil Continu : 9,99 € par mois avec engagement de 12 mois, ou 109,89 € en une fois pour l'année (un mois offert). Fil Libre : 11,99 € par mois, sans engagement. Le premier mois est gratuit ; le prélèvement a lieu à la fin de l'essai, puis à la même date chaque mois. Factures disponibles dans votre espace."
+        "a": "Un abonnement, sans commission sur vos séances. Fil Continu : 9,99 € par mois avec engagement de 12 mois, ou 109,89 € en une fois pour l’année (un mois offert). Fil Libre : 11,99 € par mois, sans engagement. Le premier mois est gratuit ; le prélèvement a lieu à la fin de l’essai, puis à la même date chaque mois. Factures disponibles dans votre espace."
       },
       {
         "id": "p1a",
-        "q": "Comment fonctionne le mois d'essai gratuit ?",
-        "a": "Il démarre à la première publication de votre fiche, pas à l'inscription. Rien n'est prélevé pendant ce mois. Vous choisissez votre formule et ajoutez votre carte depuis Abonnement & factures ; le premier prélèvement n'a lieu qu'à la fin de l'essai. Sans formule active à cette date, votre fiche est mise hors ligne."
+        "q": "Comment fonctionne le mois d’essai gratuit ?",
+        "a": "Il démarre à la première publication de votre fiche, pas à l’inscription. Rien n’est prélevé pendant ce mois. Vous choisissez votre formule et ajoutez votre carte depuis Abonnement & factures ; le premier prélèvement n’a lieu qu’à la fin de l’essai. Sans formule active à cette date, votre fiche est mise hors ligne."
       },
       {
         "id": "p1b",
         "q": "Comment résilier mon abonnement ?",
-        "a": "Depuis Abonnement & factures, avec Gérer mon abonnement. Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d'engagement (ou à l'échéance annuelle si vous avez payé l'année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois."
+        "a": "Depuis Abonnement & factures, avec Gérer mon abonnement. Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d’engagement (ou à l’échéance annuelle si vous avez payé l’année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois."
       },
       {
         "id": "p2",
         "q": "Holisanna prend-il une commission ?",
-        "a": "Non, aucune. Les séances sont réglées directement par l'explorateur le jour du rendez-vous. Holisanna ne touche pas aux paiements de séance."
+        "a": "Non, aucune. Les séances sont réglées directement par l’explorateur le jour du rendez-vous. Holisanna ne touche pas aux paiements de séance."
       },
       {
         "id": "p3",
@@ -73,12 +73,12 @@
       {
         "id": "p5",
         "q": "Puis-je masquer une prestation ou mettre ma fiche en pause ?",
-        "a": "Une prestation se masque en un clic depuis Mes prestations, sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n'est plus réservable."
+        "a": "Une prestation se masque en un clic depuis Mes prestations, sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n’est plus réservable."
       },
       {
         "id": "p6",
         "q": "Comment répondre à un avis ?",
-        "a": "Depuis Avis reçus, chaque avis dispose d'un bouton Répondre. Votre réponse est publiée sous l'avis, visible de tous. Un avis contraire aux conditions d'utilisation peut être signalé."
+        "a": "Depuis Avis reçus, chaque avis dispose d’un bouton Répondre. Votre réponse est publiée sous l’avis, visible de tous. Un avis contraire aux conditions d’utilisation peut être signalé."
       }
     ]
   },
@@ -88,22 +88,22 @@
       {
         "id": "c1",
         "q": "Comment supprimer mon compte ?",
-        "a": "Depuis Mon profil (explorateurs) ou Mon compte (praticiens), à tout moment. Votre compte est désactivé tout de suite et vous avez 14 jours pour changer d'avis : il suffit de vous reconnecter. Passé ce délai, vos données personnelles sont effacées et vos avis rendus anonymes ; les pièces comptables sont conservées dix ans, comme la loi l'exige."
+        "a": "Depuis Mon profil (explorateurs) ou Mon compte (praticiens), à tout moment. Votre compte est désactivé tout de suite et vous avez 14 jours pour changer d’avis : il suffit de vous reconnecter. Passé ce délai, vos données personnelles sont effacées et vos avis rendus anonymes ; les pièces comptables sont conservées dix ans, comme la loi l’exige."
       },
       {
         "id": "c2",
         "q": "Mes données de santé sont-elles collectées ?",
-        "a": "Non. Aucune donnée de santé n'entre dans la plateforme, et ce qui se dit en séance reste entre vous et le praticien — y compris vis-à-vis de Holisanna."
+        "a": "Non. Aucune donnée de santé n’entre dans la plateforme, et ce qui se dit en séance reste entre vous et le praticien — y compris vis-à-vis de Holisanna."
       },
       {
         "id": "c3",
         "q": "Recevrai-je des e-mails promotionnels ?",
-        "a": "Uniquement avec votre accord. Les notifications de réservation, d'avis et de facturation, elles, font partie du service."
+        "a": "Uniquement avec votre accord. Les notifications de réservation, d’avis et de facturation, elles, font partie du service."
       },
       {
         "id": "c4",
         "q": "Que faire en cas de problème avec un praticien ?",
-        "a": "Écrivez à contact@holisanna.fr avec l'objet « Signalement », le nom du praticien et la date de la séance. Le signalement est instruit sous sept jours, reste confidentiel, et peut mener au retrait de la fiche."
+        "a": "Écrivez à contact@holisanna.fr avec l’objet « Signalement », le nom du praticien et la date de la séance. Le signalement est instruit sous sept jours, reste confidentiel, et peut mener au retrait de la fiche."
       }
     ]
   }
