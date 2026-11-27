@@ -13,12 +13,12 @@
       {
         "id": "q2",
         "q": "Puis-je annuler un rendez-vous ?",
-        "a": "Oui, librement et gratuitement jusqu’à 24 heures avant le créneau, depuis Mes rendez-vous. Moins de 24 heures avant le créneau, les conditions du praticien s’appliquent : elles sont indiquées sur sa fiche."
+        "a": "Oui, librement et gratuitement jusqu’à 24 heures avant le créneau, depuis « Mes rendez-vous ». Moins de 24 heures avant le créneau, les conditions du praticien s’appliquent : elles sont indiquées sur sa fiche."
       },
       {
         "id": "q3",
         "q": "Qu’est-ce que le cocktail bien-être ?",
-        "a": "La représentation des pratiques que vous suivez, organisée selon les trois piliers Corps, Âme et Esprit. Il se remplit par couches, séance après séance. Il n’y a rien à compléter à tout prix : un cocktail à une seule couche est un cocktail valable."
+        "a": "C’est votre profil bien-être : l’ensemble des pratiques que vous suivez, réparties selon trois piliers, Corps, Âme et Esprit. Il se remplit par couches, séance après séance. Rien n’est obligatoire : un cocktail à une seule couche est un cocktail valable."
       },
       {
         "id": "q4",
@@ -28,7 +28,7 @@
       {
         "id": "q5",
         "q": "Comment écrire un avis ?",
-        "a": "Après une séance passée, l’avis vous est proposé depuis Mes avis. Il porte sur une séance réellement suivie, est publié tel que vous l’écrivez, et le praticien dispose d’un droit de réponse."
+        "a": "Après une séance passée, l’avis vous est proposé depuis « Mes avis ». Il porte sur une séance réellement suivie, est publié tel que vous l’écrivez, et le praticien dispose d’un droit de réponse. Il ne se modifie pas depuis le site : pour le corriger ou le faire retirer, écrivez-nous à contact@holisanna.fr. Holisanna peut retirer un avis contraire aux conditions d’utilisation, et un avis abusif peut être signalé à la même adresse."
       },
       {
         "id": "q6",
@@ -48,12 +48,12 @@
       {
         "id": "p1a",
         "q": "Comment fonctionne le mois d’essai gratuit ?",
-        "a": "Il démarre à la première publication de votre fiche, pas à l’inscription. Rien n’est prélevé pendant ce mois. Vous choisissez votre formule et ajoutez votre carte depuis Abonnement & factures ; le premier prélèvement n’a lieu qu’à la fin de l’essai. Sans formule active à cette date, votre fiche est mise hors ligne."
+        "a": "Il démarre à la première publication de votre fiche, pas à l’inscription. Rien n’est prélevé pendant ce mois. Vous choisissez votre formule et ajoutez votre carte depuis « Abonnement & factures » ; le premier prélèvement n’a lieu qu’à la fin de l’essai. Sans formule active à cette date, votre fiche est mise hors ligne."
       },
       {
         "id": "p1b",
         "q": "Comment résilier mon abonnement ?",
-        "a": "Depuis Abonnement & factures, avec Gérer mon abonnement. Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d’engagement (ou à l’échéance annuelle si vous avez payé l’année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois."
+        "a": "Depuis « Abonnement & factures », avec « Gérer mon abonnement ». Fil Libre : effet à la fin de la période payée. Fil Continu : effet à la fin des 12 mois d’engagement (ou à l’échéance annuelle si vous avez payé l’année). Votre fiche reste en ligne jusque-là, puis elle est mise hors ligne ; vos données restent récupérables trois mois."
       },
       {
         "id": "p2",
@@ -68,17 +68,17 @@
       {
         "id": "p4",
         "q": "Puis-je proposer plusieurs disciplines ?",
-        "a": "Oui. Une discipline principale, qui sert au classement dans la recherche, et autant de disciplines complémentaires que vous pratiquez réellement. Elles se règlent depuis Modifier ma fiche."
+        "a": "Oui. Une discipline principale, qui sert au classement dans la recherche, et autant de disciplines complémentaires que vous pratiquez réellement. Elles se règlent depuis « Modifier ma fiche »."
       },
       {
         "id": "p5",
         "q": "Puis-je masquer une prestation ou mettre ma fiche en pause ?",
-        "a": "Une prestation se masque en un clic depuis Mes prestations, sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n’est plus réservable."
+        "a": "Une prestation se masque en un clic depuis « Mes prestations », sans la supprimer. Pour une absence longue, il suffit de ne pas ouvrir de créneaux : votre fiche reste consultable mais n’est plus réservable."
       },
       {
         "id": "p6",
         "q": "Comment répondre à un avis ?",
-        "a": "Depuis Avis reçus, chaque avis dispose d’un bouton Répondre. Votre réponse est publiée sous l’avis, visible de tous. Un avis contraire aux conditions d’utilisation peut être signalé."
+        "a": "Depuis « Avis reçus », chaque avis dispose d’un bouton « Répondre ». Votre réponse est publiée sous l’avis, visible de tous. Un avis contraire aux conditions d’utilisation peut être signalé."
       }
     ]
   },
