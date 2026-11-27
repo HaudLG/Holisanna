@@ -1152,3 +1152,9 @@ html { font-variant-numeric: lining-nums; }
   .faq-tabs { gap: 6px; }
   .faq-tab { padding: 9px 11px; font-size: 11px; letter-spacing: .02em; }
 }
+
+/* FAQ : onglets sur une seule ligne aussi sur les petits écrans (360 px) */
+@media (max-width:380px){
+  .faq-tabs{gap:4px}
+  .faq-tab{padding:9px 7px;font-size:10.5px;letter-spacing:.01em}
+}
