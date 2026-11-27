@@ -86,7 +86,7 @@
         '<div class="identity__meta">' + meta + '</div>' + writeBtn(p, pr) + '</div>' +
       '</section>' +
 
-      '<section class="panel"><h2 class="panel__title">L\'approche</h2><p class="bio">' + esc(pr.bio).replace(/\n+/g, '</p><p class="bio">') + '</p>' +
+      '<section class="panel"><h2 class="panel__title">L’approche</h2><p class="bio">' + esc(pr.bio).replace(/\n+/g, '</p><p class="bio">') + '</p>' +
         (pr.parcours ? '<h2 class="panel__title" style="margin-top:22px">Parcours</h2><p class="bio">' + esc(pr.parcours).replace(/\n+/g, '</p><p class="bio">') + '</p>' : '') +
         '<div class="bubbles">' + pr.tags.map(function (t) { return '<span class="bubble">' + esc(t) + '</span>'; }).join('') + '</div></section>' +
 
@@ -100,7 +100,7 @@
       '</div>' +
 
       '<aside class="booking-aside"><h2>Réserver une séance</h2><div class="booking-aside__sub">Agenda synchronisé en direct</div>' +
-      (empty ? '<div class="no-slots"><h3>Aucun créneau ouvert</h3><p>' + (p.real ? esc(pr.firstName) + ' n’a pas encore ouvert de disponibilités.' : 'Cette praticienne n\'a pas encore ouvert de disponibilités pour la semaine affichée.') + '</p>' + (p.real ? '' : '<button class="btn-small" type="button" id="ask">Demander ses disponibilités</button>') + '</div>' : '') +
+      (empty ? '<div class="no-slots"><h3>Aucun créneau ouvert</h3><p>' + (p.real ? esc(pr.firstName) + ' n’a pas encore ouvert de disponibilités.' : 'Cette praticienne n’a pas encore ouvert de disponibilités pour la semaine affichée.') + '</p>' + (p.real ? '' : '<button class="btn-small" type="button" id="ask">Demander ses disponibilités</button>') + '</div>' : '') +
       (p.real && p.offers.length > 1 ? '<div class="ffield" style="margin:0 0 16px"><label for="offer">Prestation</label><select id="offer">' + p.offers.map(function (o) { return '<option value="' + esc(o.id) + '"' + (offerOf(p).id === o.id ? ' selected' : '') + '>' + esc(o.name + ' · ' + (window.innerWidth <= 700 ? String(o.detail).split(' · ')[0] : o.detail) + ' · ' + o.price) + '</option>'; }).join('') + '</select></div>' : '') +
       '<div class="agenda">' + days.map(function (d) {
         return '<div><div class="agenda__day">' + esc(d.label) + '</div><div class="agenda__times">' +

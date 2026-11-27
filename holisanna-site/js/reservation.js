@@ -35,7 +35,7 @@
       rows.map(function (r) { return '<div class="recap__row"><span class="recap__k">' + r[0] + '</span><span class="recap__v">' + r[1] + '</span></div>'; }).join('') +
       '</div><div class="note-olive">Séance confirmée = une couche ajoutée à votre cocktail bien-être.</div></div>' +
       '<div><div class="label-s" style="margin-bottom:14px">Règlement</div>' +
-      '<div class="pay-box"><strong>Règlement sur place</strong><span>Vous réglez directement le praticien le jour de la séance. Rien à payer maintenant, annulation gratuite jusqu\'à 24 h avant.</span></div>' +
+      '<div class="pay-box"><strong>Règlement sur place</strong><span>Vous réglez directement le praticien le jour de la séance. Rien à payer maintenant, annulation gratuite jusqu’à 24 h avant.</span></div>' +
       '<div class="pay-total"><span>À régler le jour de la séance</span><span>' + prat.price + ' €</span></div>' +
       '<div class="btn-row"><button class="btn btn-cta' + (stillFree ? '' : ' is-disabled') + '" type="button" id="confirm">Confirmer la réservation</button>' +
       '<a class="btn btn-outline" href="' + profileUrl() + '">Modifier</a></div></div></div></section>';
@@ -57,7 +57,7 @@
     host.innerHTML = steps() + '<section class="done"><div class="badge-confirmed">✓ RÉSERVATION CONFIRMÉE</div>' +
       '<h1>' + prat.name + ', ' + date + ' à ' + time + '</h1>' +
       '<p class="done__line">Vous réglerez ' + prat.price + ' € directement au praticien le jour de la séance.</p>' +
-      '<p class="done__sub">L\'agenda du praticien est mis à jour, le créneau n\'est plus proposé aux autres explorateurs.</p>' +
+      '<p class="done__sub">L’agenda du praticien est mis à jour, le créneau n’est plus proposé aux autres explorateurs.</p>' +
       '<div class="btn-row"><a class="btn btn-primary" href="cocktail.html">Voir mon cocktail</a>' +
       '<a class="btn btn-outline" href="recherche.html">Continuer à explorer</a></div></section>';
   }
@@ -75,7 +75,7 @@
     host.innerHTML = steps() + '<section class="done"><div class="badge-confirmed">✓ RÉSERVATION CONFIRMÉE</div>' +
       '<h1>' + esc(r.praticien_nom) + ', ' + esc(when(r.debut)) + '</h1>' +
       '<p class="done__line">' + esc(r.prestation_nom) + ' · ' + esc(r.duree_minutes) + ' min' + (r.lieu ? ' · ' + esc(r.lieu) : '') + '. Vous réglerez ' + esc(r.prix_annonce) + ' € directement au praticien le jour de la séance.</p>' +
-      '<p class="done__sub">L\'agenda du praticien est mis à jour, le créneau n\'est plus proposé aux autres explorateurs. Annulation gratuite jusqu\'à 24 h avant la séance.</p>' +
+      '<p class="done__sub">L’agenda du praticien est mis à jour, le créneau n’est plus proposé aux autres explorateurs. Annulation gratuite jusqu’à 24 h avant la séance.</p>' +
       '<div class="btn-row"><a class="btn btn-primary" href="espace-rendez-vous.html">Voir mes rendez-vous</a>' +
       '<a class="btn btn-outline" href="recherche.html">Continuer à explorer</a></div></section>';
   }
@@ -108,7 +108,7 @@
         rows.map(function (r) { return '<div class="recap__row"><span class="recap__k">' + r[0] + '</span><span class="recap__v">' + r[1] + '</span></div>'; }).join('') +
         '</div><div class="note-olive">Séance confirmée = une couche ajoutée à votre cocktail bien-être.</div></div>' +
         '<div><div class="label-s" style="margin-bottom:14px">Règlement</div>' +
-        '<div class="pay-box"><strong>Règlement sur place</strong><span>Vous réglez directement le praticien le jour de la séance. Rien à payer maintenant, annulation gratuite jusqu\'à 24 h avant.</span></div>' +
+        '<div class="pay-box"><strong>Règlement sur place</strong><span>Vous réglez directement le praticien le jour de la séance. Rien à payer maintenant, annulation gratuite jusqu’à 24 h avant.</span></div>' +
         '<div class="pay-total"><span>À régler le jour de la séance</span><span>' + (offer ? esc(offer.prix) : '') + ' €</span></div>' +
         '<div class="btn-row"><button class="btn btn-cta' + (ok ? '' : ' is-disabled') + '" type="button" id="confirm">Confirmer la réservation</button>' +
         '<a class="btn btn-outline" href="' + back + '">Modifier</a></div></div></div></section>';

@@ -222,7 +222,7 @@
     var todayR = db.allResas.filter(function (b) { return b.statut === 'confirmee' && fromIso(b.debut).day === todayYmd(); }).reverse();
     var compl = reqs().map(function (r) { return [r[0], r[2] ? 1 : 0]; });
     var done = compl.filter(function (c) { return c[1]; }).length, pct = Math.round(done / compl.length * 100);
-    return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd\'hui</div>' +
+    return '<aside class="rside"><div class="rside__block"><div class="rside__title" style="margin-bottom:14px">Aujourd’hui</div>' +
       (todayR.length ? todayR.map(function (b) { return '<div class="today"><span class="today__t">' + fromIso(b.debut).hm.replace(':', 'h') + '</span><div style="min-width:0"><div class="today__c">' + esc(b.client_nom) + '</div><div class="today__o" style="color:var(--olive)">' + esc(b.prestation_nom) + ' · ' + esc(b.duree_minutes) + ' min</div></div></div>'; }).join('')
         : '<div class="today-sub" style="margin-top:0">Aucune séance prévue aujourd’hui.</div>') + '</div>' +
       '<div class="rside__block"><div class="rside__row" style="margin-bottom:10px"><span class="rside__label">Complétude de ma fiche</span><span style="font-size:11px;color:var(--gold)">' + pct + '%</span></div>' +

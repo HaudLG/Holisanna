@@ -172,7 +172,7 @@
     return '<div class="rdv"><div class="rdv__date"><div class="rdv__day">' + esc(p.day) + '</div><div class="rdv__month">' + esc(cap(p.month)) + '</div></div>' +
       '<div class="rdv__body"><div class="rdv__when">' + esc(cap(p.weekday)) + ' · ' + p.hour + 'h' + p.minute + '</div><div class="rdv__title">' + esc(r.prestation_nom) + ' avec ' + esc(r.praticien_nom) + '</div>' +
       '<div class="rdv__meta">' + esc(r.lieu || '') + (r.lieu ? ' · ' : '') + esc(r.prix_annonce) + ' € sur place</div></div>' +
-      '<div class="rdv__actions"><button class="btn-ghost2" type="button" data-act="agenda" data-id="' + r.id + '">Ajouter à l\'agenda</button>' +
+      '<div class="rdv__actions"><button class="btn-ghost2" type="button" data-act="agenda" data-id="' + r.id + '">Ajouter à l’agenda</button>' +
       '<div class="rdv__row"><button class="btn-mini btn-mini--no" type="button" data-act="open-cancel" data-id="' + r.id + '">Annuler</button></div></div></div>';
   }
   function nextRdv(d, all) {
@@ -269,7 +269,7 @@
       '<div class="btn-row-c"><button class="btn btn-outline" type="button" data-act="save">Sauvegarder</button><button class="btn btn-primary" type="button" data-act="share">Partager</button></div>' +
       '<div class="progress">' + progress + '</div></div>' +
       '<div class="cocktail-side"><div class="panel2"><div class="panel2__head"><div class="panel2__title">Composition</div><div class="panel2__count">' + s.sessions.length + ' séance' + (s.sessions.length > 1 ? 's' : '') + ' réalisée' + (s.sessions.length > 1 ? 's' : '') + '</div></div>' + rows + '</div>' +
-      '<div class="panel2"><div class="panel2__title" style="margin-bottom:6px">Compléter le cocktail</div><p class="panel2__lead" style="margin-top:0">Chaque pilier propose les disciplines que vous n\'avez pas encore goûtées.</p><div class="suggs">' + suggs + '</div></div></div></div>';
+      '<div class="panel2"><div class="panel2__title" style="margin-bottom:6px">Compléter le cocktail</div><p class="panel2__lead" style="margin-top:0">Chaque pilier propose les disciplines que vous n’avez pas encore goûtées.</p><div class="suggs">' + suggs + '</div></div></div></div>';
   }
 
 
@@ -357,8 +357,8 @@
     return '<div class="modal-back" data-act="close-bg"><div class="modal" role="dialog" aria-modal="true">' +
       '<div class="modal__k" style="color:var(--rose)">Annuler la séance</div><h3>Annuler ce rendez-vous ?</h3>' +
       '<p class="modal__lead" style="margin-bottom:18px">' + esc(r.prestation_nom) + ' avec ' + esc(r.praticien_nom) + ', ' + esc(whenLong(r.debut)) + '. ' +
-      (free ? 'Nous sommes à plus de 24 heures du rendez-vous : l\'annulation est gratuite et le créneau sera rouvert.' : 'Nous sommes à moins de 24 heures du rendez-vous : l\'annulation en ligne n\'est plus possible. Contactez directement le praticien.') + '</p>' +
-      '<div class="modal__btns">' + (free ? '<button class="btn-rose" type="button" data-act="cancel" data-id="' + r.id + '">CONFIRMER L\'ANNULATION</button>' : '') + '<button class="btn-ghost2" type="button" data-act="close">GARDER LE RENDEZ-VOUS</button></div></div></div>';
+      (free ? 'Nous sommes à plus de 24 heures du rendez-vous : l’annulation est gratuite et le créneau sera rouvert.' : 'Nous sommes à moins de 24 heures du rendez-vous : l’annulation en ligne n’est plus possible. Contactez directement le praticien.') + '</p>' +
+      '<div class="modal__btns">' + (free ? '<button class="btn-rose" type="button" data-act="cancel" data-id="' + r.id + '">CONFIRMER L’ANNULATION</button>' : '') + '<button class="btn-ghost2" type="button" data-act="close">GARDER LE RENDEZ-VOUS</button></div></div></div>';
   }
 
   /* ----- Rendu ----- */

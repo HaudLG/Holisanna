@@ -85,7 +85,7 @@
     $('f-pillars').innerHTML = ['corps', 'esprit', 'ame'].map(function (k) {
       return check(P[k].label, s.fPillars.indexOf(k) !== -1, LIST.filter(function (p) { return p.pillar === k; }).length, 'data-pillar="' + k + '"');
     }).join('');
-    $('f-dispo').innerHTML = [['today', "Aujourd'hui"], ['week', 'Cette semaine'], ['month', 'Ce mois']].map(function (o) {
+    $('f-dispo').innerHTML = [['today', "Aujourd’hui"], ['week', 'Cette semaine'], ['month', 'Ce mois']].map(function (o) {
       return '<button type="button" class="pill' + (s.fDispo === o[0] ? ' is-on' : '') + '" data-dispo="' + o[0] + '">' + o[1] + '</button>';
     }).join('');
     $('f-modes').innerHTML = [['Cabinet', 'En cabinet'], ['Visio', 'En visio'], ['Domicile', 'À domicile']].map(function (m) {
@@ -106,7 +106,7 @@
   function renderChips() {
     var chips = [];
     s.fPillars.forEach(function (k) { chips.push([P[k].label, 'fPillars', k]); });
-    if (s.fDispo) chips.push([s.fDispo === 'today' ? "Aujourd'hui" : s.fDispo === 'week' ? 'Cette semaine' : 'Ce mois', 'fDispo']);
+    if (s.fDispo) chips.push([s.fDispo === 'today' ? "Aujourd’hui" : s.fDispo === 'week' ? 'Cette semaine' : 'Ce mois', 'fDispo']);
     s.fModes.forEach(function (m) { chips.push([m, 'fModes', m]); });
     if (s.fRating) chips.push([s.fRating + '+ étoiles', 'fRating']);
     if (s.maxPrice < 200) chips.push(['≤ ' + s.maxPrice + ' €', 'maxPrice']);

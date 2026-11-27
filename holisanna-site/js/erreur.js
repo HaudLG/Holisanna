@@ -10,10 +10,10 @@
 
   var ERRORS = {
     '404': {
-      accent: 'var(--rose)', code: 'Erreur 404', title: 'Ce chemin', em: "n'existe pas.",
-      sub: "La page que vous cherchez semble s'être égarée sur le chemin du bien-être. Pas d'inquiétude — il existe d'autres voies.",
+      accent: 'var(--rose)', code: 'Erreur 404', title: 'Ce chemin', em: "n’existe pas.",
+      sub: "La page que vous cherchez semble s’être égarée sur le chemin du bien-être. Pas d’inquiétude — il existe d’autres voies.",
       actions: [
-        { label: "← Retour à l'accueil", cls: 'dark', href: 'index.html' },
+        { label: "← Retour à l’accueil", cls: 'dark', href: 'index.html' },
         { label: 'Trouver un praticien', cls: 'rose', href: 'recherche.html' },
         { label: 'Mon espace', cls: 'out', href: espace }
       ],
@@ -25,16 +25,16 @@
     },
     '500': {
       accent: 'var(--olive)', code: 'Erreur 500', title: 'Holisanna fait', em: 'une petite pause.',
-      sub: "Même les plateformes ont besoin de prendre soin d'elles de temps en temps. Nos équipes sont sur le pont, tout devrait rentrer dans l'ordre très bientôt.",
+      sub: "Même les plateformes ont besoin de prendre soin d’elles de temps en temps. Nos équipes sont sur le pont, tout devrait rentrer dans l’ordre très bientôt.",
       countdown: true,
       actions: [
         { label: 'Réessayer maintenant', cls: 'dark', act: 'reload' },
-        { label: "← Retour à l'accueil", cls: 'out', href: 'index.html' }
+        { label: "← Retour à l’accueil", cls: 'out', href: 'index.html' }
       ],
       foot: 'Si le problème persiste, contactez-nous à'
     },
     paiement: {
-      accent: 'var(--gold)', code: 'Paiement non abouti', title: 'Votre paiement', em: "n'a pas pu être traité.",
+      accent: 'var(--gold)', code: 'Paiement non abouti', title: 'Votre paiement', em: "n’a pas pu être traité.",
       sub: "Le dernier prélèvement de votre abonnement a échoué. Mettez à jour votre carte depuis « Abonnement & factures » pour garder votre fiche en ligne.",
       actions: [
         { label: 'Gérer mon abonnement', cls: 'rose', href: 'pro-abonnement.html' },
@@ -43,11 +43,11 @@
       foot: 'Le prélèvement échoue toujours ? Écrivez-nous à'
     },
     session: {
-      accent: 'var(--gold)', code: 'Session expirée', title: 'Votre session', em: "s'est refermée.",
+      accent: 'var(--gold)', code: 'Session expirée', title: 'Votre session', em: "s’est refermée.",
       sub: "Reconnectez-vous pour reprendre là où vous en étiez : vos réservations et votre cocktail sont intacts.",
       actions: [
         { label: 'Se reconnecter', cls: 'dark', act: 'relogin' },
-        { label: "Retour à l'accueil", cls: 'out', href: 'index.html' }
+        { label: "Retour à l’accueil", cls: 'out', href: 'index.html' }
       ],
       foot: 'Un souci de connexion ? Écrivez-nous à'
     }
